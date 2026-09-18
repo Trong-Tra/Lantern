@@ -12,6 +12,7 @@ import {
 
 import { cinematicState } from "@/libs/cinematic/runtime";
 import { clamp, smoothstep } from "@/libs/cinematic/progress";
+import { finaleBackdropVisibility } from "@/libs/cinematic/finale";
 import {
   discoveryBackdropFocus,
   discoveryBackdropVisibility,
@@ -67,7 +68,8 @@ export function AgentNetwork({ mobile, reducedMotion }: WorldSettings) {
     const time = reducedMotion ? 0 : clock.elapsedTime;
     const focus = mobile ? 0 : discoveryBackdropFocus(s.progress);
     const pathFocus = mobile ? 0 : pathBackdropFocus(s.progress);
-    const edgeFocus = mobile ? 0 : Math.max(pathFocus, s.executionFocus);
+    const backdropFocus = Math.max(s.executionFocus, s.infrastructureFocus);
+    const edgeFocus = mobile ? 0 : Math.max(pathFocus, backdropFocus);
     for (let i = 0; i < count; i += 1) {
       const agent = AGENTS[i];
       const [x, y, z] = agent.position;
@@ -79,7 +81,8 @@ export function AgentNetwork({ mobile, reducedMotion }: WorldSettings) {
       const visibility =
         discoveryBackdropVisibility(focus, screenX) *
         pathBackdropVisibility(pathFocus, screenX) *
-        (1 - s.executionFocus * 0.95);
+        (1 - backdropFocus * 0.95) *
+        finaleBackdropVisibility(s.finaleFocus, screenX, mobile);
       backdrop.current[i] = visibility;
       toNode.set(x - s.lanternX, y - s.lanternY, z - s.lanternZ).normalize();
       const cone = smoothstep(clamp((direction.dot(toNode) - 0.78) / 0.2));

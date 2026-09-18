@@ -5,6 +5,7 @@ import {
   smoothstep,
   windowProgress,
 } from "./progress";
+import { finaleReadingFocus } from "./finale";
 
 export const cinematicState = {
   progress: 0,
@@ -18,7 +19,9 @@ export const cinematicState = {
   execution: 0,
   executionFocus: 0,
   infrastructure: 0,
+  infrastructureFocus: 0,
   finale: 0,
+  finaleFocus: 0,
   lanternX: 1.8,
   lanternY: 0.1,
   lanternZ: 0,
@@ -64,7 +67,9 @@ export function updateCinematicState(progress: number) {
   s.execution = mapProgress(0.72, 0.815, progress);
   s.executionFocus = windowProgress(0.705, 0.835, progress, 0.015);
   s.infrastructure = windowProgress(0.82, 0.905, progress, 0.012);
+  s.infrastructureFocus = windowProgress(0.81, 0.91, progress, 0.015);
   s.finale = smoothstep(mapProgress(0.962, 1, progress));
+  s.finaleFocus = finaleReadingFocus(progress);
   const nextIndex = poses.findIndex((pose) => pose[0] >= progress);
   const index = nextIndex <= 0 ? 1 : nextIndex;
   const a = poses[index - 1];
@@ -113,6 +118,19 @@ export function updateCinematicState(progress: number) {
     s.mobile ? 0.32 : 0.4,
     s.executionFocus
   );
+  // Keep the lantern above the Monad stack, away from the left editorial copy.
+  s.lanternX = lerp(s.lanternX, s.mobile ? 1.35 : 3.6, s.infrastructureFocus);
+  s.lanternY = lerp(s.lanternY, s.mobile ? 3.75 : 3.1, s.infrastructureFocus);
+  s.lanternZ = lerp(s.lanternZ, -1, s.infrastructureFocus);
+  s.lanternScale = lerp(
+    s.lanternScale,
+    s.mobile ? 0.23 : 0.32,
+    s.infrastructureFocus
+  );
+  // The closing wordmark owns the center; its lantern becomes a small crest.
+  s.lanternX = lerp(s.lanternX, s.mobile ? 1.1 : 0, s.finaleFocus);
+  s.lanternY = lerp(s.lanternY, s.mobile ? 4.2 : 3.4, s.finaleFocus);
+  s.lanternScale = lerp(s.lanternScale, s.mobile ? 0.3 : 0.46, s.finaleFocus);
   if (s.reducedMotion) {
     s.cameraX = 0;
     s.cameraY = 0;

@@ -94,7 +94,7 @@ export function useCinematicScroll(
         const visible = active === i;
         if (!visible && panel.contains(document.activeElement)) {
           element
-            .querySelector<HTMLButtonElement>(".lattern-launch")
+            .querySelector<HTMLButtonElement>(".wallet-connect")
             ?.focus({ preventScroll: true });
         }
         panel.style.opacity = visible ? String(alpha) : "0";

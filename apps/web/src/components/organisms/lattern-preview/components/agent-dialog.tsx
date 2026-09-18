@@ -15,7 +15,7 @@ interface AgentDialogProps {
 }
 
 const PRIMARY_BUTTON =
-  "inline-flex min-h-11 items-center justify-center gap-3 bg-amber-200 px-5 py-3 text-sm font-medium text-stone-950 transition-colors hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-4 focus-visible:ring-offset-stone-950";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-amber-200 px-4 py-2 text-sm font-medium text-stone-950 transition-colors hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-4 focus-visible:ring-offset-stone-950";
 
 const EXECUTION_STEPS = [
   "Review permission",

@@ -15,6 +15,8 @@ const vertexShader = `
   uniform vec3 uTarget;
   uniform float uIgnition;
   uniform float uFinale;
+  uniform float uFinaleFocus;
+  uniform float uMobile;
   uniform float uDiscoveryFocus;
   uniform float uPathFocus;
   uniform float uExecutionFocus;
@@ -35,6 +37,8 @@ const vertexShader = `
     vLight *= 1. - uDiscoveryFocus * smoothstep(.15, .5, -screenX) * .96;
     vLight *= 1. - uPathFocus * smoothstep(-.1, .3, screenX) * .96;
     vLight *= 1. - uExecutionFocus * .95;
+    float finaleEdge = smoothstep(.58, .95, abs(screenX)) * (1. - uMobile);
+    vLight *= mix(1., mix(.015, .22, finaleEdge), uFinaleFocus);
     gl_PointSize = clamp((15. + aSeed * 20.) / -viewPosition.z * uDpr, 1., 5.);
   }
 `;
@@ -72,6 +76,8 @@ export function Atmosphere({ mobile, reducedMotion }: WorldSettings) {
       uDpr: { value: 1 },
       uIgnition: { value: 0 },
       uFinale: { value: 0 },
+      uFinaleFocus: { value: 0 },
+      uMobile: { value: 0 },
       uDiscoveryFocus: { value: 0 },
       uPathFocus: { value: 0 },
       uExecutionFocus: { value: 0 },
@@ -92,12 +98,14 @@ export function Atmosphere({ mobile, reducedMotion }: WorldSettings) {
     u.uTarget.value.set(s.beamX, s.beamY, s.beamZ);
     u.uIgnition.value = s.ignition;
     u.uFinale.value = s.finale;
+    u.uFinaleFocus.value = s.finaleFocus;
+    u.uMobile.value = mobile ? 1 : 0;
     u.uDiscoveryFocus.value = mobile ? 0 : discoveryBackdropFocus(s.progress);
     u.uPathFocus.value = mobile ? 0 : pathBackdropFocus(s.progress);
-    u.uExecutionFocus.value = s.executionFocus;
+    u.uExecutionFocus.value = Math.max(s.executionFocus, s.infrastructureFocus);
     u.uEdgeFocus.value = mobile
       ? 0
-      : Math.max(u.uPathFocus.value, s.executionFocus);
+      : Math.max(u.uPathFocus.value, u.uExecutionFocus.value);
   });
 
   return (

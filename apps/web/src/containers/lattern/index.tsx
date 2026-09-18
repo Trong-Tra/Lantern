@@ -13,6 +13,7 @@ import { LightRevealText } from "@/components/animations/light-reveal-text";
 import { LatternMark } from "@/components/icons/lattern-mark";
 import { ProductPreview } from "@/components/organisms/lattern-preview";
 import { SceneDetails } from "./components/scene-details";
+import { ConnectWalletButton } from "./components/connect-wallet-button";
 import { useCinematicScroll } from "./hooks/use-cinematic-scroll";
 import "./noscript.scss";
 
@@ -108,9 +109,7 @@ export function LatternExperience() {
           <button onClick={() => jump(0.315)}>The trust layer</button>
           <button onClick={() => jump(0.657)}>How it works</button>
         </nav>
-        <button className="lattern-launch" onClick={() => jump(0.929, true)}>
-          Launch Lattern <span aria-hidden="true">↗</span>
-        </button>
+        <ConnectWalletButton />
       </header>
 
       <div className="lattern-stage">
@@ -162,19 +161,24 @@ export function LatternExperience() {
                 </button>
               )}
               {scene.id === "finale" && (
-                <div className="final-actions">
+                <div className="final-actions" data-sequence="0.975">
                   <button
                     className="primary-action"
                     onClick={() => jump(0.929, true)}
                   >
-                    Launch Lattern <span>↗</span>
+                    Launch Lattern <span aria-hidden="true">↗</span>
                   </button>
-                  <span className="unpublished">
-                    View Contracts <small>Not published yet</small>
-                  </span>
-                  <span className="unpublished">
-                    GitHub <small>Not published yet</small>
-                  </span>
+                  <p className="final-demo-note">
+                    Explore the interactive demo · Sample agents
+                  </p>
+                  <div className="final-resources">
+                    <span className="unpublished">
+                      View Contracts <small>Not published yet</small>
+                    </span>
+                    <span className="unpublished">
+                      GitHub <small>Not published yet</small>
+                    </span>
+                  </div>
                 </div>
               )}
             </div>

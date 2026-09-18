@@ -32,6 +32,78 @@ function loadSource(relativePath) {
 }
 
 const math = loadSource("src/libs/cinematic/progress.ts");
+const { finaleReadingFocus, finaleBackdropVisibility } = loadSource(
+  "src/libs/cinematic/finale.ts"
+);
+
+test("finale shields the centered copy and CTA but retains a subtle edge constellation", () => {
+  for (const mobile of [false, true]) {
+    for (const x of [-1, -0.58, 0, 0.58, 1]) {
+      assert.equal(finaleBackdropVisibility(0, x, mobile), 1);
+      const visibility = finaleBackdropVisibility(1, x, mobile);
+      assert.ok(visibility >= 0 && visibility <= 0.22 + 1e-12);
+      if (mobile || Math.abs(x) <= 0.58) assert.ok(visibility < 0.02);
+      assert.equal(visibility, finaleBackdropVisibility(1, -x, mobile));
+    }
+  }
+  assert.ok(finaleBackdropVisibility(1, 1, false) > 0.2);
+  for (const p of [0, 0.43, 0.77, 0.86, 0.93, 0.956])
+    assert.equal(finaleReadingFocus(p), 0);
+  assert.equal(finaleReadingFocus(1), 1);
+  assert.ok(finaleReadingFocus(0.964) > 0 && finaleReadingFocus(0.964) < 1);
+});
+const infrastructure = loadSource("src/libs/cinematic/infrastructure.ts");
+
+test("infrastructure layers reveal top to bottom and remain lit", () => {
+  for (let i = 0; i < 5; i += 1) {
+    const start = infrastructure.infrastructureLayerStart(i);
+    assert.equal(infrastructure.infrastructureLayerReveal(i, start), 0);
+    assert.equal(infrastructure.infrastructureLayerReveal(i, start + 0.009), 1);
+    if (i < 4)
+      assert.equal(
+        infrastructure.infrastructureLayerReveal(i + 1, start + 0.009),
+        0
+      );
+    for (let j = 0; j < i; j += 1)
+      assert.equal(infrastructure.infrastructureLayerReveal(j, start), 1);
+    assert.equal(infrastructure.infrastructureLayerReveal(i, 0.885), 1);
+  }
+});
+
+test("infrastructure signal reaches each layer before that layer lights up", () => {
+  for (let i = 0; i < 4; i += 1) {
+    const arrival = infrastructure.infrastructureLayerStart(i + 1);
+    assert.equal(infrastructure.infrastructureTransfer(i, arrival - 0.003), 0);
+    assert.equal(infrastructure.infrastructureTransfer(i, arrival), 1);
+    assert.equal(infrastructure.infrastructureLayerReveal(i + 1, arrival), 0);
+    const middle = infrastructure.infrastructureTransfer(i, arrival - 0.0015);
+    assert.ok(middle > 0 && middle < 1);
+  }
+});
+
+test("infrastructure scroll samples are bounded and reversible", () => {
+  const sample = (p) =>
+    Array.from({ length: 5 }, (_, i) => [
+      infrastructure.infrastructureLayerReveal(i, p),
+      infrastructure.infrastructureTransfer(Math.min(i, 3), p),
+    ]);
+  const forward = Array.from({ length: 101 }, (_, i) => sample(i / 100));
+  for (let i = 100; i >= 0; i -= 1) {
+    assert.deepEqual(sample(i / 100), forward[i]);
+    for (const values of forward[i])
+      for (const value of values) assert.ok(value >= 0 && value <= 1);
+  }
+  assert.ok(
+    sample(-1)
+      .flat()
+      .every((value) => value === 0)
+  );
+  assert.ok(
+    sample(2)
+      .flat()
+      .every((value) => value === 1)
+  );
+});
 
 test("left route checklist reveals top to bottom with the trusted route last", () => {
   const source = fs.readFileSync(
@@ -251,6 +323,43 @@ test("chapter 8 parks the lantern above the graph and quiets the backdrop", () =
       updateCinematicState(progress);
       assert.equal(cinematicState.executionFocus, 0);
     }
+  }
+});
+
+test("chapter 9 keeps the lantern above the infrastructure and quiets the backdrop", () => {
+  cinematicState.reducedMotion = false;
+  for (const mobile of [false, true]) {
+    cinematicState.mobile = mobile;
+    for (const progress of [0.84, 0.86, 0.89]) {
+      updateCinematicState(progress);
+      assert.equal(cinematicState.infrastructureFocus, 1);
+      assert.ok(
+        Math.abs(cinematicState.lanternX - (mobile ? 1.35 : 3.6)) < 1e-12
+      );
+      assert.ok(
+        Math.abs(cinematicState.lanternY - (mobile ? 3.75 : 3.1)) < 1e-12
+      );
+      assert.ok(cinematicState.lanternScale <= 0.32 + 1e-12);
+    }
+    for (const progress of [0.435, 0.55, 0.66, 0.77, 0.93, 1]) {
+      updateCinematicState(progress);
+      assert.equal(cinematicState.infrastructureFocus, 0);
+    }
+  }
+});
+
+test("finale keeps its lantern above the closing content on desktop and mobile", () => {
+  cinematicState.reducedMotion = false;
+  for (const mobile of [false, true]) {
+    cinematicState.mobile = mobile;
+    for (const p of [0.98, 1]) {
+      updateCinematicState(p);
+      assert.equal(cinematicState.finaleFocus, 1);
+      assert.ok(cinematicState.lanternY >= 3.4);
+      assert.ok(cinematicState.lanternScale <= 0.46 + 1e-12);
+    }
+    updateCinematicState(0.93);
+    assert.equal(cinematicState.finaleFocus, 0);
   }
 });
 

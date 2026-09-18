@@ -134,7 +134,7 @@ export function ProductPreview({
               </span>
               <button
                 type="submit"
-                className={`inline-flex min-h-11 items-center justify-center gap-3 bg-amber-200 px-4 py-2.5 text-xs font-medium text-stone-950 transition-colors hover:bg-amber-100 sm:px-5 sm:text-sm ${FOCUS_STYLE}`}
+                className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-amber-200 px-3 py-2 text-xs font-medium text-stone-950 transition-colors hover:bg-amber-100 sm:px-4 sm:text-sm ${FOCUS_STYLE}`}
               >
                 Illuminate Path <span aria-hidden="true">↗</span>
               </button>
@@ -236,7 +236,7 @@ export function ProductPreview({
               <button
                 type="button"
                 onClick={(event) => openDialog(event, "execution")}
-                className={`inline-flex min-h-11 items-center gap-3 border border-amber-200/35 px-4 py-2.5 text-xs text-amber-100 transition-colors hover:bg-amber-200/10 ${FOCUS_STYLE}`}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-amber-200/35 px-3 py-2 text-xs text-amber-100 transition-colors hover:bg-amber-200/10 ${FOCUS_STYLE}`}
               >
                 Execute with Agent <span aria-hidden="true">→</span>
               </button>

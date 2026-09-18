@@ -115,7 +115,12 @@ export function Lantern() {
     const breath = s.reducedMotion ? 1 : 1 + Math.sin(time * 1.7) * 0.018;
     const ignition = s.ignition * breath;
     // Keep the history and execution labels ahead of the decorative glow.
-    const readingFocus = Math.max(s.reputation, s.executionFocus);
+    const readingFocus = Math.max(
+      s.reputation,
+      s.executionFocus,
+      s.infrastructureFocus,
+      s.finaleFocus
+    );
     const surfaceGlow = ignition * (1 - readingFocus * 0.45);
     const sway = Math.sin(time * 0.52) * 0.014;
     group.current.position.set(
@@ -131,11 +136,16 @@ export function Lantern() {
     current.haloMaterial.uniforms.uIgnition.value =
       ignition * (1 - readingFocus * 0.7);
     current.beamMaterial.uniforms.uIgnition.value =
-      ignition * (1 - readingFocus * 0.6);
+      ignition * (1 - readingFocus * 0.6) * (1 - s.finaleFocus * 0.85);
     if (tassel.current) tassel.current.rotation.z = -sway * 1.9;
     if (flame.current) flame.current.scale.set(0.072, 0.15 * breath, 0.072);
     if (light.current)
-      light.current.intensity = ignition * 3.4 * (1 - s.executionFocus * 0.5);
+      light.current.intensity =
+        ignition *
+        3.4 *
+        (1 -
+          Math.max(s.executionFocus, s.infrastructureFocus, s.finaleFocus) *
+            0.5);
     if (halo.current) {
       halo.current.visible = ignition > 0.001;
       halo.current.position.copy(group.current.position);

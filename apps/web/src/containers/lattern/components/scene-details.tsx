@@ -1,3 +1,5 @@
+import { infrastructureLayerStart } from "@/libs/cinematic/infrastructure";
+
 export function SceneDetails({ id }: Readonly<{ id: string }>) {
   if (id === "discover")
     return (
@@ -106,7 +108,7 @@ export function SceneDetails({ id }: Readonly<{ id: string }>) {
           "Execution layer",
           "Monad",
         ].map((layer, i) => (
-          <span key={layer} data-sequence={0.822 + i * 0.012}>
+          <span key={layer} data-sequence={infrastructureLayerStart(i)}>
             <i>{String(i + 1).padStart(2, "0")}</i>
             {layer}
           </span>
