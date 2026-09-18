@@ -1,0 +1,194 @@
+@use "tailwindcss";
+
+// ==========================================
+// SCSS Variables & Design Tokens (THEMES.md)
+// ==========================================
+$color-void: #050308;
+$color-surface-1: #0b0714;
+$color-surface-2: #120924;
+$color-surface-border: #2e1a47;
+
+$color-surface: #16111f;
+$color-surface-dim: #16111f;
+$color-surface-bright: #3c3746;
+$color-surface-container-lowest: #100c19;
+$color-surface-container-low: #1e1927;
+$color-surface-container: #221d2c;
+$color-surface-container-high: #2d2836;
+$color-surface-container-highest: #383241;
+$color-on-surface: #e8dff3;
+$color-on-surface-variant: #cfc5b9;
+$color-outline: #988f85;
+$color-outline-variant: #4c463d;
+
+$color-incandescent: #fff7eb;
+$color-filament: #fce7c8;
+$color-filament-aged: #e2d3b3;
+
+$color-monad: #836ef9;
+$color-emerald: #10b981;
+$color-amber: #f59e0b;
+$color-crimson: #f43f5e;
+
+// ==========================================
+// CSS Custom Properties (Dark Protocol)
+// ==========================================
+:root {
+  --background: #{$color-void};
+  --foreground: #{$color-incandescent};
+
+  /* Foundational Canvas (Chiaroscuro Cybernetics) */
+  --color-void: #{$color-void};
+  --color-surface-1: #{$color-surface-1};
+  --color-surface-2: #{$color-surface-2};
+  --color-surface-border: #{$color-surface-border};
+
+  /* Material Tokens */
+  --color-surface: #{$color-surface};
+  --color-surface-dim: #{$color-surface-dim};
+  --color-surface-bright: #{$color-surface-bright};
+  --color-surface-container-lowest: #{$color-surface-container-lowest};
+  --color-surface-container-low: #{$color-surface-container-low};
+  --color-surface-container: #{$color-surface-container};
+  --color-surface-container-high: #{$color-surface-container-high};
+  --color-surface-container-highest: #{$color-surface-container-highest};
+  --color-on-surface: #{$color-on-surface};
+  --color-on-surface-variant: #{$color-on-surface-variant};
+  --color-outline: #{$color-outline};
+  --color-outline-variant: #{$color-outline-variant};
+
+  /* Illumination & Highlights */
+  --color-incandescent: #{$color-incandescent};
+  --color-filament: #{$color-filament};
+  --color-filament-aged: #{$color-filament-aged};
+
+  /* Protocol Signals */
+  --color-monad: #{$color-monad};
+  --color-emerald: #{$color-emerald};
+  --color-amber: #{$color-amber};
+  --color-crimson: #{$color-crimson};
+}
+
+// ==========================================
+// Tailwind v4 Theme Configuration
+// ==========================================
+@theme inline {
+  --font-syne: var(--font-syne);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-jetbrains-mono);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-void: var(--color-void);
+  --color-surface-1: var(--color-surface-1);
+  --color-surface-2: var(--color-surface-2);
+  --color-surface-border: var(--color-surface-border);
+
+  --color-surface: var(--color-surface);
+  --color-surface-dim: var(--color-surface-dim);
+  --color-surface-bright: var(--color-surface-bright);
+  --color-surface-container-lowest: var(--color-surface-container-lowest);
+  --color-surface-container-low: var(--color-surface-container-low);
+  --color-surface-container: var(--color-surface-container);
+  --color-surface-container-high: var(--color-surface-container-high);
+  --color-surface-container-highest: var(--color-surface-container-highest);
+  --color-on-surface: var(--color-on-surface);
+  --color-on-surface-variant: var(--color-on-surface-variant);
+  --color-outline: var(--color-outline);
+  --color-outline-variant: var(--color-outline-variant);
+
+  --color-incandescent: var(--color-incandescent);
+  --color-filament: var(--color-filament);
+  --color-filament-aged: var(--color-filament-aged);
+
+  --color-monad: var(--color-monad);
+  --color-emerald: var(--color-emerald);
+  --color-amber: var(--color-amber);
+  --color-crimson: var(--color-crimson);
+
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+}
+
+// ==========================================
+// Utility Classes
+// ==========================================
+@utility glow-lantern {
+  box-shadow:
+    0 0 32px -4px rgba(252, 231, 200, 0.07),
+    0 0 1px 1px rgba(252, 231, 200, 0.25);
+}
+
+@utility glow-button {
+  box-shadow: 0 0 20px rgba(252, 231, 200, 0.35);
+}
+
+@utility glow-input {
+  box-shadow: 0 0 16px rgba(252, 231, 200, 0.12);
+}
+
+@utility bg-underglow {
+  background: radial-gradient(
+    ellipse 60% 40% at 50% -10%,
+    rgba(131, 110, 249, 0.08),
+    transparent
+  );
+}
+
+@utility glass-card {
+  background-color: rgba(11, 7, 20, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(46, 26, 71, 0.6);
+}
+
+@utility glass-node {
+  background-color: rgba(18, 9, 36, 0.92);
+  border-top: 1px solid rgba(131, 110, 249, 0.2);
+  border-bottom: 1px solid rgba(46, 26, 71, 0.4);
+  border-left: 1px solid rgba(46, 26, 71, 0.3);
+  border-right: 1px solid rgba(46, 26, 71, 0.3);
+}
+
+// ==========================================
+// Lenis Smooth Scroll Configuration
+// ==========================================
+html.lenis,
+html.lenis-smooth {
+  height: auto;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+html {
+  background-color: var(--color-void);
+  scroll-behavior: auto !important;
+}
+
+body {
+  background-color: var(--color-void);
+  color: var(--color-incandescent);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.light-title {
+  text-shadow: 0 0 18px rgba(252, 231, 200, 0.26), 0 0 72px rgba(245, 158, 11, 0.18);
+}
+
+@media (max-width: 640px) {
+  .light-title { font-size: clamp(2.65rem, 14vw, 4.8rem); }
+}

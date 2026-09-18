@@ -1,0 +1,14 @@
+{
+  "name": "lantern",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@12.4.2",
+  "scripts": {
+    "dev:web": "pnpm --filter @lantern/web dev",
+    "dev:api": "pnpm --filter @lantern/api dev",
+    "build:web": "pnpm --filter @lantern/web build",
+    "build:api": "pnpm --filter @lantern/api build",
+    "build:packages": "pnpm --filter \"./packages/*\" build",
+    "typecheck": "pnpm -r exec tsc --noEmit"
+  }
+}

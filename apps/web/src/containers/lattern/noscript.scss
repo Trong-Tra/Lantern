@@ -1,0 +1,43 @@
+// Fallback styles when JavaScript is disabled or unavailable.
+
+@mixin noscript-fallback {
+  .lattern-loading,
+  .lattern-world,
+  .lattern-controls {
+    display: none !important;
+  }
+
+  .lattern-experience {
+    height: auto !important;
+  }
+
+  .lattern-stage {
+    position: relative !important;
+    height: auto !important;
+  }
+
+  .lattern-scene {
+    position: relative !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    min-height: 80vh;
+  }
+
+  .light-words-lit {
+    mask-image: none !important;
+    clip-path: none !important;
+  }
+
+  .route-checks > [data-sequence] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+@media (scripting: none) {
+  @include noscript-fallback;
+}
+
+html.no-js {
+  @include noscript-fallback;
+}
