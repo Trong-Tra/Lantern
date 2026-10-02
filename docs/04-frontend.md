@@ -1,0 +1,34 @@
+# 04 — Frontend
+
+> Owner: frontend. Source of truth for landing: `apps/web/design.md` + `apps/web/docs/cinematic-experience.md`.
+
+## Today (verified)
+
+* `@lantern/web` — `next@16.3.5` + `react@19`, Tailwind v4, `three + R3F + drei`, `gsap + Lenis`, Radix dialog/dropdown/popover, Heroicons. Port 3000.
+* Single route `/` → `LatternExperience` (`src/containers/lattern/index.tsx`). 11 scroll scenes (`src/constants/lattern-scenes.ts`), playhead in `src/libs/cinematic/runtime.ts`, styling in `src/styles/lattern.css` (1207 lines).
+* `lattern-preview` demo is **fictional**: `DEMO_AGENTS[6]`, regex `resolveIntent()` (swap/payment/bridge), `discoverAgents()` top-3 by reputation. No fetch, no wallet, no RPC (`grep NEXT_PUBLIC|fetch` = 0 in `src/`).
+* Connect Wallet = Radix dialog saying "no wallet in demo". GitHub/Contracts = `Not published yet`. These are intentional guards — keep until wired.
+* Tests: `tests/cinematic.test.mjs` (`node --test`), pure timeline + discovery logic. No Vitest/Jest/Playwright.
+* Dead code — ignore: `containers/home/`, `components/experience/`, `components/lantern/`, `styles/globals.scss`, empty `store/` + `actions/`.
+
+## Target (proposal)
+
+Keep landing as-is (it's the narrative). Add app routes alongside it:
+
+```
+/                 → cinematic landing (keep)
+/explore          → Agent Explorer (list from GET /api/agents, score + risk badges)
+/agent/[id]       → Agent Profile (8004 ID + 721 passport + 5192 timeline, executions/failures)
+/dashboard        → User Dashboard (RainbowKit connect, positions, badges, managed value)
+```
+
+* Data: replace `DEMO_AGENTS` reads with `GET /api/agents*` (via `getApiBaseUrl()` + `buildApiUrl`). Keep fictional fallback behind explicit `demo` flag, never mixed with live.
+* Wallet: add RainbowKit (missing today) for user dashboard; Dynamic for operator flow (see `05-integrations.md`). Don't reuse the fake Connect dialog for real signing.
+* Snap entry: Profile + Explorer show "Verify in MetaMask" affordance once Snap ID exists.
+* A11y/perf budgets from `design.md` §10 still apply: reading-mode, reduced-motion, no-JS fallback, DPR caps, 12s WebGL timeout. New routes must not regress them.
+
+## Rules
+
+* `transpilePackages: [@lantern/types, @lantern/utils, @lantern/config]` already in `next.config.ts` — import shared types/utils from there, don't duplicate.
+* Display via `formatAddress` / `formatScore` (`packages/utils`). Scores `N/A` until backend returns numbers.
+* Run per change: `pnpm test`, `pnpm exec tsc --noEmit`, `pnpm lint` (+ visual check for CSS/WebGL).

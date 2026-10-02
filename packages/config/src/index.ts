@@ -17,6 +17,10 @@ export function getApiBaseUrl(): string {
 export const API_ENDPOINTS = {
   HEALTH: "/",
   HELLO: "/api/hello",
+  AGENTS: "/api/agents",
+  AGENT_BY_ID: "/api/agents/:id",
+  AGENT_ATTESTATIONS: "/api/agents/:id/attestations",
+  AGENT_RISK: "/api/agents/:id/risk",
 } as const;
 
 export const APP_CONFIG = {

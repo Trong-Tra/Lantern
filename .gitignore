@@ -9,6 +9,10 @@ build/
 out/
 coverage/
 
+# Foundry
+contracts/cache/
+contracts/broadcast/
+
 # Environment files
 .env
 .env.*
