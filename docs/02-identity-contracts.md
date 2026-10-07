@@ -54,8 +54,16 @@ Every agent = 1 × ERC-8004 identity : 1 × ERC-721 Passport : N × ERC-5192 att
 
 * Location: `contracts/` at repo root (Foundry — **locked 2026-10-02**; not a pnpm workspace member).
 * Shared **in-house ERC721 base** in `contracts/src/utils/ERC721.sol` (+ `Ownable.sol`) — no OpenZeppelin dep.
-* Layout: `src/{AgentRegistry,AgentPassport,Reputation}.sol`, `src/utils/*`, `test/*.t.sol`.
-* Tests required per contract (mint, soulbound lock, access control). No test = not done. Run: `forge test` in `contracts/`.
+* Layout: `src/{AgentRegistry,AgentPassport,Reputation}.sol`, `src/utils/*`, `test/*.t.sol`, `script/{Deploy,SeedAgents}.s.sol`, `script/seed/agents.json`.
+* Tests required per contract (mint, soulbound lock, access control). No test = not done. Run: `forge test` in `contracts/` (57 green incl. seed pipeline).
 * No addresses in frontend until deployed. Frontend shows `Not published yet` (existing rule).
 * Every contract change updates this file + Envio schema (`05-integrations.md`) in the same commit.
-* Next: deployment (Monad testnet — chain ID/RPC TBD) + canonical-8004 confirmation from owner.
+
+## Deploy + MVP seed (written 2026-10-02, **not executed — owner said not yet**)
+
+* `script/Deploy.s.sol` deploys Registry → Passport → Reputation; key from `MONAD_PRIVATE_KEY` env (never CLI args). Chain ID is read from `MONAD_TESTNET_RPC_URL` at run time — never hardcoded.
+* `script/SeedAgents.s.sol` registers the **15 MVP identities** from `script/seed/agents.json` (count is guarded: empty → revert, `MAX_AGENTS = 100`). Registration loop lives in `registerFromJson()` so `test/SeedAgents.t.sol` proves the same code path **in-memory — zero chain writes**.
+* Seed data rules: URIs use the non-resolvable **`demo://`** scheme (no invented ipfs links), fictional identities flagged in the JSON `disclaimer`, **single operator wallet** owns all 15 (MVP simplification — multi-owner needs funding per wallet).
+* Env (`.env.example`): `MONAD_TESTNET_RPC_URL`, `MONAD_PRIVATE_KEY`, `AGENT_REGISTRY_ADDRESS` (set after deploy).
+* Run order when owner says go (from `contracts/`): `forge script script/Deploy.s.sol:Deploy --rpc-url $MONAD_TESTNET_RPC_URL --broadcast` → put address in `.env` → `forge script script/SeedAgents.s.sol:SeedAgents --rpc-url $MONAD_TESTNET_RPC_URL --broadcast`.
+* Next: execution (owner) + canonical-8004 confirmation (owner).

@@ -6,22 +6,40 @@ import assert from "node:assert/strict";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { after, before, describe, it } from "node:test";
-import type { AgentProfile, AgentSummary, Attestation, PaginatedResponse, RiskReport } from "@lantern/types";
-import { createApp } from "./app.js";
+import type {
+  AgentProfile,
+  AgentSummary,
+  Attestation,
+  ChatMessage,
+  PaginatedResponse,
+  RiskReport,
+} from "@lantern/types";
+import { createApp, type AppOptions } from "./app.js";
+import {
+  createOpenRouterChatService,
+  type ChatFetcher,
+} from "./services/openRouterChat.js";
+
+async function startApp(options: AppOptions = {}): Promise<{
+  base: string;
+  close: () => void;
+}> {
+  const server: Server = createApp(options).listen(0);
+  await new Promise<void>((resolve) => server.once("listening", resolve));
+  const { port } = server.address() as AddressInfo;
+  return { base: `http://127.0.0.1:${port}`, close: () => server.close() };
+}
 
 describe("api", () => {
-  let server: Server;
   let base: string;
+  let close: () => void;
 
   before(async () => {
-    server = createApp().listen(0);
-    await new Promise<void>((resolve) => server.once("listening", resolve));
-    const { port } = server.address() as AddressInfo;
-    base = `http://127.0.0.1:${port}`;
+    ({ base, close } = await startApp());
   });
 
   after(() => {
-    server.close();
+    close();
   });
 
   it("GET / returns the health envelope", async () => {
@@ -192,5 +210,124 @@ describe("api", () => {
     const body = await res.json();
     assert.equal(body.success, false);
     assert.equal(body.code, "NOT_FOUND");
+  });
+});
+
+describe("chat endpoint", () => {
+  it("POST /api/agents/:id/chat returns the persona reply via the injected service", async () => {
+    const seen: { agentId?: number; message?: string; history?: ChatMessage[] } = {};
+    const { base, close } = await startApp({
+      chatService: {
+        async complete(profile, message, history) {
+          seen.agentId = profile.agentId;
+          seen.message = message;
+          seen.history = history;
+          return "gm, keeper here";
+        },
+      },
+    });
+
+    try {
+      const res = await fetch(`${base}/api/agents/1/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "  how is your streak?  ",
+          history: [{ role: "user", content: "hi" }, { role: "assistant", content: "hey" }],
+        }),
+      });
+      assert.equal(res.status, 200);
+      const body = (await res.json()) as { success: boolean; data: { reply: string } };
+      assert.equal(body.success, true);
+      assert.equal(body.data.reply, "gm, keeper here");
+
+      assert.equal(seen.agentId, 1);
+      assert.equal(seen.message, "how is your streak?");
+      assert.equal(seen.history?.length, 2);
+    } finally {
+      close();
+    }
+  });
+
+  it("POST /api/agents/:id/chat → 400 for malformed id / empty / oversized message", async () => {
+    const { base, close } = await startApp({ chatService: { complete: async () => "never" } });
+    const post = (path: string, payload: unknown) =>
+      fetch(`${base}${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+    try {
+      const badId = await post("/api/agents/abc/chat", { message: "hi" });
+      assert.equal(badId.status, 400);
+      assert.equal(((await badId.json()) as { code: string }).code, "INVALID_AGENT_ID");
+
+      const empty = await post("/api/agents/1/chat", { message: "   " });
+      assert.equal(empty.status, 400);
+      assert.equal(((await empty.json()) as { code: string }).code, "INVALID_MESSAGE");
+
+      const oversized = await post("/api/agents/1/chat", { message: "x".repeat(2001) });
+      assert.equal(oversized.status, 400);
+      assert.equal(((await oversized.json()) as { code: string }).code, "INVALID_MESSAGE");
+    } finally {
+      close();
+    }
+  });
+
+  it("POST /api/agents/:id/chat → 404 for unknown agent", async () => {
+    const { base, close } = await startApp({ chatService: { complete: async () => "never" } });
+    try {
+      const res = await fetch(`${base}/api/agents/999/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "hi" }),
+      });
+      assert.equal(res.status, 404);
+      assert.equal(((await res.json()) as { code: string }).code, "NOT_FOUND");
+    } finally {
+      close();
+    }
+  });
+
+  it("POST /api/agents/:id/chat → 503 when OpenRouter is not configured", async () => {
+    const { base, close } = await startApp({
+      chatService: createOpenRouterChatService({ apiKey: "" }),
+    });
+    try {
+      const res = await fetch(`${base}/api/agents/1/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "hi" }),
+      });
+      assert.equal(res.status, 503);
+      const body = (await res.json()) as { code: string; message: string };
+      assert.equal(body.code, "OPENROUTER_NOT_CONFIGURED");
+      assert.match(body.message, /OPENROUTER_API_KEY/);
+    } finally {
+      close();
+    }
+  });
+
+  it("POST /api/agents/:id/chat → 502 when the provider fails", async () => {
+    const failingFetcher: ChatFetcher = async () => ({
+      ok: false,
+      status: 429,
+      json: async () => ({}),
+    });
+    const { base, close } = await startApp({
+      chatService: createOpenRouterChatService({ apiKey: "test-key", fetcher: failingFetcher }),
+    });
+    try {
+      const res = await fetch(`${base}/api/agents/1/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "hi" }),
+      });
+      assert.equal(res.status, 502);
+      assert.equal(((await res.json()) as { code: string }).code, "CHAT_UPSTREAM_ERROR");
+    } finally {
+      close();
+    }
   });
 });

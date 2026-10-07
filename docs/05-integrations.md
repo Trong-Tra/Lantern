@@ -1,4 +1,12 @@
-# 05 — Integrations (Dynamic / MetaMask Snap / Envio)
+# 05 — Integrations (Dynamic / MetaMask Snap / Envio / OpenRouter)
+
+## OpenRouter — chat "brains" for identities (LANDED)
+
+* Goal: chat with any ERC-8004 identity from its Explorer profile.
+* Status: live in API — `POST /api/agents/:id/chat` → `apps/api/src/services/openRouterChat.ts` (15s timeout, 300 max tokens, last-10 history, bounded retry for `openrouter/free` empty-content flake).
+* Env (root `.env`, gitignored; keys listed in `.env.example`): `OPENROUTER_API_KEY`, `CHAT_MODEL` (default `openrouter/free`).
+* Constraint: system prompt (`buildSystemPrompt`) forbids inventing chain data — unknown values are TBD/unknown.
+* Tests: `openRouterChat.test.ts` (fake fetcher) + chat route cases in `app.test.ts`.
 
 ## Dynamic — passkey agent wallets ($5,000 bounty)
 

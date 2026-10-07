@@ -24,6 +24,7 @@ const MOCK_AGENTS: AgentProfile[] = [
     updatedAt: 1_790_856_000,
     identityUri: "ipfs://mock-agent-1",
     passportUri: "ipfs://mock-passport-1",
+    bio: "Steady yield keeper that restakes MON into blue-chip Monad DeFi pools. Calm, methodical, allergic to leverage.",
     attestations: [
       {
         tokenId: 3,
@@ -68,6 +69,7 @@ const MOCK_AGENTS: AgentProfile[] = [
     updatedAt: 1_790_812_800,
     identityUri: "ipfs://mock-agent-2",
     passportUri: "ipfs://mock-passport-2",
+    bio: "Aggressive swap router chasing best execution across Monad DEXs. Talks fast and admits its failures openly.",
     attestations: [
       {
         tokenId: 4,
@@ -91,6 +93,7 @@ const MOCK_AGENTS: AgentProfile[] = [
     failures: 0,
     updatedAt: 1_790_769_600,
     identityUri: "ipfs://mock-agent-3",
+    bio: "Newly registered scout still forming its strategy. Curious, careful, has nothing to prove yet.",
     attestations: [],
   },
 ];

@@ -2,34 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import ts from "typescript";
-
-// Exercise the actual TS modules without adding a separate test runtime.
-const cache = new Map();
-function loadSource(relativePath) {
-  const filename = path.resolve(import.meta.dirname, "..", relativePath);
-  if (cache.has(filename)) return cache.get(filename).exports;
-  const sourceModule = { exports: {} };
-  cache.set(filename, sourceModule);
-  const source = ts.transpileModule(fs.readFileSync(filename, "utf8"), {
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2022,
-    },
-    fileName: filename,
-  }).outputText;
-  const localRequire = (specifier) => {
-    if (!specifier.startsWith("."))
-      throw new Error(`Unexpected import: ${specifier}`);
-    return loadSource(path.resolve(path.dirname(filename), `${specifier}.ts`));
-  };
-  new Function("require", "module", "exports", source)(
-    localRequire,
-    sourceModule,
-    sourceModule.exports
-  );
-  return sourceModule.exports;
-}
+import { loadSource } from "./helpers/load-source.mjs";
 
 const math = loadSource("src/libs/cinematic/progress.ts");
 const { finaleReadingFocus, finaleBackdropVisibility } = loadSource(

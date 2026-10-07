@@ -31,12 +31,13 @@ Tagline: `Illuminate the agent economy.` — `Trust shouldn't be a leap in the d
 
 ```
 Lantern/
-├── apps/web/          # @lantern/web — Next.js 16 + React 19, Tailwind v4, R3F/GSAP/Lenis, port 3000
-├── apps/api/          # @lantern/api — Express 5: app.ts factory + routes/agents + repository + quarantined mock; 4 read endpoints + tests, port 4000
-├── packages/config/   # DEFAULT_API_PORT=4000, API_ENDPOINTS (incl. /api/agents/*), APP_CONFIG, tsconfig.base.json
-├── packages/types/    # envelope types + RiskLevel, AgentSummary/Profile, Attestation, RiskReport
+├── apps/web/          # @lantern/web — Next.js 16, cinematic landing + LANDED routes: /explore, /agent/[id] (profile + chat), port 3000
+├── apps/api/          # @lantern/api — Express 5: routes/agents + AgentRepository + quarantined mock + OpenRouter chat service; 29 tests, port 4000
+├── packages/config/   # DEFAULT_API_PORT=4000, API_ENDPOINTS (incl. /api/agents/* + chat), APP_CONFIG
+├── packages/types/    # envelope + RiskLevel, AgentSummary/Profile, Attestation, RiskReport, ChatMessage/Reply
 ├── packages/utils/    # formatAddress, formatScore, sleep, createApiResponse, buildApiUrl
-├── contracts/         # Foundry (root-level, NOT a pnpm member) — AgentRegistry/AgentPassport/Reputation + utils/ERC721.sol, forge test green
+├── contracts/         # Foundry — 3 contracts + Deploy/SeedAgents scripts (15-identity MVP seed, in-memory tested), 57 tests
+├── .env.example       # key names only (OPENROUTER/CHAT_MODEL/MONAD_*) — real values live in gitignored .env
 └── README.md          # monorepo setup (existing)
 ```
 

@@ -2,13 +2,19 @@ import cors from "cors";
 import express, { type ErrorRequestHandler } from "express";
 import { API_ENDPOINTS } from "@lantern/config";
 import { createApiErrorResponse, createApiResponse } from "@lantern/utils";
-import { agentsRouter } from "./routes/agents.js";
+import { createAgentsRouter } from "./routes/agents.js";
+import { createOpenRouterChatService, type ChatService } from "./services/openRouterChat.js";
+
+export interface AppOptions {
+  /** Override the LLM chat service (tests inject fakes; never hits the network). */
+  chatService?: ChatService;
+}
 
 /**
  * Builds the Express app without listening, so tests can spin it on port 0.
  * `index.ts` owns the listen call.
  */
-export function createApp(): express.Express {
+export function createApp(options: AppOptions = {}): express.Express {
   const app = express();
 
   // TODO(docs/03): make the allowlist env-driven before leaving localhost.
@@ -23,7 +29,10 @@ export function createApp(): express.Express {
     res.json(createApiResponse({ greeting: "Hello from Node.js API" }));
   });
 
-  app.use(API_ENDPOINTS.AGENTS, agentsRouter);
+  app.use(
+    API_ENDPOINTS.AGENTS,
+    createAgentsRouter({ chat: options.chatService ?? createOpenRouterChatService() }),
+  );
 
   // 404 in the standard error envelope (must come after all routers).
   app.use((req, res) => {

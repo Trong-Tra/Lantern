@@ -40,12 +40,13 @@ Reference yield loop (first agent): `loop-staking across Monad DeFi → each act
 | Layer | Repo location | Status |
 | --- | --- | --- |
 | Web landing | `apps/web/src/containers/lattern/`, `components/organisms/lattern-world/`, `cinematic-lantern/`, `styles/lattern.css` | Done (cinematic, fictional data) |
-| Web Explorer/Profile/Dashboard | `apps/web/src/app/` (only `/` today) | Missing |
+| Web Explorer/Profile | `apps/web/src/app/explore/` (list) + `app/agent/[id]/` (profile + chat), helpers in `src/libs/explorer/`, UI in `components/molecules/` | Landed, reads live API; 34 tests |
+| Web Dashboard | — (only `/`, `/explore`, `/agent/[id]` today) | Missing |
 | Indexing | — (no Envio project yet) | Missing |
-| Identity contracts | `contracts/src/{AgentRegistry,AgentPassport,Reputation}.sol` + `test/*.t.sol` (Foundry) | Landed (uncommitted), testnet deploy TBD |
+| Identity contracts | `contracts/src/{AgentRegistry,AgentPassport,Reputation}.sol` + `test/*.t.sol` (Foundry); seed/deploy in `script/{Deploy,SeedAgents}.s.sol` + `script/seed/agents.json` | Landed, committed; testnet deploy + 15-agent seed prepared but NOT run (owner) |
 | Wallet (Dynamic) | — (Connect button is a Radix dialog stub) | Missing |
 | Verification (Snap) | — (no `packages/snap/` yet) | Missing |
-| Shared API | `apps/api/src/` — `app.ts` (testable factory), `routes/agents.ts`, `repositories/agentRepository.ts`, `data/mockAgents.ts` (quarantined) | 4 read endpoints live (mock-backed) + 15 tests |
+| Shared API | `apps/api/src/` — `app.ts` (testable factory), `routes/agents.ts` (4 GETs + chat), `services/openRouterChat.ts`, `repositories/agentRepository.ts`, `data/mockAgents.ts` (quarantined) | 5 endpoints live (mock-backed + OpenRouter chat) + 29 tests |
 | Shared libs | `packages/config` (endpoint paths), `packages/types` (agent/attestation/risk types), `packages/utils` | Done, extend as needed |
 
 Dead code — do not build on: `apps/web/src/containers/home/`, `components/experience/`, `components/lantern/`, `styles/globals.scss`.

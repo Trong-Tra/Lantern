@@ -62,6 +62,8 @@ export interface AgentProfile extends AgentSummary {
   identityUri: string;
   passportUri?: string;
   attestations: Attestation[];
+  /** Demo persona blurb used by the chat endpoint (mock-only until live data). */
+  bio?: string;
 }
 
 export interface RiskReport {
@@ -70,4 +72,22 @@ export interface RiskReport {
   score?: number;
   risk: RiskLevel;
   reasons: string[];
+}
+
+/** One turn of agent chat (assistant = the agent's LLM persona). */
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+/** Request body for POST /api/agents/:id/chat. */
+export interface ChatRequest {
+  message: string;
+  /** Prior turns, oldest first. Server caps what it keeps. */
+  history?: ChatMessage[];
+}
+
+/** Successful chat response data. */
+export interface ChatReply {
+  reply: string;
 }

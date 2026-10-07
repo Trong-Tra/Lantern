@@ -3,16 +3,16 @@
 > Append-only. Newest on top. Keep entries short: date + who + what changed + where.
 > Vision/spec live in `docs/00`–`docs/05`. This file is *what happened* + *what's next*.
 
-## Current state (2026-10-02)
+## Current state (2026-10-07)
 
-* Phase: **first build slice LANDED + COMMITTED** (contracts + API skeleton + tests + docs, one commit). Resume doc: `docs/07-first-slice-plan.md`.
-* Verified: `forge test` 53/53 · repo-wide `tsc --noEmit` clean · web tests 23/23 · api tests 15/15.
-* Contracts: `contracts/` (Foundry) — `AgentRegistry` (minimal 8004), `AgentPassport` (721, transferable, 1:1), `Reputation` (5192 soulbound + executors), in-house `utils/ERC721.sol` + `Ownable.sol`. Deploy target: Monad testnet (chain ID/RPC TBD).
-* API: `apps/api` restructured (`app.ts` factory + `routes/agents.ts` + `AgentRepository` + quarantined `data/mockAgents.ts`); 4 GET endpoints live, mock-backed; 15 tests; `exit 1` stub replaced.
-* Shared packages: types (`RiskLevel/AgentSummary/AgentProfile/Attestation/RiskReport`, score omitted — formula TBD), config (`API_ENDPOINTS` for the 4 GETs).
+* Phase: **chat brains + Explorer UI + seed/deploy scripts LANDED** (uncommitted → commit this session). Previous: first slice committed `8eafd37`.
+* Verified: `forge test` 57/57 · repo-wide `tsc --noEmit` clean · web tests 34/34 · api tests 29/29 · web lint clean. E2E smoke passed (list/profile/invalid/not-found + 2/2 live OpenRouter replies).
+* Contracts: `AgentRegistry`/`AgentPassport`/`Reputation` + in-house bases; NEW `script/Deploy.s.sol` + `script/SeedAgents.s.sol` + `script/seed/agents.json` (15 fictional identities, `demo://` URIs) + `test/SeedAgents.t.sol`. **Not executed on-chain** (owner: testnet deploy deferred).
+* API: 4 GETs + NEW `POST /api/agents/:id/chat` via `services/openRouterChat.ts` (OpenRouter, `OPENROUTER_API_KEY`/`CHAT_MODEL`, 15s timeout, bounded retry for empty-content flake, injectable for tests). Error codes: INVALID_MESSAGE, INVALID_AGENT_ID, 404, 503 OPENROUTER_NOT_CONFIGURED, 502 CHAT_UPSTREAM_ERROR. Root `.env` loaded (gitignored); root `.env.example` committed (key names only).
+* Explorer: NEW `/explore` (list + pagination) + `/agent/[id]` (profile, risk, attestations, identity, chat panel) reading live API. Pure helpers in `libs/explorer/{api,present}.ts` (tested).
+* Shared packages: types (+ `ChatMessage/ChatRequest/ChatReply`, `AgentProfile.bio`), config (+ `API_ENDPOINTS.AGENT_CHAT`). Score still omitted (formula TBD → UI shows N/A).
 * Product: passkey-native agent identity + reputation on Monad (8004 + 721 Passport + 5192 soulbound). Explorer + Snap verification.
-* Repo: `main`, 4 commits (first slice = 4th). `apps/web` cinematic done (fictional). No indexer/wallet/snap yet.
-* Tooling: pnpm 12.4.2 `.tools` install repaired (native binary restored via install.js) — plain `pnpm` works normally again.
+* Repo: `main`. `apps/web` cinematic done (fictional). No indexer/wallet/snap yet.
 * Rule restated by owner: forget old 6-week scope doc — it was a draft. Horizon is ~2-day doc sprint → direction → build.
 
 ## Decisions (locked unless owner reopens)
@@ -37,6 +37,7 @@
 
 ## Log
 
+* `2026-10-07` — agent: landed **chat brains** (OpenRouter-backed `POST /api/agents/:id/chat`, persona system prompt that forbids inventing chain data, retry on empty content, 29 api tests), **Explorer UI** (`/explore` list + `/agent/[id]` profile with chat panel, pure data helpers, 34 web tests), and **seed/deploy scripts** (Deploy.s.sol + SeedAgents.s.sol + 15-identity agents.json, 57 forge tests — ready, NOT run per owner). Root `.env.example` added; `.env` stays gitignored. Docs synced: 01/02/03/04/05/README/AGENTS + this file.
 * `2026-10-02` — agent: **completed the first slice**. Contracts: `AgentRegistry`/`AgentPassport`/`Reputation` + in-house ERC721/Ownable bases, 4 test suites (53 tests green). API: types + endpoints, restructure (app factory/routes/repository/quarantined mock), 4 GETs, 15 tests (exit-1 stub replaced). Verified forge/typecheck/web/api. Synced docs 01/02/03/07/README + AGENTS + this file. Committed docs+code together. Not deploying to testnet yet (owner) — next candidates: Envio indexing, Explorer UI, Snap (owner picks).
 * `2026-10-02` — agent: repaired broken pnpm 12.4.2 `.tools` install (native binary via install.js) after owner confirmed normal pnpm use elsewhere; re-verified suite via plain `pnpm`.
 * `2026-10-02` — agent: caught up on all docs; no plan.md existed → created `docs/07-first-slice-plan.md` as resume point. Locked slice decisions with owner (contracts+API, testnet, Foundry). Scaffolded `contracts/` via `forge init --no-git`. Session paused by owner before any contract code written.

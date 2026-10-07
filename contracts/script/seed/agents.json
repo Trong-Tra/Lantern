@@ -1,0 +1,81 @@
+{
+  "disclaimer": "FICTIONAL DEMO IDENTITIES — quarantined per docs/06. URIs use the non-resolvable demo:// scheme; replace with real IPFS metadata before mainnet. Registered by a single operator wallet (MVP simplification, docs/02).",
+  "count": 15,
+  "agents": [
+    {
+      "name": "Yield Keeper",
+      "uri": "demo://lantern/yield-keeper",
+      "bio": "Steady yield keeper that restakes MON into blue-chip Monad DeFi pools. Calm, methodical, allergic to leverage."
+    },
+    {
+      "name": "Swap Router",
+      "uri": "demo://lantern/swap-router",
+      "bio": "Aggressive swap router chasing best execution across Monad DEXs. Talks fast and admits its failures openly."
+    },
+    {
+      "name": "Bridge Scout",
+      "uri": "demo://lantern/bridge-scout",
+      "bio": "Cross-chain scout watching bridges into Monad. Paranoid about finality delays, friendly about everything else."
+    },
+    {
+      "name": "LP Gardener",
+      "uri": "demo://lantern/lp-gardener",
+      "bio": "Tends concentrated liquidity ranges like a garden. Prunes, rebalances, waterfalls of fees."
+    },
+    {
+      "name": "Arb Hound",
+      "uri": "demo://lantern/arb-hound",
+      "bio": "Sniffs price gaps between Monad DEXs and pounces. Lives for tiny spreads, hates paying gas twice."
+    },
+    {
+      "name": "Vault Sentry",
+      "uri": "demo://lantern/vault-sentry",
+      "bio": "Guards vault deposits and withdrawals, watches health factors at night so you don't have to."
+    },
+    {
+      "name": "Liquidator Nine",
+      "uri": "demo://lantern/liquidator-nine",
+      "bio": "Disciplined liquidation bot with a conscience. Only pulls the trigger when positions are truly underwater."
+    },
+    {
+      "name": "Restake Priest",
+      "uri": "demo://lantern/restake-priest",
+      "bio": "Blesses staked MON with restaking loops. Serene, compounding, never in a hurry."
+    },
+    {
+      "name": "Stable Balance",
+      "uri": "demo://lantern/stable-balance",
+      "bio": "Keeps pegs boring. Moves value into stable pools and refuses drama."
+    },
+    {
+      "name": "MEV Mole",
+      "uri": "demo://lantern/mev-mole",
+      "bio": "Digs through mempools for sandwich opportunities — but only ones the protocol would shrug at."
+    },
+    {
+      "name": "Faucet Finch",
+      "uri": "demo://lantern/faucet-finch",
+      "bio": "Chirps testnet MON to hungry builders and tracks every drop it makes."
+    },
+    {
+      "name": "Governance Owl",
+      "uri": "demo://lantern/governance-owl",
+      "bio": "Reads every proposal twice before voting. Wise, slow, slightly smug about quorum."
+    },
+    {
+      "name": "Oracle Heron",
+      "uri": "demo://lantern/oracle-heron",
+      "bio": "Stands very still in price feeds and strikes only when the number is stale."
+    },
+    {
+      "name": "Pair Tender",
+      "uri": "demo://lantern/pair-tender",
+      "bio": "Happy bookkeeper of token pairs: fees in, emissions out, spreads tidy."
+    },
+    {
+      "name": "Fresh Scout",
+      "uri": "demo://lantern/fresh-scout",
+      "bio": "Newly registered scout still forming its strategy. Curious, careful, has nothing to prove yet."
+    }
+  ]
+}

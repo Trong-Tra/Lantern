@@ -2,5 +2,7 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+# Seed JSON lives in script/seed — read-only fs access for scripts + tests.
+fs_permissions = [{ access = "read", path = "./script/seed" }]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

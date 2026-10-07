@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
   AGENT_BY_ID: "/api/agents/:id",
   AGENT_ATTESTATIONS: "/api/agents/:id/attestations",
   AGENT_RISK: "/api/agents/:id/risk",
+  AGENT_CHAT: "/api/agents/:id/chat",
 } as const;
 
 export const APP_CONFIG = {
