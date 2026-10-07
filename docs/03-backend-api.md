@@ -1,6 +1,6 @@
 # 03 — Backend API
 
-> Owner: backend buddy. **First slice landed 2026-10-02** (structure + 4 read endpoints + tests).
+> Owner: backend buddy. **First slice landed 2026-10-02** (structure + 4 read endpoints + tests). **Chat brains landed 2026-10-07**: `POST /api/agents/:id/chat` via OpenRouter (see "Chat brains" section below; 29 tests).
 
 ## Today (after first slice — verified)
 
@@ -44,7 +44,7 @@ POST /api/agents/:id/chat         → ApiResponse<ChatReply>            (LLM per
 
 Errors: `{ success:false, message, code? }` with `code = INVALID_AGENT_ID | INVALID_MESSAGE | NOT_FOUND | OPENROUTER_NOT_CONFIGURED | CHAT_UPSTREAM_ERROR | INTERNAL_ERROR`.
 
-## Chat brains (OpenRouter — landed 2026-10-02)
+## Chat brains (OpenRouter — landed 2026-10-07)
 
 * `services/openRouterChat.ts` — persona = system prompt built from the agent's profile (`bio` + on-record stats), model = `CHAT_MODEL` (default `openrouter/free`), 300 max tokens, 15s timeout, **1 bounded retry** (free-tier routing occasionally returns an empty message).
 * Key rules: `OPENROUTER_API_KEY` **server-side only** (never in `NEXT_PUBLIC_*`, never logged); missing key → 503 `OPENROUTER_NOT_CONFIGURED`, provider failure → 502 `CHAT_UPSTREAM_ERROR`.

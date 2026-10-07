@@ -1,6 +1,6 @@
 # 02 — Identity Contracts (Monad)
 
-> Owner: contracts buddy. **Landed 2026-10-02**: `contracts/` (Foundry) with all three contracts + tests (`forge test` 53/53). Committed with docs. Deploy (testnet) not started — deferred by owner.
+> Owner: contracts buddy. **Landed 2026-10-02**: `contracts/` (Foundry) with all three contracts + tests. **2026-10-07**: added `script/{Deploy,SeedAgents}.s.sol` + 15-identity `script/seed/agents.json` (`forge test` 57/57). Both commits: docs + code together. Testnet deploy + seed **prepared but NOT run** — deferred by owner.
 
 ## Model
 
@@ -59,7 +59,7 @@ Every agent = 1 × ERC-8004 identity : 1 × ERC-721 Passport : N × ERC-5192 att
 * No addresses in frontend until deployed. Frontend shows `Not published yet` (existing rule).
 * Every contract change updates this file + Envio schema (`05-integrations.md`) in the same commit.
 
-## Deploy + MVP seed (written 2026-10-02, **not executed — owner said not yet**)
+## Deploy + MVP seed (written 2026-10-07, **not executed — owner said not yet**)
 
 * `script/Deploy.s.sol` deploys Registry → Passport → Reputation; key from `MONAD_PRIVATE_KEY` env (never CLI args). Chain ID is read from `MONAD_TESTNET_RPC_URL` at run time — never hardcoded.
 * `script/SeedAgents.s.sol` registers the **15 MVP identities** from `script/seed/agents.json` (count is guarded: empty → revert, `MAX_AGENTS = 100`). Registration loop lives in `registerFromJson()` so `test/SeedAgents.t.sol` proves the same code path **in-memory — zero chain writes**.

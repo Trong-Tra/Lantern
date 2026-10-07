@@ -1,6 +1,7 @@
 # 07 — First Slice Plan (started 2026-10-02 → CODE COMPLETE)
 
-> Resume file. Status: **all 8 next actions done** (code + tests + docs synced) and **committed** (docs + code together).
+> Resume file. Status: **all 8 next actions done** (code + tests + docs synced) and **committed** (docs + code together) as `8eafd37` (2026-10-02).
+> Superseded for current state — see `MEMORY.md`. Counts below are the 2026-10-02 snapshot (now: forge 57 · api 29 · web 34; + chat brains, Explorer, seed scripts in `d9bca3d`).
 > Verified: `forge test` 53/53 · `pnpm typecheck` clean · web tests 23/23 · api tests 15/15 (re-run via plain `pnpm` after tool repair).
 
 ## Locked decisions for this slice (owner, 2026-10-02)

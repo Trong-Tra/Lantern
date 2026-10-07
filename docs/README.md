@@ -18,7 +18,7 @@ Tagline: `Illuminate the agent economy.` — `Trust shouldn't be a leap in the d
 | `docs/00-vision.md` | Why this exists, who it's for, track + bounties | product |
 | `docs/01-architecture.md` | 5 layers, repo mapping, data flow | all |
 | `docs/02-identity-contracts.md` | ERC-8004 / ERC-721 / ERC-5192 + yield agent minting | contracts buddy |
-| `docs/03-backend-api.md` | Current Express stub → target API + Envio consumption | backend buddy |
+| `docs/03-backend-api.md` | Live Express API (5 endpoints + chat) → target API + Envio consumption | backend buddy |
 | `docs/04-frontend.md` | Current cinematic landing → Explorer / Profile / Dashboard | frontend |
 | `docs/05-integrations.md` | Dynamic (passkey) + MetaMask Snap + Envio | integrations |
 | `docs/06-agent-sync.md` | How agents share memory, conventions, Do/Don't | all |
@@ -27,7 +27,7 @@ Tagline: `Illuminate the agent economy.` — `Trust shouldn't be a leap in the d
 | `apps/web/design.md` | Cinematic landing spec (existing, source of truth for landing) | frontend |
 | `apps/web/docs/cinematic-experience.md` | Cinematic dev + fallback boundaries (existing) | frontend |
 
-## Repo snapshot (2026-10-02, verified)
+## Repo snapshot (2026-10-07, verified)
 
 ```
 Lantern/
@@ -42,8 +42,8 @@ Lantern/
 ```
 
 * Package manager: `pnpm@12.4.2`, workspaces `apps/*`, `packages/*`.
-* Git: `main`, remote `git@github.com:Trong-Tra/Lantern.git`. First slice **committed** (docs + code together).
-* Frontend has **no** live fetch, wallet, or RPC. `NEXT_PUBLIC_API_URL` unused. Demo agents are fictional (`DEMO_AGENTS` in `lattern-preview`).
+* Git: `main`, remote `git@github.com:Trong-Tra/Lantern.git`. Both slices **committed** (docs + code together): `8eafd37` first slice, `d9bca3d` chat + Explorer + seed scripts.
+* Frontend **does live-fetch the API** on `/explore` + `/agent/[id]` (`libs/explorer`, base URL `NEXT_PUBLIC_API_URL` → fallback `http://localhost:4000`). No wallet/RPC yet. Cinematic landing still uses fictional data (`DEMO_AGENTS` in `lattern-preview`).
 * Backend reads go through `AgentRepository` — active source is the quarantined mock (`data/mockAgents.ts`) until Envio lands.
 
 ## How to use these docs

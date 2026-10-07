@@ -5,7 +5,7 @@
 
 ## Current state (2026-10-07)
 
-* Phase: **chat brains + Explorer UI + seed/deploy scripts LANDED** (uncommitted → commit this session). Previous: first slice committed `8eafd37`.
+* Phase: **chat brains + Explorer UI + seed/deploy scripts LANDED + COMMITTED** (`d9bca3d`, 2026-10-07). Previous: first slice `8eafd37` (2026-10-02).
 * Verified: `forge test` 57/57 · repo-wide `tsc --noEmit` clean · web tests 34/34 · api tests 29/29 · web lint clean. E2E smoke passed (list/profile/invalid/not-found + 2/2 live OpenRouter replies).
 * Contracts: `AgentRegistry`/`AgentPassport`/`Reputation` + in-house bases; NEW `script/Deploy.s.sol` + `script/SeedAgents.s.sol` + `script/seed/agents.json` (15 fictional identities, `demo://` URIs) + `test/SeedAgents.t.sol`. **Not executed on-chain** (owner: testnet deploy deferred).
 * API: 4 GETs + NEW `POST /api/agents/:id/chat` via `services/openRouterChat.ts` (OpenRouter, `OPENROUTER_API_KEY`/`CHAT_MODEL`, 15s timeout, bounded retry for empty-content flake, injectable for tests). Error codes: INVALID_MESSAGE, INVALID_AGENT_ID, 404, 503 OPENROUTER_NOT_CONFIGURED, 502 CHAT_UPSTREAM_ERROR. Root `.env` loaded (gitignored); root `.env.example` committed (key names only).
