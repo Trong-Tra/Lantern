@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { API_ENDPOINTS, buildExplorerTxUrl, getApiBaseUrl } from "@lantern/config";
 import { buildApiUrl, formatAddress, formatScore } from "@lantern/utils";
-import { AgentChatPanel, DemoBanner, NoticeCard, RiskBadge } from "@/components/molecules";
+import { AgentChatPanel, DemoBanner, NoticeCard, RiskBadge, VaultPanel } from "@/components/molecules";
 import { fetchAgentProfile, fetchRiskReport } from "@/libs/explorer/api";
 import { formatUpdatedAt, parseAgentId } from "@/libs/explorer/present";
 
@@ -176,6 +176,8 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
           </ol>
         )}
       </section>
+
+      <VaultPanel agentId={profile.agentId} />
 
       <div className="mt-4">
         <AgentChatPanel agentId={profile.agentId} agentName={profile.name} />
