@@ -1,6 +1,6 @@
 # 02 — Identity Contracts (Monad)
 
-> Owner: contracts buddy. **Landed 2026-10-02**: `contracts/` (Foundry) with all three contracts + tests. **2026-10-07**: added `script/{Deploy,SeedAgents}.s.sol` + 15-identity `script/seed/agents.json` (`forge test` 57/57). Both commits: docs + code together. Testnet deploy + seed **prepared but NOT run** — deferred by owner.
+> Owner: contracts buddy. **Landed 2026-10-02**: `contracts/` (Foundry) with all three contracts + tests. **2026-10-07**: added `script/{Deploy,SeedAgents}.s.sol` + 15-identity `script/seed/agents.json` (`forge test` 57/57). **2026-10-10: testnet deploy + seed EXECUTED on Monad chain 10143 — addresses below.** All commits: docs + code together.
 
 ## Model
 
@@ -56,14 +56,22 @@ Every agent = 1 × ERC-8004 identity : 1 × ERC-721 Passport : N × ERC-5192 att
 * Shared **in-house ERC721 base** in `contracts/src/utils/ERC721.sol` (+ `Ownable.sol`) — no OpenZeppelin dep.
 * Layout: `src/{AgentRegistry,AgentPassport,Reputation}.sol`, `src/utils/*`, `test/*.t.sol`, `script/{Deploy,SeedAgents}.s.sol`, `script/seed/agents.json`.
 * Tests required per contract (mint, soulbound lock, access control). No test = not done. Run: `forge test` in `contracts/` (57 green incl. seed pipeline).
-* No addresses in frontend until deployed. Frontend shows `Not published yet` (existing rule).
+* No addresses in frontend until deployed — **now deployed (2026-10-10, above): frontend may surface them once actually wired** (until then keep `Not published yet`).
 * Every contract change updates this file + Envio schema (`05-integrations.md`) in the same commit.
 
-## Deploy + MVP seed (written 2026-10-07, **not executed — owner said not yet**)
+## Deploy + MVP seed (EXECUTED 2026-10-10 — Monad testnet, chain 10143)
+
+* **Live addresses:**
+  * `AgentRegistry` → `0x62cd4e0C5B0D4587861a21710ed15ba1823a6341`
+  * `AgentPassport` → `0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8`
+  * `Reputation` → `0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8`
+  * Deployer + owner of all 15 seeds: `0x7EA634e331CF7b503df2e224f77a7C589462F1F2` (4.07 MON left after deploy + seed).
+  * Verified on-chain: `ownerOf(1/8/15)` = deployer, `agentURI` returns `demo://…`, `ownerOf(16)` reverts `AgentRegistry: unknown agent` → exactly 15 seeded.
+  * Paste the three addresses into root `.env` (`AGENT_REGISTRY_ADDRESS`, `AGENT_PASSPORT_ADDRESS`, `REPUTATION_ADDRESS` — keys added to `.env.example`).
 
 * `script/Deploy.s.sol` deploys Registry → Passport → Reputation; key from `MONAD_PRIVATE_KEY` env (never CLI args). Chain ID is read from `MONAD_TESTNET_RPC_URL` at run time — never hardcoded.
 * `script/SeedAgents.s.sol` registers the **15 MVP identities** from `script/seed/agents.json` (count is guarded: empty → revert, `MAX_AGENTS = 100`). Registration loop lives in `registerFromJson()` so `test/SeedAgents.t.sol` proves the same code path **in-memory — zero chain writes**.
 * Seed data rules: URIs use the non-resolvable **`demo://`** scheme (no invented ipfs links), fictional identities flagged in the JSON `disclaimer`, **single operator wallet** owns all 15 (MVP simplification — multi-owner needs funding per wallet).
 * Env (`.env.example`): `MONAD_TESTNET_RPC_URL`, `MONAD_PRIVATE_KEY`, `AGENT_REGISTRY_ADDRESS` (set after deploy).
-* Run order when owner says go (from `contracts/`): `forge script script/Deploy.s.sol:Deploy --rpc-url $MONAD_TESTNET_RPC_URL --broadcast` → put address in `.env` → `forge script script/SeedAgents.s.sol:SeedAgents --rpc-url $MONAD_TESTNET_RPC_URL --broadcast`.
-* Next: execution (owner) + canonical-8004 confirmation (owner).
+* Commands run 2026-10-10 (from `contracts/`): `forge script script/Deploy.s.sol:Deploy --rpc-url $MONAD_TESTNET_RPC_URL --broadcast` → `forge script script/SeedAgents.s.sol:SeedAgents --rpc-url $MONAD_TESTNET_RPC_URL --broadcast` (with `AGENT_REGISTRY_ADDRESS` exported). Both: `ONCHAIN EXECUTION COMPLETE & SUCCESSFUL`.
+* Next: canonical-8004 confirmation (owner) + Envio indexing against the live addresses.
