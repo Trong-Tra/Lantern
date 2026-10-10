@@ -42,7 +42,7 @@ Reference yield loop (first agent): `loop-staking across Monad DeFi → each act
 | Web landing | `apps/web/src/containers/lattern/`, `components/organisms/lattern-world/`, `cinematic-lantern/`, `styles/lattern.css` | Done (cinematic, fictional data) |
 | Web Explorer/Profile | `apps/web/src/app/explore/` (list) + `app/agent/[id]/` (profile + chat), helpers in `src/libs/explorer/`, UI in `components/molecules/` | Landed, reads live API; 34 tests |
 | Web Dashboard | — (only `/`, `/explore`, `/agent/[id]` today) | Missing |
-| Indexing | — (no Envio project yet) | Missing |
+| Indexing | `indexer/` — Envio HyperIndex v3: `config.yaml` + `schema.graphql` + `src/handlers/` + `src/effects.ts` (on-chain reads) + vitest | Scaffolded 2026-10-10; local/cloud sync pending `ENVIO_API_TOKEN` (see `05`) |
 | Identity contracts | `contracts/src/{AgentRegistry,AgentPassport,Reputation}.sol` + `test/*.t.sol` (Foundry); seed/deploy in `script/{Deploy,SeedAgents}.s.sol` + `script/seed/agents.json` | Landed, committed; testnet deploy + 15-agent seed prepared but NOT run (owner) |
 | Wallet (Dynamic) | — (Connect button is a Radix dialog stub) | Missing |
 | Verification (Snap) | — (no `packages/snap/` yet) | Missing |
@@ -61,7 +61,7 @@ Dead code — do not build on: `apps/web/src/containers/home/`, `components/expe
 
 ## Key decisions (locked unless revisited)
 
-* Chain: Monad — **testnet first** (owner 2026-10-02); chain ID + RPC still TBD. Mainnet later.
+* Chain: Monad — **testnet first** (owner 2026-10-02). **Live: chain ID 10143 via `MONAD_TESTNET_RPC_URL` (confirmed from RPC 2026-10-10).** Mainnet later.
 * Contracts toolchain: **Foundry** in `contracts/` (root-level, not a pnpm workspace member). In-house ERC721 base, no OZ.
 * API envelope: `{ success, data, message? }` via `createApiResponse` (`packages/utils/src/index.ts:33`). Keep for all new endpoints.
 * Error envelope: `{ success:false, message, code? }` via `createApiErrorResponse`.
@@ -71,7 +71,7 @@ Dead code — do not build on: `apps/web/src/containers/home/`, `components/expe
 
 ## Open questions (TBD — do not guess)
 
-* [ ] Monad network IDs + RPCs (testnet vs mainnet)? **(decision: testnet first — IDs still TBD)**
+* [~] Monad network IDs + RPCs? **Testnet DONE: chain ID 10143, RPC in `.env` (2026-10-10).** Mainnet switch still open.
 * [ ] ERC-8004 reference implementation — use canonical or minimal registry? **(first slice coded the minimal interface from `docs/02` — confirm or swap to canonical)**
 * [ ] 5192 metadata schema + score/risk formula location (on-chain vs indexer vs API)?
 * [ ] Envio project slug + GraphQL endpoint?

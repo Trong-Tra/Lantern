@@ -1,0 +1,8 @@
+# Envio generated code + local data
+.envio/
+generated/
+cache/
+logs/
+*.log
+
+# Local env (root .gitignore already covers .env*)

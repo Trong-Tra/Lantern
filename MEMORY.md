@@ -3,11 +3,13 @@
 > Append-only. Newest on top. Keep entries short: date + who + what changed + where.
 > Vision/spec live in `docs/00`–`docs/05`. This file is *what happened* + *what's next*.
 
-## Current state (2026-10-07)
+## Current state (2026-10-10)
 
+* **Envio indexer SCAFFOLDED** (`indexer/`, HyperIndex v3, envio@3.14.0): config.yaml (3 contracts, chain 10143, native HyperSync — no RPC sync needed), schema (`Agent`/`Passport`/`Attestation`, `Tx` deferred), handlers + **Effect API on-chain reads** (`agentOf`/`tokenURI`/`getAttestation` — events lack agentId/amount/protocol/uri; storage reads avoid a contract redeploy). 5/5 vitest green, tsc clean. Test data minted on-chain: passport 1→agent 1, attestation 1 STAKE SUCCESS 1e18, attestation 2 HARVEST FAIL. **Blocked only on `ENVIO_API_TOKEN`** (V3 HyperSync needs it local + cloud; owner creates at envio.dev/app/api-tokens) → then `pnpm dev` (Docker) + GitHub-app deploy → `ENVIO_GRAPHQL_URL`.
+* **LIVE: deployed + seeded on Monad testnet (chain 10143, `MONAD_TESTNET_RPC_URL`)** — AgentRegistry `0x62cd4e0C5B0D4587861a21710ed15ba1823a6341`, AgentPassport `0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8`, Reputation `0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8`. 15 seed identities registered (agentId 1–15, owner = deployer `0x7EA634e331CF7b503df2e224f77a7C589462F1F2`), verified via `cast` (ownerOf/agentURI; agent 16 reverts). Deployer balance: 4.07 MON. **Addresses must be pasted into root `.env` by owner** (keys added to `.env.example`).
 * Phase: **chat brains + Explorer UI + seed/deploy scripts LANDED + COMMITTED** (`d9bca3d`, 2026-10-07). Previous: first slice `8eafd37` (2026-10-02).
 * Verified: `forge test` 57/57 · repo-wide `tsc --noEmit` clean · web tests 34/34 · api tests 29/29 · web lint clean. E2E smoke passed (list/profile/invalid/not-found + 2/2 live OpenRouter replies).
-* Contracts: `AgentRegistry`/`AgentPassport`/`Reputation` + in-house bases; NEW `script/Deploy.s.sol` + `script/SeedAgents.s.sol` + `script/seed/agents.json` (15 fictional identities, `demo://` URIs) + `test/SeedAgents.t.sol`. **Not executed on-chain** (owner: testnet deploy deferred).
+* Contracts: `AgentRegistry`/`AgentPassport`/`Reputation` + in-house bases; NEW `script/Deploy.s.sol` + `script/SeedAgents.s.sol` + `script/seed/agents.json` (15 fictional identities, `demo://` URIs) + `test/SeedAgents.t.sol`. **Deployed 2026-10-10** (see top of Current state).
 * API: 4 GETs + NEW `POST /api/agents/:id/chat` via `services/openRouterChat.ts` (OpenRouter, `OPENROUTER_API_KEY`/`CHAT_MODEL`, 15s timeout, bounded retry for empty-content flake, injectable for tests). Error codes: INVALID_MESSAGE, INVALID_AGENT_ID, 404, 503 OPENROUTER_NOT_CONFIGURED, 502 CHAT_UPSTREAM_ERROR. Root `.env` loaded (gitignored); root `.env.example` committed (key names only).
 * Explorer: NEW `/explore` (list + pagination) + `/agent/[id]` (profile, risk, attestations, identity, chat panel) reading live API. Pure helpers in `libs/explorer/{api,present}.ts` (tested).
 * Shared packages: types (+ `ChatMessage/ChatRequest/ChatReply`, `AgentProfile.bio`), config (+ `API_ENDPOINTS.AGENT_CHAT`). Score still omitted (formula TBD → UI shows N/A).
@@ -29,7 +31,7 @@
 
 ## TBD / blocked (owner to answer when ready)
 
-* Monad network: testnet vs mainnet, chain ID, RPC.
+* Monad: **testnet live** — chain ID 10143 confirmed from RPC, contracts deployed 2026-10-10. Mainnet switch still TBD.
 * 8004 impl: canonical vs minimal registry + interface freeze.
 * 5192 metadata schema + score/risk formula home (contract vs indexer vs API).
 * Envio slug/endpoint/schema; Snap ID/install; Dynamic env ID/flow.
@@ -37,6 +39,8 @@
 
 ## Log
 
+* `2026-10-10` — agent: **scaffolded Envio indexer** in `indexer/` (workspace member, `pnpm@10.32.0` pinned for Envio Cloud). Design: events-only + Effect API storage reads for fields events don't carry (no contract change needed; drop effects if contracts later emit richer events). On-chain test data minted with deployer key: passport token 1 (agent 1), attestations 1 (STAKE SUCCESS) + 2 (HARVEST FAIL) — soulbound pipeline exercised. Discovery: HyperSync V3 requires `ENVIO_API_TOKEN`; Envio Cloud deploy is GitHub-app-based (no CLI login); single-object `@derivedFrom` unsupported (list form used). Synced docs 01/05/README + this file.
+* `2026-10-10` — agent: **deployed + seeded on Monad testnet** (chain 10143): `Deploy.s.sol` → 3 identity contracts, `SeedAgents.s.sol` → 15 identities, both `ONCHAIN EXECUTION COMPLETE & SUCCESSFUL`, verified via `cast`. Re-verified `forge test` 57/57 after discarding stale rewrites (resumed session had re-authored contracts from outdated docs — restored via `git checkout`, committed versions were canonical). Added `ENVIO_GRAPHQL_URL` / `NEXT_PUBLIC_DYNAMIC_ENV_ID` keys to `.env.example` templates. Owner fetching Envio slug + Dynamic env ID; Snap needs only local dev (MetaMask Flask), no signup.
 * `2026-10-07` — agent: landed **chat brains** (OpenRouter-backed `POST /api/agents/:id/chat`, persona system prompt that forbids inventing chain data, retry on empty content, 29 api tests), **Explorer UI** (`/explore` list + `/agent/[id]` profile with chat panel, pure data helpers, 34 web tests), and **seed/deploy scripts** (Deploy.s.sol + SeedAgents.s.sol + 15-identity agents.json, 57 forge tests — ready, NOT run per owner). Root `.env.example` added; `.env` stays gitignored. Docs synced: 01/02/03/04/05/README/AGENTS + this file.
 * `2026-10-02` — agent: **completed the first slice**. Contracts: `AgentRegistry`/`AgentPassport`/`Reputation` + in-house ERC721/Ownable bases, 4 test suites (53 tests green). API: types + endpoints, restructure (app factory/routes/repository/quarantined mock), 4 GETs, 15 tests (exit-1 stub replaced). Verified forge/typecheck/web/api. Synced docs 01/02/03/07/README + AGENTS + this file. Committed docs+code together. Not deploying to testnet yet (owner) — next candidates: Envio indexing, Explorer UI, Snap (owner picks).
 * `2026-10-02` — agent: repaired broken pnpm 12.4.2 `.tools` install (native binary via install.js) after owner confirmed normal pnpm use elsewhere; re-verified suite via plain `pnpm`.

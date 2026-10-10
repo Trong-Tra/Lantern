@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+name: lantern-indexer
+description: Lantern — ERC-8004 agent identity, ERC-721 passports, ERC-5192 soulbound reputation on Monad testnet
+schema: ./schema.graphql
+field_selection:
+  transaction_fields:
+    - hash
+contracts:
+  - name: AgentRegistry
+    abi_file_path: ./abis/AgentRegistry.json
+    events:
+      - event: AgentRegistered
+      - event: AgentUpdated
+  - name: AgentPassport
+    abi_file_path: ./abis/AgentPassport.json
+    events:
+      - event: Transfer
+  - name: Reputation
+    abi_file_path: ./abis/Reputation.json
+    events:
+      - event: AttestationMinted
+chains:
+  - id: 10143 # Monad testnet — native HyperSync
+    start_block: 0 # auto-fast-forwards to the first relevant block
+    contracts:
+      - name: AgentRegistry
+        address: "0x62cd4e0C5B0D4587861a21710ed15ba1823a6341"
+      - name: AgentPassport
+        address: "0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8"
+      - name: Reputation
+        address: "0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8"

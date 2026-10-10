@@ -26,8 +26,10 @@
 ## Envio — indexing on Monad ($1,000 bounty)
 
 * Goal: HyperIndex indexes `AgentRegistered/Updated`, ERC-721 `Transfer`, `AttestationMinted`, agent txs → GraphQL for web + Snap backend.
-* Status: missing (no Envio project, no schema, no endpoint).
-* Needed (TBD): project slug, network (Monad mainnet vs testnet + chain ID), contract addresses, `ENVIO_GRAPHQL_URL`, entity schema (`Agent`, `Passport`, `Attestation`, `Tx`), backfill plan.
+* Status: **SCAFFOLDED 2026-10-10** — `indexer/` (Envio HyperIndex v3, envio@3.14.0): `config.yaml` (3 contracts on chain 10143, native HyperSync), `schema.graphql` (`Agent`, `Passport`, `Attestation` — `Tx` deferred), TS handlers (`src/handlers/`), on-chain field resolution via Effect API (`src/effects.ts`: `agentOf`/`tokenURI`/`getAttestation` — events don't carry agentId/amount/protocol/uri, so handlers read them from contract storage, cached; avoids a contract redeploy). `Tx` entity from the original proposal omitted (KISS, revisit for Snap).
+* Verified: 5 vitest handler tests green (in-memory, no Docker); typecheck clean. Test data minted on-chain 2026-10-10: passport token 1 → agent 1, attestation 1 (STAKE SUCCESS, 1e18), attestation 2 (HARVEST FAIL) — ready for live sync verification.
+* Deploy: GitHub-based (no CLI login) — Envio Deployments app → Add Indexer → root `indexer/`, config `config.yaml`, branch `main` → push. Cloud constraints honored: envio pinned in deps, `packageManager: pnpm@10.32.0`, node ≥ 22.15, imports contained in `indexer/`. **Blocked on: `ENVIO_API_TOKEN`** (V3 HyperSync requires it, local + cloud — owner creates at envio.dev/app/api-tokens) → then `pnpm dev` locally (Docker) and cloud deploy; endpoint → `ENVIO_GRAPHQL_URL`.
+* Env keys (`.env.example` root + `indexer/`): `ENVIO_API_TOKEN`, `ENVIO_MONAD_RPC_URL` (fallback chain: → `MONAD_TESTNET_RPC_URL` → public HyperRPC), `ENVIO_GRAPHQL_URL`.
 * Demo proof: mint a 5192 on stage → Explorer/Profile updates from indexer (no hardcoded refresh).
 
 ## Cross-cutting

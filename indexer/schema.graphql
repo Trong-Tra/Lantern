@@ -1,0 +1,52 @@
+# Lantern indexer schema (docs/05).
+# Entity ids are the on-chain numeric ids as decimal strings:
+#   Agent.id        = agentId        (AgentRegistry)
+#   Passport.id     = passport tokenId (AgentPassport ERC-721)
+#   Attestation.id  = tokenId        (Reputation ERC-5192)
+
+enum ActionType {
+  STAKE
+  UNSTAKE
+  HARVEST
+  SWAP
+}
+
+enum ActionResult {
+  SUCCESS
+  FAIL
+}
+
+type Agent {
+  id: ID!
+  owner: String!
+  uri: String!
+  registeredAt: BigInt!
+  updatedAt: BigInt
+  passports: [Passport!]! @derivedFrom(field: "agent") # 0..1 in practice — 1:1 enforced by contract
+  attestations: [Attestation!]! @derivedFrom(field: "agent")
+}
+
+type Passport {
+  id: ID!
+  agent: Agent!
+  tokenId: BigInt!
+  owner: String! # current holder — passports are transferable
+  uri: String!
+  mintedAt: BigInt!
+  blockNumber: BigInt!
+  txHash: String!
+}
+
+type Attestation {
+  id: ID!
+  agent: Agent!
+  tokenId: BigInt!
+  actionType: ActionType!
+  result: ActionResult!
+  amount: BigInt
+  protocol: String
+  uri: String
+  mintedAt: BigInt!
+  blockNumber: BigInt!
+  txHash: String!
+}

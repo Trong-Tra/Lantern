@@ -45,6 +45,7 @@ Lantern/
 * Git: `main`, remote `git@github.com:Trong-Tra/Lantern.git`. Both slices **committed** (docs + code together): `8eafd37` first slice, `d9bca3d` chat + Explorer + seed scripts.
 * Frontend **does live-fetch the API** on `/explore` + `/agent/[id]` (`libs/explorer`, base URL `NEXT_PUBLIC_API_URL` → fallback `http://localhost:4000`). No wallet/RPC yet. Cinematic landing still uses fictional data (`DEMO_AGENTS` in `lattern-preview`).
 * Backend reads go through `AgentRepository` — active source is the quarantined mock (`data/mockAgents.ts`) until Envio lands.
+* Indexer scaffolded 2026-10-10: `indexer/` (Envio HyperIndex v3) — config on chain 10143 + schema + handlers + tests; sync/deploy blocked on `ENVIO_API_TOKEN` only (see `docs/05`).
 
 ## How to use these docs
 
