@@ -149,5 +149,19 @@ export function createMockAgentRepository(): AgentRepository {
       };
       return report;
     },
+
+    async findByAddress(address) {
+      // Demo vault mapping: the deployed AgentVault serves the reference agent
+      // (docs/02). Real source (Envio) will read vault.agentId on-chain later.
+      const vaultAddress = process.env.AGENT_VAULT_ADDRESS?.toLowerCase();
+      if (vaultAddress && address === vaultAddress) {
+        const vaultAgentId = Number(process.env.AGENT_VAULT_AGENT_ID ?? 1);
+        const vaultAgent = MOCK_AGENTS.find((a) => a.agentId === vaultAgentId);
+        if (vaultAgent) return toSummary(vaultAgent);
+      }
+
+      const ownerMatch = MOCK_AGENTS.find((a) => a.owner.toLowerCase() === address);
+      return ownerMatch ? toSummary(ownerMatch) : null;
+    },
   };
 }

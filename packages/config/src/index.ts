@@ -18,6 +18,8 @@ export const API_ENDPOINTS = {
   HEALTH: "/",
   HELLO: "/api/hello",
   AGENTS: "/api/agents",
+  /** Registered BEFORE :id so "lookup" is not swallowed as an agent id. */
+  AGENT_LOOKUP: "/api/agents/lookup/:address",
   AGENT_BY_ID: "/api/agents/:id",
   AGENT_ATTESTATIONS: "/api/agents/:id/attestations",
   AGENT_RISK: "/api/agents/:id/risk",

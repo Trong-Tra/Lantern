@@ -50,6 +50,18 @@ export function createAgentsRouter({ chat }: AgentsRouterDeps): Router {
     res.json(paginated<AgentSummary>(items, total, page, limit));
   });
 
+  /** GET /api/agents/lookup/:address — resolve an address to an agent (Snap-facing). */
+  agentsRouter.get("/lookup/:address", async (req, res) => {
+    const address = typeof req.params.address === "string" ? req.params.address : "";
+    if (!/^0x[0-9a-fA-F]{40}$/.test(address)) {
+      res.status(400).json(createApiErrorResponse("Invalid address", "INVALID_ADDRESS"));
+      return;
+    }
+
+    const summary = await agentRepository.findByAddress(address.toLowerCase());
+    res.json(createApiResponse(summary));
+  });
+
   /** GET /api/agents/:id — full agent profile. */
   agentsRouter.get("/:id", async (req, res) => {
     const agentId = parseAgentId(req.params.id);

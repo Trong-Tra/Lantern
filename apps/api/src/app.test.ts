@@ -213,6 +213,61 @@ describe("api", () => {
   });
 });
 
+describe("lookup endpoint", () => {
+  let base: string;
+  let close: () => void;
+
+  before(async () => {
+    ({ base, close } = await startApp());
+  });
+
+  after(() => {
+    delete process.env.AGENT_VAULT_ADDRESS;
+    delete process.env.AGENT_VAULT_AGENT_ID;
+    close();
+  });
+
+  it("GET /api/agents/lookup/:address matches an agent owner (case-insensitive)", async () => {
+    const res = await fetch(`${base}/api/agents/lookup/0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.success, true);
+    assert.equal(body.data.agentId, 1);
+    assert.equal(body.data.owner, "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+  });
+
+  it("GET /api/agents/lookup/:address returns null for an unknown address", async () => {
+    const res = await fetch(`${base}/api/agents/lookup/0x1111111111111111111111111111111111111111`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.success, true);
+    assert.equal(body.data, null);
+  });
+
+  it("GET /api/agents/lookup/:address → 400 for malformed address", async () => {
+    const res = await fetch(`${base}/api/agents/lookup/not-an-address`);
+    assert.equal(res.status, 400);
+    const body = await res.json();
+    assert.equal(body.success, false);
+    assert.equal(body.code, "INVALID_ADDRESS");
+  });
+
+  it("GET /api/agents/lookup/:address resolves the demo vault via env mapping", async () => {
+    process.env.AGENT_VAULT_ADDRESS = "0x9999999999999999999999999999999999999999";
+    const res = await fetch(`${base}/api/agents/lookup/0x9999999999999999999999999999999999999999`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.success, true);
+    assert.equal(body.data.agentId, 1);
+
+    process.env.AGENT_VAULT_AGENT_ID = "2";
+    const res2 = await fetch(`${base}/api/agents/lookup/0x9999999999999999999999999999999999999999`);
+    const body2 = await res2.json();
+    assert.equal(body2.data.agentId, 2);
+    delete process.env.AGENT_VAULT_AGENT_ID;
+  });
+});
+
 describe("chat endpoint", () => {
   it("POST /api/agents/:id/chat returns the persona reply via the injected service", async () => {
     const seen: { agentId?: number; message?: string; history?: ChatMessage[] } = {};

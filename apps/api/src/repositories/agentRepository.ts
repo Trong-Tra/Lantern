@@ -16,6 +16,12 @@ export interface AgentRepository {
   /** null = unknown agent (route turns it into 404). */
   getAttestations(agentId: number, page: number, limit: number): Promise<Page<Attestation> | null>;
   getRisk(agentId: number): Promise<RiskReport | null>;
+  /**
+   * Resolve an address (lowercased) to an agent — used by the MetaMask Snap
+   * to identify transactions sent to an agent owner or the agent's vault.
+   * null = no agent is associated with the address.
+   */
+  findByAddress(address: string): Promise<AgentSummary | null>;
 }
 
 /**

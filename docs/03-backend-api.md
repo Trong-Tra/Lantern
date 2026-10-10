@@ -35,6 +35,7 @@ Decisions taken while landing (flag if you disagree):
 ## Endpoints (live, mock-backed)
 
 ```
+GET  /api/agents/lookup/:address  → ApiResponse<AgentSummary | null>  (Snap: address→agent; 400 INVALID_ADDRESS; null = no match)
 GET  /api/agents                  → PaginatedResponse<AgentSummary>   (page/limit query, max limit 100)
 GET  /api/agents/:id              → ApiResponse<AgentProfile>         (400 malformed id, 404 unknown)
 GET  /api/agents/:id/attestations → PaginatedResponse<Attestation>    (newest first)
@@ -42,7 +43,7 @@ GET  /api/agents/:id/risk         → ApiResponse<RiskReport>           (for Sna
 POST /api/agents/:id/chat         → ApiResponse<ChatReply>            (LLM persona; see below)
 ```
 
-Errors: `{ success:false, message, code? }` with `code = INVALID_AGENT_ID | INVALID_MESSAGE | NOT_FOUND | OPENROUTER_NOT_CONFIGURED | CHAT_UPSTREAM_ERROR | INTERNAL_ERROR`.
+Errors: `{ success:false, message, code? }` with `code = INVALID_AGENT_ID | INVALID_ADDRESS | INVALID_MESSAGE | NOT_FOUND | OPENROUTER_NOT_CONFIGURED | CHAT_UPSTREAM_ERROR | INTERNAL_ERROR`.
 
 ## Chat brains (OpenRouter — landed 2026-10-07)
 
