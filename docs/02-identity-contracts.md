@@ -44,6 +44,17 @@ Every agent = 1 × ERC-8004 identity : 1 × ERC-721 Passport : N × ERC-5192 att
 * Events: `AttestationMinted(agentId, tokenId, actionType, result)` + `Locked(tokenId)` (landed, tested).
 * Score/risk derivation stays off-chain (indexer/API) — contract is append-only.
 
+## AgentVault — demo deposit pool (deployed 2026-10-10)
+
+* `AgentVault` (`contracts/src/AgentVault.sol`) — minimal single-agent deposit pool for the reference yield agent. Users deposit/withdraw MON; every flow mints a real 5192 attestation (STAKE/SUCCESS on deposit, UNSTAKE/SUCCESS on withdraw, `protocol = demo://protocols/agent-vault`), so vault activity becomes live reputation history.
+* **Live:** `0xe09b383696D69B8A3Dfb2081a446D8fc62826328` (serves agent 1), authorized as Reputation executor. `script/DeployAgentVault.s.sol` deploys + authorizes in one broadcast; `AGENT_VAULT_AGENT_ID` env overrides the agent (default 1).
+* Plain ETH sends revert (`use deposit()`); CEI ordering on withdraw; constructor reverts for unknown agentId.
+* This is the Snap demo target: a user deposit is a real tx the MetaMask Snap can intercept and enrich (docs/05).
+
+## Demo attestation history (seeded 2026-10-10)
+
+* `script/SeedAttestations.s.sol` + `script/seed/attestations.json` mint realistic fictional histories for agents 1–5 (120 attestations, tokenIds 3–122 on testnet; ~86% success, failures included — reputation = earned). Same quarantine rules as agents.json (all `demo://`, disclaimer in JSON). String enums parsed in-Solidity with revert on unknown values; `MAX_ATTESTATIONS = 500` guard; same `*FromJson()` in-memory test pattern as SeedAgents.
+
 ## Reference yield agent
 
 * One agent, one strategy: loop staking across Monad DeFi protocols (protocols TBD).
@@ -54,8 +65,8 @@ Every agent = 1 × ERC-8004 identity : 1 × ERC-721 Passport : N × ERC-5192 att
 
 * Location: `contracts/` at repo root (Foundry — **locked 2026-10-02**; not a pnpm workspace member).
 * Shared **in-house ERC721 base** in `contracts/src/utils/ERC721.sol` (+ `Ownable.sol`) — no OpenZeppelin dep.
-* Layout: `src/{AgentRegistry,AgentPassport,Reputation}.sol`, `src/utils/*`, `test/*.t.sol`, `script/{Deploy,SeedAgents}.s.sol`, `script/seed/agents.json`.
-* Tests required per contract (mint, soulbound lock, access control). No test = not done. Run: `forge test` in `contracts/` (57 green incl. seed pipeline).
+* Layout: `src/{AgentRegistry,AgentPassport,Reputation,AgentVault}.sol`, `src/utils/*`, `test/*.t.sol`, `script/{Deploy,DeployAgentVault,SeedAgents,SeedAttestations}.s.sol`, `script/seed/{agents,attestations}.json`.
+* Tests required per contract (mint, soulbound lock, access control). No test = not done. Run: `forge test` in `contracts/` (71 green incl. seed pipelines).
 * No addresses in frontend until deployed — **now deployed (2026-10-10, above): frontend may surface them once actually wired** (until then keep `Not published yet`).
 * Every contract change updates this file + Envio schema (`05-integrations.md`) in the same commit.
 
