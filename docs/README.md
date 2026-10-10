@@ -36,7 +36,9 @@ Lantern/
 ├── packages/config/   # DEFAULT_API_PORT=4000, API_ENDPOINTS (incl. /api/agents/* + chat), APP_CONFIG
 ├── packages/types/    # envelope + RiskLevel, AgentSummary/Profile, Attestation, RiskReport, ChatMessage/Reply
 ├── packages/utils/    # formatAddress, formatScore, sleep, createApiResponse, buildApiUrl
-├── contracts/         # Foundry — 3 contracts + Deploy/SeedAgents scripts (15-identity MVP seed, in-memory tested), 57 tests
+├── contracts/         # Foundry — 4 contracts (incl. AgentVault demo pool) + deploy/seed scripts (15 agents, 120 attestations LIVE on testnet), 71 tests
+├── indexer/           # Envio HyperIndex v3 — LIVE locally: 15 agents + passport + attestations at :8080 GraphQL
+├── packages/snap/     # @lantern/snap — MetaMask Transaction Insights (lookup → identity/risk panel), 9 vitest
 ├── .env.example       # key names only (OPENROUTER/CHAT_MODEL/MONAD_*) — real values live in gitignored .env
 └── README.md          # monorepo setup (existing)
 ```

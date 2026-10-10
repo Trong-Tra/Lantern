@@ -1,0 +1,26 @@
+{
+  "version": "0.1.0",
+  "description": "Verify ERC-8004 agent identity and reputation before signing.",
+  "proposedName": "Lantern",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Trong-Tra/Lantern.git"
+  },
+  "source": {
+    "shasum": "ZjUABRj9viXO3msSaWvLGuqdxktSnd0jyt6CaJeKJ30=",
+    "location": {
+      "npm": {
+        "filePath": "dist/bundle.js",
+        "iconPath": "images/icon.svg",
+        "packageName": "@lantern/snap",
+        "registry": "https://registry.npmjs.org/"
+      }
+    }
+  },
+  "initialPermissions": {
+    "endowment:transaction-insight": {},
+    "endowment:network-access": {}
+  },
+  "platformVersion": "12.0.1",
+  "manifestVersion": "0.1"
+}

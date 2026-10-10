@@ -18,10 +18,10 @@
 ## MetaMask Snap — transaction-time verification ($2,500 bounty)
 
 * Goal: intercept txs to agent contracts, show **ERC-8004 ID + soulbound history + risk score** before signing.
-* Layer: `packages/snap/` (missing). Type: Transaction Insights Snap.
-* Data source: `GET /api/agents/:id/risk` (fast, cacheable) with on-chain fallback. Define once backend `03` lands.
-* Needed (TBD): Snap ID / install URL, insights renderer copy (LOW/MEDIUM/HIGH/UNKNOWN + reasons), test tx fixtures.
-* Demo proof: user about to sign to yield agent → Snap panel with ID + timeline summary + risk → sign/reject with context.
+* Status: **LANDED 2026-10-10** — `packages/snap/` (Transaction Insights). `onTransaction` guards chain (`eip155:10143`) → resolves `tx.to` via **`GET /api/agents/lookup/:address`** (docs/03) → renders panel (name, agent id, owner, risk, executions/failures, score `N/A`). Honest fallbacks: unknown agent, contract deployment, unsupported chain, API unreachable. Pure insight builders in `src/insights.ts` (9 vitest tests); bundle builds + SES-evals clean (`mm-snap build`).
+* Data source: lookup endpoint (owner match / demo vault mapping). Enrichment with `risk` reasons + history summary is the next iteration.
+* Needed (TBD): public Snap ID (npm publish + allowlist — local Flask only until then; snap config UX for API base), MetaMask Flask for demo (`pnpm serve` in packages/snap → connect from Flask).
+* Demo proof: user about to deposit to AgentVault (docs/02) → Snap panel with ID + risk → sign/reject with context.
 
 ## Envio — indexing on Monad ($1,000 bounty)
 

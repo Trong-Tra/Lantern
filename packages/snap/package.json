@@ -1,0 +1,26 @@
+{
+  "name": "@lantern/snap",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lantern — transaction-time agent verification for MetaMask (Transaction Insights)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Trong-Tra/Lantern.git"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "mm-snap build",
+    "serve": "mm-snap serve",
+    "manifest": "mm-snap manifest --fix",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@metamask/snaps-sdk": "12.0.1"
+  },
+  "devDependencies": {
+    "@metamask/snaps-cli": "^8.4.1",
+    "typescript": "^5.6.0",
+    "vitest": "^5.0.0"
+  }
+}

@@ -43,10 +43,10 @@ Reference yield loop (first agent): `loop-staking across Monad DeFi → each act
 | Web Explorer/Profile | `apps/web/src/app/explore/` (list) + `app/agent/[id]/` (profile + chat), helpers in `src/libs/explorer/`, UI in `components/molecules/` | Landed, reads live API; 34 tests |
 | Web Dashboard | — (only `/`, `/explore`, `/agent/[id]` today) | Missing |
 | Indexing | `indexer/` — Envio HyperIndex v3: `config.yaml` + `schema.graphql` + `src/handlers/` + `src/effects.ts` (on-chain reads) + vitest | Scaffolded 2026-10-10; local/cloud sync pending `ENVIO_API_TOKEN` (see `05`) |
-| Identity contracts | `contracts/src/{AgentRegistry,AgentPassport,Reputation}.sol` + `test/*.t.sol` (Foundry); seed/deploy in `script/{Deploy,SeedAgents}.s.sol` + `script/seed/agents.json` | Landed, committed; testnet deploy + 15-agent seed prepared but NOT run (owner) |
+| Identity contracts | `contracts/src/{AgentRegistry,AgentPassport,Reputation,AgentVault}.sol` + `test/*.t.sol` (Foundry); seed/deploy in `script/{Deploy,DeployAgentVault,SeedAgents,SeedAttestations}.s.sol` | **Live on testnet**: 3 contracts + vault deployed, 15 agents + 120 attestations seeded (docs/02) |
 | Wallet (Dynamic) | — (Connect button is a Radix dialog stub) | Missing |
-| Verification (Snap) | — (no `packages/snap/` yet) | Missing |
-| Shared API | `apps/api/src/` — `app.ts` (testable factory), `routes/agents.ts` (4 GETs + chat), `services/openRouterChat.ts`, `repositories/agentRepository.ts`, `data/mockAgents.ts` (quarantined) | 5 endpoints live (mock-backed + OpenRouter chat) + 29 tests |
+| Verification (Snap) | `packages/snap/` — Transaction Insights snap: `onTransaction` → `GET /api/agents/lookup/:address` → identity/risk panel | Landed 2026-10-10; local Flask testing (public Snap ID TBD) |
+| Shared API | `apps/api/src/` — `app.ts` (testable factory), `routes/agents.ts` (5 GETs + chat), `services/openRouterChat.ts`, `repositories/agentRepository.ts`, `data/mockAgents.ts` (quarantined) | 6 endpoints live (mock-backed + OpenRouter chat) + 33 tests |
 | Shared libs | `packages/config` (endpoint paths), `packages/types` (agent/attestation/risk types), `packages/utils` | Done, extend as needed |
 
 Dead code — do not build on: `apps/web/src/containers/home/`, `components/experience/`, `components/lantern/`, `styles/globals.scss`.

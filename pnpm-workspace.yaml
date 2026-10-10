@@ -4,5 +4,6 @@ packages:
   - "indexer"
 allowBuilds:
   '@parcel/watcher': false
+  '@swc/core': true
   esbuild: false
   unrs-resolver: false
