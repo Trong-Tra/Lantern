@@ -22,7 +22,8 @@ Tagline: `Illuminate the agent economy.` — `Trust shouldn't be a leap in the d
 | `docs/04-frontend.md` | Current cinematic landing → Explorer / Profile / Dashboard | frontend |
 | `docs/05-integrations.md` | Dynamic (passkey) + MetaMask Snap + Envio | integrations |
 | `docs/06-agent-sync.md` | How agents share memory, conventions, Do/Don't | all |
-| `docs/07-first-slice-plan.md` | **Resume plan** — first slice (contracts + API): done + committed; handoff lists next moves | all |
+| `docs/07-first-slice-plan.md` | First slice (contracts + API): done + committed; handoff lists next moves | all |
+| `docs/08-demo-runbook.md` | **Hackathon demo staging**: startup order, 7-act narrative, Envio proof moments, failure drills | all |
 | `MEMORY.md` (root) | Living log: state, decisions, TBD, newest-first | all — update every task |
 | `apps/web/design.md` | Cinematic landing spec (existing, source of truth for landing) | frontend |
 | `apps/web/docs/cinematic-experience.md` | Cinematic dev + fallback boundaries (existing) | frontend |
