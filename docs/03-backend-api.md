@@ -53,9 +53,15 @@ Errors: `{ success:false, message, code? }` with `code = INVALID_AGENT_ID | INVA
 * `AgentProfile.bio?` is the persona blurb (mock-only for now; live data TBD).
 * Verified live: two real free-tier calls returned in-character replies. No auth/rate-limit on this endpoint yet — **add before any public deploy**.
 
-## Score/risk formula — DECISION NEEDED (memo 2026-10-02, no code landed)
+## Score/risk formula — v0 LANDED (owner-approved 2026-10-10); score still TBD
 
-Where the formula lives, three options:
+Location: **option B — API-side** (this doc's recommendation). v0 banding in `deriveRiskV0` (envioAgentRepository.ts), deterministic + stated in `reasons[]`:
+
+* `<10 executions → UNKNOWN` ("too early to judge").
+* else banded by failure rate: `<5% LOW`, `<15% MEDIUM`, else `HIGH`.
+* `score` (0–100) remains omitted everywhere — weighted/recency formula still owner-TBD; UI shows `N/A`.
+
+Historical options memo (kept for context):
 
 | Option | Where | Pros | Cons |
 | --- | --- | --- | --- |
@@ -70,11 +76,11 @@ Formula sketch for B (**all thresholds TBD — owner to approve before coding**)
 * `reasons[]` = deterministic contributors ("4 failures in 128 executions") so the Snap panel can explain the band.
 * While undecided: API omits `score` (UI → `N/A`), mock returns placeholder `risk` only. **Owner picks A/B/C + thresholds → then code.**
 
-## Envio consumption
+## Envio consumption (LANDED 2026-10-10)
 
-* Backend (or frontend directly — decide once) queries Envio HyperIndex GraphQL.
-* Backend owns: caching, score/risk derivation, Snap-facing `risk` endpoint latency.
-* Env needed (all TBD): `ENVIO_GRAPHQL_URL`, `MONAD_RPC_URL`, `CHAIN_ID`, contract addresses.
+* `repositories/envioAgentRepository.ts` queries the indexer Hasura GraphQL and implements the full `AgentRepository` interface. `DATA_SOURCE=envio` selects it in `agentRepository.ts` (single selection point; default stays `mock` for tests/offline).
+* Env: `ENVIO_GRAPHQL_URL` (falls back to local `http://localhost:8080/v1/graphql` — empty value counts as unset), `ENVIO_ADMIN_SECRET` (falls back to local Hasura `testing`; empty on Envio Cloud's public endpoint).
+* Mapping notes: names are derived from the on-chain URI slug (`demo://lantern/yield-keeper` → "Yield Keeper") until off-chain metadata lands; `Attestation.txHash` comes from the indexer and renders as an explorer link in the UI; `bio` stays mock-only.
 * Never commit `.env`. Provide `.env.example` updates with each new var.
 
 ## Rules

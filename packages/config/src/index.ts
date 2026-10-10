@@ -26,6 +26,23 @@ export const API_ENDPOINTS = {
   AGENT_CHAT: "/api/agents/:id/chat",
 } as const;
 
+/** Monad testnet explorer (official: monad.xyz/developers). Env-overridable. */
+export const DEFAULT_MONAD_EXPLORER_URL = "https://testnet.monadscan.com";
+
+export function getMonadExplorerUrl(): string {
+  const envUrl =
+    typeof globalThis !== "undefined"
+      ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
+          ?.NEXT_PUBLIC_MONAD_EXPLORER_URL
+      : undefined;
+  return envUrl || DEFAULT_MONAD_EXPLORER_URL;
+}
+
+/** Link to a transaction on the Monad testnet explorer. */
+export function buildExplorerTxUrl(txHash: string): string {
+  return `${getMonadExplorerUrl()}/tx/${txHash}`;
+}
+
 export const APP_CONFIG = {
   name: "Lantern",
   tagline: "Illuminate the agent economy",

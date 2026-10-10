@@ -20,11 +20,16 @@ export function RiskBadge({ risk }: { risk: RiskLevel | string }) {
 }
 
 /**
- * Honest-data guard (docs/06): the API serves quarantined mock records until
- * the Envio indexer lands — every explorer screen must say so out loud.
+ * Honest-data guard (docs/06): tells the reader which data source the API
+ * serves — quarantined mock (amber) or live testnet indexer (emerald).
  */
-export function DemoBanner() {
-  return (
+export function DemoBanner({ live = false }: { live?: boolean }) {
+  return live ? (
+    <p className="rounded-lg border border-emerald-400/30 bg-emerald-400/5 px-4 py-3 text-sm text-emerald-200/90">
+      Live testnet data — served from the Monad testnet indexer (Envio). Identities and soulbound
+      history are real on-chain records (demo identities, Monad testnet).
+    </p>
+  ) : (
     <p className="rounded-lg border border-amber-400/30 bg-amber-400/5 px-4 py-3 text-sm text-amber-200/90">
       Demo data — the API currently serves quarantined mock records until the Envio indexer is wired
       (docs/03). Nothing shown here is live chain data.

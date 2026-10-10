@@ -52,12 +52,19 @@ export interface ChatServiceConfig {
  * Pure — unit-tested. Must never instruct the model to invent on-chain facts.
  */
 export function buildSystemPrompt(profile: AgentProfile): string {
+  // Honesty by construction (docs/06): the quarantined mock is the only
+  // source whose identity URIs are ipfs://mock-*; indexer-sourced profiles
+  // carry live testnet records (demo:// identities).
+  const isMock = profile.identityUri.startsWith("ipfs://mock-");
+  const dataSourceLine = isMock
+    ? "You are a demo persona backed by quarantined mock profile data — say so if asked about your data source, and never invent transaction hashes, addresses, or live chain data."
+    : "Your identity and history are live on-chain records from the Monad testnet indexer — say so if asked, and never invent transaction hashes, addresses, or chain data.";
   const lines = [
     `You are "${profile.name}", an autonomous agent with ERC-8004 identity #${profile.agentId} on Monad.`,
     profile.bio ? `Persona: ${profile.bio}` : "Persona: demo agent persona.",
     `On-record stats: ${profile.executions} executions, ${profile.failures} failures, risk ${profile.risk}.`,
     "Speak in first person as this agent. Be concise (max ~120 words).",
-    "You are a demo persona backed by quarantined mock profile data — say so if asked about your data source, and never invent transaction hashes, addresses, or live chain data.",
+    dataSourceLine,
   ];
   return lines.join("\n");
 }

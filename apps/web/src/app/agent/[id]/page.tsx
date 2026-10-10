@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
-import { API_ENDPOINTS, getApiBaseUrl } from "@lantern/config";
+import { API_ENDPOINTS, buildExplorerTxUrl, getApiBaseUrl } from "@lantern/config";
 import { buildApiUrl, formatAddress, formatScore } from "@lantern/utils";
 import { AgentChatPanel, DemoBanner, NoticeCard, RiskBadge } from "@/components/molecules";
 import { fetchAgentProfile, fetchRiskReport } from "@/libs/explorer/api";
@@ -16,6 +16,7 @@ function endpoint(template: string, agentId: number): string {
 export default async function AgentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const agentId = parseAgentId(id);
+  const live = process.env.DATA_SOURCE === "envio";
 
   if (agentId === null) {
     return (
@@ -66,7 +67,7 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
         {profile.bio ? <p className="mt-2 max-w-2xl text-sm text-paper/70">{profile.bio}</p> : null}
       </header>
 
-      <DemoBanner />
+      <DemoBanner live={live} />
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <section className="rounded-xl border border-paper/15 bg-paper/[0.03] p-5">
@@ -160,6 +161,16 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
                 <span className="ml-auto font-mono text-[11px] text-paper/40">
                   {formatUpdatedAt(attestation.timestamp)}
                 </span>
+                {attestation.txHash ? (
+                  <a
+                    href={buildExplorerTxUrl(attestation.txHash)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-[11px] text-lantern/80 hover:text-lantern"
+                  >
+                    tx ↗
+                  </a>
+                ) : null}
               </li>
             ))}
           </ol>

@@ -1,5 +1,6 @@
 import type { AgentProfile, AgentSummary, Attestation, RiskReport } from "@lantern/types";
 import { createMockAgentRepository } from "../data/mockAgents.js";
+import { createEnvioAgentRepository } from "./envioAgentRepository.js";
 
 export interface Page<T> {
   items: T[];
@@ -25,8 +26,15 @@ export interface AgentRepository {
 }
 
 /**
- * ACTIVE DATA SOURCE: mock (fictional, quarantined — docs/06).
- * TODO(Envio): swap for the Envio GraphQL-backed repository here
- * (single selection point; `DATA_SOURCE` env switch deferred until then).
+ * ACTIVE DATA SOURCE selection (docs/03): `DATA_SOURCE=envio` reads the live
+ * indexer GraphQL; anything else (default) stays on the quarantined mock
+ * (docs/06). Single selection point — the rest of the app only sees the
+ * AgentRepository interface.
  */
-export const agentRepository: AgentRepository = createMockAgentRepository();
+export function createActiveRepository(): AgentRepository {
+  return process.env.DATA_SOURCE === "envio"
+    ? createEnvioAgentRepository()
+    : createMockAgentRepository();
+}
+
+export const agentRepository: AgentRepository = createActiveRepository();

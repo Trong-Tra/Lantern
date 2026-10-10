@@ -39,6 +39,8 @@ export interface Attestation {
   /** Raw uint256 as decimal string — never lose precision. */
   amount?: string;
   uri?: string;
+  /** Mint transaction hash — present for indexer-sourced records (envio). */
+  txHash?: string;
   /** Unix seconds (block timestamp). */
   timestamp: number;
 }

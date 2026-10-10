@@ -17,6 +17,7 @@ export default async function ExplorePage({
 }) {
   const params = await searchParams;
   const page = parsePage(params.page);
+  const live = process.env.DATA_SOURCE === "envio";
   const url = withQuery(buildApiUrl(API_ENDPOINTS.AGENTS, getApiBaseUrl()), {
     page,
     limit: PAGE_SIZE,
@@ -35,7 +36,7 @@ export default async function ExplorePage({
         </p>
       </header>
 
-      <DemoBanner />
+      <DemoBanner live={live} />
 
       {!result.ok ? (
         <div className="mt-6">

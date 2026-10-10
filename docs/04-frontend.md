@@ -7,6 +7,7 @@
 * `@lantern/web` — `next@16.3.5` + `react@19`, Tailwind v4, `three + R3F + drei`, `gsap + Lenis`, Radix dialog/dropdown/popover, Heroicons. Port 3000.
 * Routes: `/` → `LatternExperience` (cinematic, untouched) · **`/explore` → Agent Explorer (landed 2026-10-07)** · **`/agent/[id]` → Agent Profile + chat (landed 2026-10-07)** · `/dashboard` still missing.
 * Explorer data layer: `src/libs/explorer/{api,present}.ts` — pure, package-free helpers (envelope parsing, query building, risk tone, UTC timestamps, id/page parsing) loaded by `tests/explorer.test.mjs`.
+* **Live-data mode (2026-10-10)**: `DemoBanner` takes a `live` prop (server pages read `DATA_SOURCE`); emerald "Live testnet data" vs amber mock copy. Attestation rows link to `testnet.monadscan.com/tx/<hash>` via `buildExplorerTxUrl` (`packages/config`, env-overridable) when `txHash` is present.
 * UI pieces: `src/components/molecules/explorer.tsx` (`DemoBanner` = honest-data guard, `RiskBadge`, `NoticeCard`) + `agent-chat-panel.tsx` (client, posts to `POST /api/agents/:id/chat` — key stays server-side).
 * First live fetches exist: pages call `getApiBaseUrl()` + `buildApiUrl(API_ENDPOINTS.* , fetch)` with graceful error/not-found cards. Fictional-data banner is mandatory until Envio lands (docs/06).
 * Landing unchanged: 11 scroll scenes (`src/constants/lattern-scenes.ts`), playhead in `src/libs/cinematic/runtime.ts`, styling in `src/styles/lattern.css` (1207 lines).
@@ -35,4 +36,5 @@ Keep landing as-is (it's the narrative). Add app routes alongside it:
 
 * `transpilePackages: [@lantern/types, @lantern/utils, @lantern/config]` already in `next.config.ts` — import shared types/utils from there, don't duplicate.
 * Display via `formatAddress` / `formatScore` (`packages/utils`). Scores `N/A` until backend returns numbers.
+* **On-chain write UX (2026-10-10)**: agent profiles can embed wallet-connected panels (wagmi) — see the AgentVault deposit panel. Browser RPC via `NEXT_PUBLIC_MONAD_RPC_URL`.
 * Run per change: `pnpm test`, `pnpm exec tsc --noEmit`, `pnpm lint` (+ visual check for CSS/WebGL).
