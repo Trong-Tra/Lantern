@@ -22,6 +22,11 @@ const LatternWorld = dynamic(
   () => import("@/components/organisms/lattern-world"),
   { ssr: false }
 );
+// Owner's IEEE publication (2026) — verifiable AI reviewers with soulbound
+// reputation; the direct intellectual ancestor of Lantern's ERC-5192 layer.
+const ERC8004_PUBLICATION_URL =
+  "https://ieeexplore.ieee.org/abstract/document/11685704";
+
 const subscribeMotion = (callback: () => void) => {
   const query = window.matchMedia("(prefers-reduced-motion: reduce)");
   query.addEventListener("change", callback);
@@ -188,6 +193,28 @@ export function LatternExperience() {
                     <span className="unpublished">
                       GitHub <small>Not published yet</small>
                     </span>
+                  </div>
+                  <div className="built-signal" data-sequence="0.985">
+                    <div className="built-signal__item">
+                      <span className="micro-label">Built by</span>
+                      <p>
+                        Former centralized-exchange engineers — people who kept
+                        matching engines honest, now keeping agents honest.
+                      </p>
+                    </div>
+                    <div className="built-signal__item">
+                      <span className="micro-label">Research</span>
+                      <p>
+                        <a
+                          href={ERC8004_PUBLICATION_URL}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          “Verifiable AI Reviewers” — IEEE, soulbound reputation
+                          for multi-agent peer review ↗
+                        </a>
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}

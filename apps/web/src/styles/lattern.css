@@ -725,6 +725,38 @@ html.lenis body {
   font-size: 8px;
   color: #a49782;
 }
+/* credibility signal — founders + research, understated by design */
+.built-signal {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 24px 56px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid #d8b2791f;
+}
+.built-signal__item {
+  max-width: 250px;
+  text-align: center;
+}
+.built-signal__item p {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.65;
+  color: #bdb19c;
+}
+.built-signal__item a {
+  color: #e8c88f;
+  text-decoration: none;
+  border-bottom: 1px solid #e8c88f40;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+.built-signal__item a:hover {
+  color: #ffcf87;
+  border-color: #ffcf87;
+}
 .lattern-controls {
   position: fixed;
   bottom: 0;
