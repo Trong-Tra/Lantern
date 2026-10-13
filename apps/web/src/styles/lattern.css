@@ -125,14 +125,17 @@ html.lenis body {
   display: flex;
   gap: 35px;
 }
-.lattern-top-nav button {
+.lattern-top-nav button,
+.lattern-top-nav a {
   background: none;
   border: 0;
   color: #b8b0a0;
   font-size: 12px;
+  text-decoration: none;
   transition: color 0.25s;
 }
-.lattern-top-nav button:hover {
+.lattern-top-nav button:hover,
+.lattern-top-nav a:hover {
   color: #ffcf87;
 }
 .wallet-connect {
