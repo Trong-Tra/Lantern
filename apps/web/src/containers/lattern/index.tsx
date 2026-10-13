@@ -226,9 +226,8 @@ export function LatternExperience() {
                       Published research
                     </span>
                     <p className="proof-receipt__cite">
-                      [1]&ensp;Verifiable AI Reviewers — decentralized skill
-                      matching and soulbound reputation for multi-agent peer
-                      review.
+                      Verifiable AI Reviewers — decentralized skill matching
+                      and soulbound reputation for multi-agent peer review.
                     </p>
                     <span className="proof-receipt__venue">
                       IEEE Conference Publication · 2026 ↗

@@ -93,7 +93,7 @@ export const LATTERN_SCENES = [
     id: "product",
     name: "Your first path",
     start: 0.9,
-    end: 0.94,
+    end: 0.935,
     kicker: "10 / Put the light to work",
     title: "Ask Lattern.",
     copy: "An intention is all you need to begin.",
@@ -102,8 +102,8 @@ export const LATTERN_SCENES = [
   {
     id: "trust",
     name: "The builders",
-    start: 0.94,
-    end: 0.97,
+    start: 0.935,
+    end: 0.972,
     kicker: "11 / The people behind the light",
     title: "We've kept\ntrust before.",
     copy: "Two engineers from centralized exchanges — where a bad fill is a lawsuit, not a footnote. The research is published. The receipts are onchain.",
@@ -112,7 +112,7 @@ export const LATTERN_SCENES = [
   {
     id: "finale",
     name: "A network illuminated",
-    start: 0.97,
+    start: 0.972,
     end: 1,
     kicker: "12 / A network illuminated",
     title: "LATTERN",

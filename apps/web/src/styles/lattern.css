@@ -612,19 +612,21 @@ html.lenis body {
 .proof-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 26px;
+  gap: 9px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 16px;
   border: 1px solid #d8b27930;
-  border-radius: 14px;
+  border-radius: 12px;
   background: linear-gradient(160deg, #150f0826, #0b070480);
 }
 .proof-receipt {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  padding: 13px 16px;
+  gap: 5px;
+  padding: 10px 13px;
   border: 1px solid #d8b27922;
-  border-radius: 10px;
+  border-radius: 9px;
   background: #120c0620;
   text-decoration: none;
   transition:
