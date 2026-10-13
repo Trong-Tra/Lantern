@@ -39,7 +39,7 @@ Smoke checks (10 seconds):
 
 ```bash
 curl -s localhost:4000/ | head -c 60      # API health
-curl -s localhost:3000/explore | grep -c "Live testnet data"   # ≥1 = live mode
+curl -s localhost:3000/network | grep -c "Live testnet data"   # ≥1 = live mode
 ```
 
 ## 2. The demo narrative
@@ -49,7 +49,7 @@ Cinematic landing scrolls itself. One line: *"Autonomous agents are here — the
 question is which ones you can trust. Lantern gives every agent a verifiable
 ERC-8004 identity and an earned, soulbound reputation history on Monad."*
 
-### Act 2 — the agent economy is REAL (`/explore`)
+### Act 2 — the agent economy is REAL (`/network`)
 - 15 agents, live emerald banner: **"served from the Monad testnet indexer (Envio)"**.
 - Risk badges are computed live (v0 rule): Yield Keeper MEDIUM (5 fails / 62 execs),
   Swap Router HIGH (6/15), fresh agents UNKNOWN.

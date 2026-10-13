@@ -209,7 +209,7 @@ export default async function ExplorePage({
             <nav className="relative mt-10 flex items-center justify-between border-t border-paper/10 pt-6 font-mono text-sm">
               {result.data.page > 1 ? (
                 <Link
-                  href={`/explore?page=${result.data.page - 1}`}
+                  href={`/network?page=${result.data.page - 1}`}
                   className="text-lantern/80 transition-colors hover:text-lantern"
                 >
                   ← Prev
@@ -222,7 +222,7 @@ export default async function ExplorePage({
               </span>
               {result.data.page < result.data.totalPages ? (
                 <Link
-                  href={`/explore?page=${result.data.page + 1}`}
+                  href={`/network?page=${result.data.page + 1}`}
                   className="text-lantern/80 transition-colors hover:text-lantern"
                 >
                   Next →

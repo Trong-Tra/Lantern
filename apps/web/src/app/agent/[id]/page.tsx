@@ -41,7 +41,7 @@ export default async function AgentPage({
       <Shell>
         <NoticeCard title="Invalid agent id">
           Agent ids are positive integers — try{" "}
-          <Link href="/explore" className="text-lantern underline">
+          <Link href="/network" className="text-lantern underline">
             the explorer
           </Link>
           .

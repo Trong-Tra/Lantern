@@ -110,7 +110,7 @@ export function LatternExperience() {
           <Link href="/" aria-current="page">
             Home
           </Link>
-          <Link href="/explore">Network</Link>
+          <Link href="/network">Network</Link>
           <Link href="/docs">Docs</Link>
         </nav>
         <ConnectWalletButton />

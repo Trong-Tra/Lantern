@@ -33,7 +33,7 @@ export function formatUpdatedAt(unixSeconds: number): string {
   );
 }
 
-/** Clamped page number for /explore?page=N — anything invalid falls back to 1. */
+/** Clamped page number for /network?page=N — anything invalid falls back to 1. */
 export function parsePage(raw: unknown): number {
   const value = Array.isArray(raw) ? raw[0] : raw;
   const page = Number(value);

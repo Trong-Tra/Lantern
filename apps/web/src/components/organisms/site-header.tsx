@@ -6,12 +6,12 @@ export type SiteTab = "home" | "network" | "docs";
 
 const TABS: { id: SiteTab; href: string; label: string }[] = [
   { id: "home", href: "/", label: "Home" },
-  { id: "network", href: "/explore", label: "Network" },
+  { id: "network", href: "/network", label: "Network" },
   { id: "docs", href: "/docs", label: "Docs" },
 ];
 
 /**
- * Shared header for app pages (/explore, /agent/[id], /docs) — the same
+ * Shared header for app pages (/network, /agent/[id], /docs) — the same
  * visual language as the landing header (lattern.css), with route links
  * instead of cinematic scroll jumps. The active tab carries
  * aria-current="page" and gets the lantern color from lattern.css.

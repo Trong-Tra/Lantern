@@ -7,12 +7,61 @@ import { LatternMark } from "@/components/icons/lattern-mark";
 
 export const metadata: Metadata = { title: "Docs — Lattern" };
 
-/** Deployed on Monad testnet 2026-10-10 (docs/02, MEMORY.md). */
-const CONTRACTS = [
-  { name: "AgentRegistry", address: "0x62cd4e0C5B0D4587861a21710ed15ba1823a6341" },
-  { name: "AgentPassport", address: "0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8" },
-  { name: "Reputation", address: "0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8" },
-] as const;
+/**
+ * Deployed on Monad testnet 2026-10-10 (docs/02, MEMORY.md).
+ * Function signatures verified against contracts/src — no invented ABI.
+ */
+interface ContractDoc {
+  name: string;
+  address: string;
+  blurb: string;
+  functions: { sig: string; note: string }[];
+}
+
+const CONTRACTS: ContractDoc[] = [
+  {
+    name: "AgentRegistry",
+    address: "0x62cd4e0C5B0D4587861a21710ed15ba1823a6341",
+    blurb: "The ERC-8004 identity ledger. Agent id = token id; transfers are disabled — an identity can't change hands.",
+    functions: [
+      { sig: "registerAgent(uri) → agentId", note: "mint a new identity — every agent's first transaction." },
+      { sig: "agentURI(agentId) · setAgentUri(agentId, uri)", note: "read or update the agent's metadata pointer." },
+      { sig: "ownerOf(agentId) → address", note: "who controls this identity." },
+      { sig: "passportOf(agentId) → tokenId", note: "the agent's passport token, once minted." },
+    ],
+  },
+  {
+    name: "AgentPassport",
+    address: "0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8",
+    blurb: "The ERC-721 face of the identity — one per agent, permanently locked (ERC-5192).",
+    functions: [
+      { sig: "mint(agentId, uri) → tokenId", note: "mint the agent's passport." },
+      { sig: "agentOf(tokenId) → agentId", note: "resolve a passport back to its agent." },
+      { sig: "locked(tokenId) → true", note: "soulbound — transfer attempts revert." },
+    ],
+  },
+  {
+    name: "Reputation",
+    address: "0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8",
+    blurb: "The ERC-5192 soulbound ledger — every execution leaves a trace here, and traces can't move between wallets.",
+    functions: [
+      { sig: "mintAttestation(agentId, actionType, result, amount, protocol, uri) → tokenId", note: "agent owner or authorized executor only — the vault writes history here." },
+      { sig: "getAttestation(tokenId) → Attestation", note: "read a full attestation record." },
+      { sig: "locked(tokenId) → true", note: "attestations never transfer." },
+    ],
+  },
+  {
+    name: "AgentVault",
+    address: "0xe09b383696D69B8A3Dfb2081a446D8fc62826328",
+    blurb: "The MON pool where reputation is earned — this is what the stake panel on an agent's profile talks to.",
+    functions: [
+      { sig: "deposit() payable", note: "stake MON — mints a STAKE · SUCCESS attestation." },
+      { sig: "withdraw(amount)", note: "pull MON back — mints an UNSTAKE · SUCCESS attestation." },
+      { sig: "balanceOf(user) → uint256", note: "your pooled balance." },
+      { sig: "setExecutor(executor, allowed)", note: "owner-only — authorize who may mint attestations." },
+    ],
+  },
+];
 
 const FAQS = [
   {
@@ -121,28 +170,39 @@ export default function DocsPage() {
             a live window on the chain, not a database.
           </p>
 
-          <div className="mt-8 rounded-2xl border border-paper/10 bg-paper/[0.03] p-5">
+          <div className="mt-8 rounded-2xl border border-paper/10 bg-paper/[0.03] p-5 sm:p-6">
             <p className="font-mono text-[10px] uppercase tracking-wide text-paper/40">
-              Live on Monad testnet · chain 10143
+              Live on Monad testnet · chain 10143 · the contracts, function by function
             </p>
-            <ul className="mt-3 space-y-2">
+            <div className="mt-2">
               {CONTRACTS.map((contract) => (
-                <li
+                <div
                   key={contract.address}
-                  className="flex flex-wrap items-baseline justify-between gap-2 font-mono text-xs"
+                  className="border-t border-paper/10 py-5 first:border-t-0 first:pt-4"
                 >
-                  <span className="text-paper/70">{contract.name}</span>
-                  <a
-                    href={`${getMonadExplorerUrl()}/address/${contract.address}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="break-all text-lantern/70 transition-colors hover:text-lantern"
-                  >
-                    {contract.address} ↗
-                  </a>
-                </li>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                    <h3 className="font-syne text-lg text-paper">{contract.name}</h3>
+                    <a
+                      href={`${getMonadExplorerUrl()}/address/${contract.address}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="break-all font-mono text-[11px] text-lantern/70 transition-colors hover:text-lantern"
+                    >
+                      {contract.address} ↗
+                    </a>
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-paper/50">{contract.blurb}</p>
+                  <ul className="mt-3 space-y-1.5">
+                    {contract.functions.map((fn) => (
+                      <li key={fn.sig} className="flex flex-wrap items-baseline gap-x-2 text-xs">
+                        <code className="font-mono text-lantern/80">{fn.sig}</code>
+                        <span className="text-paper/45">{fn.note}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </section>
 
@@ -329,7 +389,7 @@ export default function DocsPage() {
 
         <footer className="mt-16 flex items-center justify-between border-t border-paper/10 pt-6 font-mono text-xs">
           <span className="text-paper/40">Lattern — illuminate the agent economy.</span>
-          <Link href="/explore" className="text-lantern/80 transition-colors hover:text-lantern">
+          <Link href="/network" className="text-lantern/80 transition-colors hover:text-lantern">
             Network →
           </Link>
         </footer>
