@@ -274,7 +274,7 @@ export default async function AgentPage({
 function Shell({ children }: { children: ReactNode }) {
   return (
     <main className="relative mx-auto w-full max-w-6xl overflow-x-clip px-6 pt-36 pb-12">
-      <SiteHeader />
+      <SiteHeader active="network" />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-72"

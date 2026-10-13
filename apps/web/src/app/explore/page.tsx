@@ -39,7 +39,7 @@ export default async function ExplorePage({
         }}
       />
 
-      <SiteHeader />
+      <SiteHeader active="network" />
 
       <header className="relative">
         <div>

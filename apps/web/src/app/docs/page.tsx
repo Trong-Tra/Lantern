@@ -15,7 +15,7 @@ const CONTRACTS = [
 export default function DocsPage() {
   return (
     <main className="relative mx-auto w-full max-w-3xl overflow-x-clip px-6 pt-36 pb-16">
-      <SiteHeader />
+      <SiteHeader active="docs" />
 
       <div
         aria-hidden="true"

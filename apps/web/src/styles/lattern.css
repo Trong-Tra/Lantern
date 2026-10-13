@@ -138,6 +138,10 @@ html.lenis body {
 .lattern-top-nav a:hover {
   color: #ffcf87;
 }
+/* active tab (aria-current="page") glows lantern amber */
+.lattern-top-nav a[aria-current="page"] {
+  color: #ffcf87;
+}
 .wallet-connect {
   --glass-x: 50%;
   --glass-y: 50%;

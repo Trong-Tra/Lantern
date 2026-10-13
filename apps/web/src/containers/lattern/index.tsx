@@ -107,9 +107,11 @@ export function LatternExperience() {
           <span>LATTERN</span>
         </button>
         <nav className="lattern-top-nav" aria-label="Main navigation">
-          <button onClick={() => jump(0.315)}>The trust layer</button>
-          <Link href="/docs">Docs</Link>
+          <Link href="/" aria-current="page">
+            Home
+          </Link>
           <Link href="/explore">Network</Link>
+          <Link href="/docs">Docs</Link>
         </nav>
         <ConnectWalletButton />
       </header>
