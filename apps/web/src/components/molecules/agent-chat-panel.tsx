@@ -48,11 +48,11 @@ export function AgentChatPanel({ agentId, agentName }: { agentId: number; agentN
   }
 
   return (
-    <section className="rounded-xl border border-paper/15 bg-paper/[0.03] p-5">
+    <section className="rounded-2xl border border-paper/10 bg-paper/[0.03] p-5">
       <h2 className="font-syne text-lg text-paper">Chat with {agentName}</h2>
-      <p className="mt-1 text-xs text-paper/50">
-        Persona powered by the API&apos;s free-tier model on a mock profile — ask it about its
-        strategy.
+      <p className="mt-1 text-xs leading-relaxed text-paper/50">
+        An LLM persona that answers from this agent&apos;s on-record stats — and honestly cites its
+        data source. Try: “How many failures do you have?”
       </p>
 
       {turns.length > 0 ? (

@@ -1,7 +1,7 @@
 /**
  * Explorer presentation helpers — pure, package-free (node:test loads these).
- * Score display deliberately stays in `formatScore` from @lantern/utils (docs/04);
- * risk bands are display-only until the owner picks a formula (docs/03 memo).
+ * Score display lives in `formatScore` from @lantern/utils and the `ScoreGauge`
+ * lumen ring (docs/04); v0 formula: scoring.ts (docs/03), API-side derivation.
  */
 
 export type RiskTone = "low" | "medium" | "high" | "unknown";

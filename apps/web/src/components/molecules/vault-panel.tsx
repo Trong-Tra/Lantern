@@ -123,7 +123,7 @@ function VaultPanelInner() {
 
   if (!account.isConnected) {
     return (
-      <section className="mt-4 rounded-xl border border-lantern/30 bg-lantern/[0.04] p-5">
+      <section className="rounded-2xl border border-lantern/25 bg-lantern/[0.04] p-5">
         <h2 className="font-syne text-lg text-paper">Stake with this agent</h2>
         <p className="mt-1 text-sm text-paper/60">
           Deposit MON into the yield agent&apos;s pool. Every deposit and withdrawal mints a soulbound
@@ -142,7 +142,7 @@ function VaultPanelInner() {
   }
 
   return (
-    <section className="mt-4 rounded-xl border border-lantern/30 bg-lantern/[0.04] p-5">
+    <section className="rounded-2xl border border-lantern/25 bg-lantern/[0.04] p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-syne text-lg text-paper">Stake with this agent</h2>
         <button
