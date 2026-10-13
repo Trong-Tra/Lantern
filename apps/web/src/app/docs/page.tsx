@@ -24,7 +24,7 @@ const FAQS = [
   },
   {
     q: "What happens when the formula changes?",
-    a: "It gets better without breaking anything. Scores are derived API-side and versioned — v0 is documented here, and improvements (recency weighting, stake sizing) ship as v1, v2… The chain only ever stores raw events, so history is never rewritten.",
+    a: "It gets better without breaking anything. Scores are derived API-side and versioned — v1 (recency-weighted accuracy) is documented here, and future improvements (stake sizing, cohort baselines) ship as v2, v3… The chain only ever stores raw events, so history is never rewritten.",
   },
 ] as const;
 
@@ -196,22 +196,42 @@ export default function DocsPage() {
 
         {/* ---------------- the lumen score ---------------- */}
         <section className="mt-20">
-          <SectionHeading index="03" title="The lumen score (v0)" />
+          <SectionHeading index="03" title="The lumen score (v1)" />
           <p className="mt-5 text-sm leading-relaxed text-paper/70">
             One number from 0 to 100, deliberately simple enough to recompute by hand. Two honest
             axes, multiplied — <span className="text-paper">how well</span> an agent performs,
-            and <span className="text-paper">how long</span> it has been proving it.
+            and <span className="text-paper">how long</span> it has been proving it — with a
+            30-day half-life so recent work speaks louder than ancient history. Failures fade
+            from the weighted average as they age; the raw record never forgets.
           </p>
 
           {/* the formula, set as display type */}
           <div className="mt-8 rounded-3xl border border-lantern/20 bg-gradient-to-b from-lantern/[0.07] to-transparent px-6 py-10 text-center">
             <p className="font-syne text-2xl leading-snug text-paper sm:text-3xl">
-              lumen score = <span className="text-lantern">100</span> × accuracy × track record
+              lumen score = <span className="text-lantern">100</span> × A × V
             </p>
-            <p className="mt-4 font-mono text-[11px] leading-relaxed text-paper/50">
-              accuracy = successes / executions
+            <div className="mt-6 space-y-2.5 font-mono text-sm text-paper/85">
+              <p>
+                A ={" "}
+                <span className="text-lantern">
+                  Σ<sub>i</sub> γ<sup>a</sup>
+                  <sub className="-ml-0.5">i</sub> x<sub>i</sub>
+                </span>{" "}
+                ⁄{" "}
+                <span className="text-lantern">
+                  Σ<sub>i</sub> γ<sup>a</sup>
+                  <sub className="-ml-0.5">i</sub>
+                </span>
+              </p>
+              <p>
+                V = <span className="text-lantern">min(n, 50) ⁄ 50</span>
+              </p>
+            </div>
+            <p className="mt-5 font-mono text-[11px] leading-relaxed text-paper/50">
+              x<sub>i</sub> ∈ {"{0, 1}"} — did execution i succeed · a<sub>i</sub> — its age in
+              days
               <br />
-              track record = min(executions, 50) / 50
+              γ = 2<sup>−1/30</sup> — every execution&apos;s vote halves each month
             </p>
           </div>
 
@@ -227,9 +247,17 @@ export default function DocsPage() {
               </Link>
             </p>
             <div className="mt-5 space-y-5">
-              <FactorBar label="Accuracy" display="57 / 62 = 91.9%" value={91.9} />
+              <FactorBar
+                label="Accuracy · recency-weighted"
+                display="57 / 62 = 91.9%"
+                value={91.9}
+              />
               <FactorBar label="Track record" display="min(62, 50) / 50 = 1.00" value={100} />
             </div>
+            <p className="mt-4 font-mono text-[10px] leading-relaxed text-paper/35">
+              All of Yield Keeper&apos;s attestations are days old, so every weight ≈ 1 — v1
+              reduces to the plain ratio here. Give it six months and the decay starts to bite.
+            </p>
             <div className="mt-6 flex items-baseline justify-between border-t border-paper/10 pt-4">
               <span className="font-mono text-[10px] uppercase tracking-wide text-paper/40">
                 Lumen score
@@ -291,9 +319,9 @@ export default function DocsPage() {
           </div>
 
           <p className="mt-8 font-mono text-[11px] leading-relaxed text-paper/35">
-            Honest limits of v0: no recency weighting — a failure from day one counts like
-            yesterday&apos;s. No stake-size weighting — 0.1 MON and 100 MON mint the same
-            attestation shape. Both are versioned upgrades, not migrations.
+            Honest limits of v1: no stake-size weighting yet — 0.1 MON and 100 MON mint the same
+            attestation shape. The half-life (30 days) and confidence cap (50) are dials,
+            versioned with the formula — never migrations.
           </p>
         </section>
 

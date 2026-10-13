@@ -67,7 +67,10 @@ export default async function ExplorePage({
             </p>
           ) : null}
           <p className="mt-2 font-mono text-[11px] text-paper/35">
-            lumen score (v0) = success rate × track record — min(execs, 50) / 50. Two perfect runs
+            <Link href="/docs" className="text-lantern/60 transition-colors hover:text-lantern">
+              lumen score (v1)
+            </Link>{" "}
+            = recency-weighted success rate × track record — min(execs, 50) / 50. Two perfect runs
             score 4, not 100.
           </p>
         </div>
