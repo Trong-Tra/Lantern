@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getMonadExplorerUrl } from "@lantern/config";
 import { SiteHeader } from "@/components/organisms/site-header";
+import { LatternMark } from "@/components/icons/lattern-mark";
 
 export const metadata: Metadata = { title: "Docs — Lattern" };
 
@@ -10,6 +11,21 @@ const CONTRACTS = [
   { name: "AgentRegistry", address: "0x62cd4e0C5B0D4587861a21710ed15ba1823a6341" },
   { name: "AgentPassport", address: "0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8" },
   { name: "Reputation", address: "0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8" },
+] as const;
+
+const FAQS = [
+  {
+    q: "Why 50 executions for full track record?",
+    a: "It's the point where luck stops dominating the record — enough history that one good afternoon can't make a reputation. 50 is a v0 dial, not a law of physics; it ships in the formula version, not on the chain.",
+  },
+  {
+    q: "Can an agent buy a high score?",
+    a: "No, on two axes. Attestations are minted by the vault for real executions — an agent can't write its own history. And the identity layer is non-transferable (ERC-5192), so a good record can't be sold to a bad actor. Track record can only be earned, over time.",
+  },
+  {
+    q: "What happens when the formula changes?",
+    a: "It gets better without breaking anything. Scores are derived API-side and versioned — v0 is documented here, and improvements (recency weighting, stake sizing) ship as v1, v2… The chain only ever stores raw events, so history is never rewritten.",
+  },
 ] as const;
 
 export default function DocsPage() {
@@ -42,44 +58,68 @@ export default function DocsPage() {
         </header>
 
         {/* ---------------- the project ---------------- */}
-        <section className="mt-14">
+        <section className="mt-16">
           <SectionHeading index="01" title="The project" />
-          <div className="mt-4 space-y-4 text-sm leading-relaxed text-paper/70">
+          <div className="mt-5 space-y-4 text-sm leading-relaxed text-paper/70">
             <p>
               Autonomous agents already transact, trade, and act on our behalf. What they
               don&apos;t have is a way to prove a track record. Lantern gives every agent a
-              verifiable identity and an <em className="text-paper">earned</em>, non-transferable
-              reputation history on Monad — minted by contracts, not claimed by the agent.
-            </p>
-            <p>Three primitives carry the whole system:</p>
-          </div>
-          <dl className="mt-5 grid gap-3 sm:grid-cols-3">
-            <PrimitiveCard
-              tag="ERC-8004"
-              title="Identity"
-              copy="The canonical agent id, registered on-chain with an owner and a URI. Who is this agent?"
-            />
-            <PrimitiveCard
-              tag="ERC-721"
-              title="Agent Passport"
-              copy="The agent's visual, ownable token — the face of the identity. What does it look like?"
-            />
-            <PrimitiveCard
-              tag="ERC-5192"
-              title="Soulbound history"
-              copy="Non-transferable attestations minted by the vault for every execution. What has it actually done?"
-            />
-          </dl>
-          <div className="mt-4 space-y-4 text-sm leading-relaxed text-paper/70">
-            <p>
-              The <span className="text-paper">AgentVault</span> is where reputation is earned:
-              stake MON with an agent and every deposit, withdrawal, and execution mints a
-              soulbound attestation — successes and failures alike. An indexer (Envio) streams
-              those events into the explorer in real time, so the profile you see is a live
-              window on the chain, not a database.
+              verifiable identity and an <em className="text-paper not-italic">earned</em>,
+              non-transferable reputation history on Monad — minted by contracts, not claimed by
+              the agent.
             </p>
           </div>
-          <div className="mt-6 rounded-2xl border border-paper/10 bg-paper/[0.03] p-5">
+
+          <div className="mt-8">
+            {[
+              {
+                tag: "ERC-8004",
+                name: "Identity",
+                question: "Who is this agent?",
+                copy: "A canonical on-chain registration: an id, an owner, a URI. The address an agent answers to.",
+              },
+              {
+                tag: "ERC-721",
+                name: "Agent Passport",
+                copy: "The agent's ownable, visual token — the face of the identity. One per agent, minted once.",
+                question: "What does it look like?",
+              },
+              {
+                tag: "ERC-5192",
+                name: "Soulbound history",
+                copy: "Non-transferable attestations the vault mints for every execution. Successes and failures, permanently on the record.",
+                question: "What has it actually done?",
+              },
+            ].map((primitive) => (
+              <div
+                key={primitive.tag}
+                className="grid gap-1 border-t border-paper/10 py-5 sm:grid-cols-[120px_1fr] sm:gap-6"
+              >
+                <p className="font-mono text-[11px] uppercase tracking-wide text-lantern/70">
+                  {primitive.tag}
+                </p>
+                <div>
+                  <h3 className="font-syne text-lg text-paper">
+                    {primitive.name}
+                    <span className="ml-2 font-mono text-xs font-normal text-paper/40">
+                      {primitive.question}
+                    </span>
+                  </h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-paper/60">{primitive.copy}</p>
+                </div>
+              </div>
+            ))}
+            <div className="border-t border-paper/10" />
+          </div>
+
+          <p className="mt-6 text-sm leading-relaxed text-paper/70">
+            The <span className="text-paper">AgentVault</span> is where reputation is earned:
+            stake MON with an agent and every action mints a soulbound attestation. An Envio
+            indexer streams those events into the explorer in real time — the profile you see is
+            a live window on the chain, not a database.
+          </p>
+
+          <div className="mt-8 rounded-2xl border border-paper/10 bg-paper/[0.03] p-5">
             <p className="font-mono text-[10px] uppercase tracking-wide text-paper/40">
               Live on Monad testnet · chain 10143
             </p>
@@ -104,142 +144,157 @@ export default function DocsPage() {
           </div>
         </section>
 
+        {/* ---------------- interstitial ---------------- */}
+        <blockquote className="my-20 text-center">
+          <LatternMark className="mx-auto h-10 w-7 text-lantern/40" />
+          <p className="mt-5 font-syne text-2xl leading-snug text-paper/85 sm:text-3xl">
+            Trust isn&apos;t claimed.
+            <br />
+            <span className="text-lantern">It&apos;s earned.</span>
+          </p>
+        </blockquote>
+
         {/* ---------------- the potential ---------------- */}
-        <section className="mt-14">
+        <section>
           <SectionHeading index="02" title="The potential" />
-          <div className="mt-4 space-y-4 text-sm leading-relaxed text-paper/70">
+          <div className="mt-5 space-y-4 text-sm leading-relaxed text-paper/70">
             <p>
               The agent economy runs on delegated trust: you hand an agent money or authority and
               hope its past promises its future. Today that hope rests on marketing. Lantern
-              replaces it with receipts — a reputation that is expensive to fake, impossible to
+              replaces it with receipts — reputation that is expensive to fake, impossible to
               transfer, and cheap to verify.
             </p>
-            <p>That unlocks the boring, valuable stuff:</p>
-            <ul className="space-y-2">
-              {[
-                "Staking and vaults that price agents by track record, not by tweet count.",
-                "Marketplaces where hiring an agent starts with its history, not its pitch.",
-                "Verification at the moment of risk — the signature popup itself can resolve an agent's identity before funds move.",
-              ].map((point) => (
-                <li key={point} className="flex gap-2">
-                  <span className="text-lantern/60" aria-hidden="true">
-                    ·
-                  </span>
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-            <p>
-              Monad is the right home for this: attestations are cheap enough to mint one per
-              execution, so reputation can be granular, real-time, and honest about failure.
-            </p>
           </div>
+          <ul className="mt-6 space-y-3">
+            {[
+              [
+                "Staking, priced by history.",
+                "Vaults and pools that size exposure by track record — not by tweet count.",
+              ],
+              [
+                "Hiring, starting with receipts.",
+                "A marketplace where engaging an agent begins with its on-chain history, not its pitch deck.",
+              ],
+              [
+                "Verification at the moment of risk.",
+                "The signature popup itself can resolve an agent's identity before funds move — trust checked where it's spent.",
+              ],
+            ].map(([head, body]) => (
+              <li key={head} className="flex gap-3">
+                <span className="mt-2 size-1 shrink-0 rounded-full bg-lantern/70" aria-hidden="true" />
+                <p className="text-sm leading-relaxed text-paper/70">
+                  <span className="text-paper">{head}</span> {body}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-6 text-sm leading-relaxed text-paper/70">
+            Monad is the right home for this: attestations are cheap enough to mint one per
+            execution, so reputation can be granular, real-time, and honest about failure.
+          </p>
         </section>
 
         {/* ---------------- the lumen score ---------------- */}
-        <section className="mt-14">
+        <section className="mt-20">
           <SectionHeading index="03" title="The lumen score (v0)" />
-          <div className="mt-4 space-y-4 text-sm leading-relaxed text-paper/70">
-            <p>
-              The lumen score condenses an agent&apos;s history into one number from 0 to 100.
-              It is deliberately simple — a judge should be able to recompute it by hand:
+          <p className="mt-5 text-sm leading-relaxed text-paper/70">
+            One number from 0 to 100, deliberately simple enough to recompute by hand. Two honest
+            axes, multiplied — <span className="text-paper">how well</span> an agent performs,
+            and <span className="text-paper">how long</span> it has been proving it.
+          </p>
+
+          {/* the formula, set as display type */}
+          <div className="mt-8 rounded-3xl border border-lantern/20 bg-gradient-to-b from-lantern/[0.07] to-transparent px-6 py-10 text-center">
+            <p className="font-syne text-2xl leading-snug text-paper sm:text-3xl">
+              lumen score = <span className="text-lantern">100</span> × accuracy × track record
+            </p>
+            <p className="mt-4 font-mono text-[11px] leading-relaxed text-paper/50">
+              accuracy = successes / executions
+              <br />
+              track record = min(executions, 50) / 50
             </p>
           </div>
 
-          <div className="mt-5 rounded-2xl border border-lantern/25 bg-lantern/[0.05] p-5">
-            <p className="font-mono text-[10px] uppercase tracking-wide text-lantern/70">
-              The formula
+          {/* live decomposition — Yield Keeper's actual numbers */}
+          <div className="mt-6 rounded-2xl border border-paper/10 bg-paper/[0.03] p-6">
+            <p className="flex items-baseline justify-between font-mono text-[10px] uppercase tracking-wide text-paper/40">
+              Decomposition · Yield Keeper
+              <Link
+                href="/agent/1"
+                className="normal-case tracking-normal text-lantern/70 transition-colors hover:text-lantern"
+              >
+                live profile ↗
+              </Link>
             </p>
-            <p className="mt-3 font-mono text-sm leading-relaxed text-paper">
-              score = 100 × (successes / executions) × min(executions, 50) / 50
-            </p>
-            <p className="mt-3 text-xs leading-relaxed text-paper/60">
-              Accuracy weighted by track record. Two honest axes, multiplied:{" "}
-              <span className="text-paper">how well</span> the agent performs, and{" "}
-              <span className="text-paper">how long</span> it has been proving it.
-            </p>
+            <div className="mt-5 space-y-5">
+              <FactorBar label="Accuracy" display="57 / 62 = 91.9%" value={91.9} />
+              <FactorBar label="Track record" display="min(62, 50) / 50 = 1.00" value={100} />
+            </div>
+            <div className="mt-6 flex items-baseline justify-between border-t border-paper/10 pt-4">
+              <span className="font-mono text-[10px] uppercase tracking-wide text-paper/40">
+                Lumen score
+              </span>
+              <span className="font-syne text-3xl text-lantern">92</span>
+            </div>
           </div>
 
-          <div className="mt-5 overflow-hidden rounded-2xl border border-paper/10">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-paper/10 bg-paper/[0.03] text-left font-mono text-[10px] uppercase tracking-wide text-paper/40">
-                  <th className="px-4 py-3 font-medium">Record</th>
-                  <th className="px-4 py-3 font-medium">Accuracy</th>
-                  <th className="px-4 py-3 font-medium">Track record</th>
-                  <th className="px-4 py-3 text-right font-medium">Score</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-paper/10">
-                <ExampleRow record="2 / 2" accuracy="100%" track="0.04" score="4" />
-                <ExampleRow record="9 / 15" accuracy="60%" track="0.30" score="18" />
-                <ExampleRow record="57 / 62" accuracy="91.9%" track="1.00" score="92" />
-              </tbody>
-            </table>
-          </div>
+          <p className="mt-6 text-sm leading-relaxed text-paper/70">
+            <span className="text-paper">Why not plain accuracy?</span> A Sybil farm can mint a
+            fresh identity, run two perfect tasks, and post a 100. Under this formula that record
+            scores 4 — credible history is something only time and volume can mint. A perfect
+            score takes 50 clean executions. Cheap to say, expensive to fake.
+          </p>
 
-          <div className="mt-6 space-y-4 text-sm leading-relaxed text-paper/70">
-            <p>
-              <span className="text-paper">Why not plain accuracy?</span> Because a Sybil farm
-              can mint a fresh identity, run two perfect tasks, and post a 100. Under this
-              formula that record scores 4 — credible history is something only time and volume
-              can mint. A perfect score requires 50 clean executions. Cheap to say, expensive to
-              fake.
-            </p>
-            <p>
-              <span className="text-paper">Risk bands</span> ride on top of the raw counts, so
-              the score never hides the shape of the record:
-            </p>
+          <div className="mt-8 grid gap-2 sm:grid-cols-2">
+            {[
+              ["UNKNOWN", "fewer than 10 executions — too early to judge", "text-paper/60"],
+              ["LOW", "failure rate below 5%", "text-emerald-300"],
+              ["MEDIUM", "failure rate below 15%", "text-amber-300"],
+              ["HIGH", "failure rate 15% or worse", "text-red-300"],
+            ].map(([band, rule, color]) => (
+              <div
+                key={band}
+                className="flex items-baseline justify-between gap-3 rounded-xl border border-paper/10 bg-paper/[0.02] px-4 py-3"
+              >
+                <span className={`font-mono text-xs ${color}`}>{band}</span>
+                <span className="text-right text-xs text-paper/60">{rule}</span>
+              </div>
+            ))}
           </div>
+          <p className="mt-3 font-mono text-[11px] text-paper/40">
+            Risk bands ride on the raw counts, so the score never hides the shape of the record.
+          </p>
+        </section>
 
-          <div className="mt-5 overflow-hidden rounded-2xl border border-paper/10">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-paper/10 bg-paper/[0.03] text-left font-mono text-[10px] uppercase tracking-wide text-paper/40">
-                  <th className="px-4 py-3 font-medium">Band</th>
-                  <th className="px-4 py-3 font-medium">Rule</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-paper/10">
-                <tr>
-                  <td className="px-4 py-3 font-mono text-xs text-paper/60">UNKNOWN</td>
-                  <td className="px-4 py-3 text-paper/70">fewer than 10 executions — too early to judge</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-mono text-xs text-emerald-300">LOW</td>
-                  <td className="px-4 py-3 text-paper/70">failure rate below 5%</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-mono text-xs text-amber-300">MEDIUM</td>
-                  <td className="px-4 py-3 text-paper/70">failure rate below 15%</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-mono text-xs text-red-300">HIGH</td>
-                  <td className="px-4 py-3 text-paper/70">failure rate 15% or worse</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-6 rounded-2xl border border-paper/10 bg-paper/[0.03] p-5">
-            <p className="font-mono text-[10px] uppercase tracking-wide text-paper/40">
-              Honest limits of v0
-            </p>
-            <ul className="mt-3 space-y-2 text-sm text-paper/70">
-              {[
-                "No recency weighting — a failure from day one counts like yesterday's.",
-                "No stake-size weighting — 0.1 MON and 100 MON mint the same attestation shape.",
-                "The score is API-side and versioned — formulas can improve without migrating the chain.",
-              ].map((limit) => (
-                <li key={limit} className="flex gap-2">
-                  <span className="text-lantern/60" aria-hidden="true">
-                    ·
+        {/* ---------------- faq ---------------- */}
+        <section className="mt-20">
+          <SectionHeading index="04" title="Fair questions" />
+          <div className="mt-6">
+            {FAQS.map((faq) => (
+              <details
+                key={faq.q}
+                className="group border-t border-paper/10 py-4 open:pb-5"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-syne text-base text-paper transition-colors hover:text-lantern [&::-webkit-details-marker]:hidden">
+                  {faq.q}
+                  <span
+                    aria-hidden="true"
+                    className="font-mono text-lantern/60 transition-transform duration-200 group-open:rotate-45"
+                  >
+                    +
                   </span>
-                  <span>{limit}</span>
-                </li>
-              ))}
-            </ul>
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-paper/60">{faq.a}</p>
+              </details>
+            ))}
+            <div className="border-t border-paper/10" />
           </div>
+
+          <p className="mt-8 font-mono text-[11px] leading-relaxed text-paper/35">
+            Honest limits of v0: no recency weighting — a failure from day one counts like
+            yesterday&apos;s. No stake-size weighting — 0.1 MON and 100 MON mint the same
+            attestation shape. Both are versioned upgrades, not migrations.
+          </p>
         </section>
 
         <footer className="mt-16 flex items-center justify-between border-t border-paper/10 pt-6 font-mono text-xs">
@@ -262,33 +317,22 @@ function SectionHeading({ index, title }: { index: string; title: string }) {
   );
 }
 
-function PrimitiveCard({ tag, title, copy }: { tag: string; title: string; copy: string }) {
+function FactorBar({ label, display, value }: { label: string; display: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-paper/10 bg-paper/[0.03] p-4">
-      <p className="font-mono text-[10px] uppercase tracking-wide text-lantern/70">{tag}</p>
-      <h3 className="mt-1.5 font-syne text-base text-paper">{title}</h3>
-      <p className="mt-2 text-xs leading-relaxed text-paper/60">{copy}</p>
+    <div>
+      <div className="flex items-baseline justify-between gap-3 font-mono text-xs">
+        <span className="uppercase tracking-wide text-paper/50">{label}</span>
+        <span className="text-paper">{display}</span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-paper/10">
+        <div
+          className="h-full rounded-full bg-lantern"
+          style={{
+            width: `${value}%`,
+            boxShadow: "0 0 8px rgba(255, 196, 107, 0.5)",
+          }}
+        />
+      </div>
     </div>
-  );
-}
-
-function ExampleRow({
-  record,
-  accuracy,
-  track,
-  score,
-}: {
-  record: string;
-  accuracy: string;
-  track: string;
-  score: string;
-}) {
-  return (
-    <tr>
-      <td className="px-4 py-3 font-mono text-xs text-paper/80">{record}</td>
-      <td className="px-4 py-3 font-mono text-xs text-paper/60">{accuracy}</td>
-      <td className="px-4 py-3 font-mono text-xs text-paper/60">{track}</td>
-      <td className="px-4 py-3 text-right font-mono text-paper">{score}</td>
-    </tr>
   );
 }
