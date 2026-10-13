@@ -586,14 +586,17 @@ html.lenis body {
 .infrastructure-stack > span:last-child {
   color: #bca6eb;
 }
-.scene-product {
+.scene-product,
+.scene-trust {
   gap: 5vw;
 }
-.scene-product .scene-editorial {
+.scene-product .scene-editorial,
+.scene-trust .scene-editorial {
   width: 29%;
   flex-shrink: 0;
 }
-.scene-product .scene-title {
+.scene-product .scene-title,
+.scene-trust .scene-title {
   font-size: clamp(38px, 4vw, 64px);
 }
 .product-surface {
@@ -604,6 +607,61 @@ html.lenis body {
   scrollbar-width: thin;
   scrollbar-color: #665033 transparent;
   perspective: 1200px;
+}
+/* trust-scene right panel — the receipts, framed like the product surface */
+.proof-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 26px;
+  border: 1px solid #d8b27930;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #150f0826, #0b070480);
+}
+.proof-receipt {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 13px 16px;
+  border: 1px solid #d8b27922;
+  border-radius: 10px;
+  background: #120c0620;
+  text-decoration: none;
+  transition:
+    border-color 0.25s,
+    box-shadow 0.25s;
+}
+.proof-receipt--link:hover {
+  border-color: #ffcf8766;
+  box-shadow: 0 0 24px #dba65a1f;
+}
+.proof-receipt__label {
+  font:
+    8px var(--font-jetbrains-mono),
+    monospace;
+  letter-spacing: 0.16em;
+  color: #8b7a61;
+}
+.proof-receipt p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: #cfc5b0;
+}
+.proof-receipt__cite {
+  font:
+    11px var(--font-jetbrains-mono),
+    monospace;
+  line-height: 1.7;
+  color: #d9c9a8;
+}
+.proof-receipt__venue {
+  font:
+    9px var(--font-jetbrains-mono),
+    monospace;
+  letter-spacing: 0.14em;
+  color: #e8c88f;
+  text-align: right;
 }
 .scene-finale {
   justify-content: center;
@@ -735,55 +793,7 @@ html.lenis body {
   color: #8b7a61;
 }
 
-/* closing receipts — founders' statement + IEEE citation card (finale) */
-.receipts {
-  margin: 30px auto 0;
-  max-width: 540px;
-  text-align: center;
-  border-top: 1px solid #d8b2791f;
-  padding-top: 22px;
-}
-.receipts__founders {
-  margin: 12px 0 0;
-  font-size: 16px;
-  line-height: 1.6;
-  color: #e6dcc8;
-}
-.receipts__paper {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 18px auto 0;
-  padding: 14px 18px;
-  max-width: 460px;
-  border: 1px solid #d8b27930;
-  border-radius: 10px;
-  background: #120c0620;
-  text-decoration: none;
-  transition:
-    border-color 0.25s,
-    box-shadow 0.25s;
-}
-.receipts__paper:hover {
-  border-color: #ffcf8766;
-  box-shadow: 0 0 24px #dba65a1f;
-}
-.receipts__cite {
-  font:
-    10.5px var(--font-jetbrains-mono),
-    monospace;
-  line-height: 1.7;
-  color: #d9c9a8;
-  text-align: left;
-}
-.receipts__venue {
-  font:
-    9px var(--font-jetbrains-mono),
-    monospace;
-  letter-spacing: 0.14em;
-  color: #e8c88f;
-  text-align: right;
-}
+
 .lattern-controls {
   position: fixed;
   bottom: 0;
@@ -947,7 +957,8 @@ html.lenis body {
   width: min(620px, 100%);
   margin-left: 0;
 }
-.lattern-static .scene-product {
+.lattern-static .scene-product,
+.lattern-static .scene-trust {
   flex-wrap: wrap;
 }
 .lattern-static .product-surface {
@@ -995,10 +1006,12 @@ html.lenis body {
   .scene-title {
     font-size: 54px;
   }
-  .scene-product {
+  .scene-product,
+  .scene-trust {
     gap: 3vw;
   }
-  .scene-product .scene-editorial {
+  .scene-product .scene-editorial,
+  .scene-trust .scene-editorial {
     width: 28%;
   }
   .chapter-current,
@@ -1106,20 +1119,24 @@ html.lenis body {
     padding: 8px 0;
     font-size: 9px;
   }
-  .scene-product {
+  .scene-product,
+  .scene-trust {
     flex-direction: column;
     justify-content: center;
     align-items: stretch;
     gap: 20px;
     padding-block: 95px 90px;
   }
-  .scene-product .scene-editorial {
+  .scene-product .scene-editorial,
+  .scene-trust .scene-editorial {
     width: 100%;
   }
-  .scene-product .scene-title {
+  .scene-product .scene-title,
+  .scene-trust .scene-title {
     font-size: 32px;
   }
-  .scene-product .scene-kicker {
+  .scene-product .scene-kicker,
+  .scene-trust .scene-kicker {
     margin-bottom: 10px;
   }
   .scene-product .scene-copy,

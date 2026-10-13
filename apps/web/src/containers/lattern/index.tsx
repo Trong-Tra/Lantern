@@ -170,30 +170,6 @@ export function LatternExperience() {
                 </button>
               )}
               {scene.id === "finale" && (
-                <div className="receipts" data-sequence="0.962">
-                  <span className="micro-label">Why believe us</span>
-                  <p className="receipts__founders">
-                    Built by former centralized-exchange engineers — people who
-                    kept matching engines honest, now keeping agents honest.
-                  </p>
-                  <a
-                    className="receipts__paper"
-                    href={ERC8004_PUBLICATION_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <span className="receipts__cite">
-                      [1]&ensp;Verifiable AI Reviewers — decentralized skill
-                      matching and soulbound reputation for multi-agent peer
-                      review.
-                    </span>
-                    <span className="receipts__venue">
-                      IEEE Conference Publication · 2026 ↗
-                    </span>
-                  </a>
-                </div>
-              )}
-              {scene.id === "finale" && (
                 <div className="final-actions" data-sequence="0.975">
                   <button
                     className="primary-action"
@@ -225,6 +201,47 @@ export function LatternExperience() {
             {scene.id === "product" && (
               <div className="product-surface" data-lenis-prevent>
                 <ProductPreview compact={!staticMode} />
+              </div>
+            )}
+            {scene.id === "trust" && (
+              <div className="product-surface" data-lenis-prevent>
+                <div className="proof-panel">
+                  <span className="micro-label">The receipts</span>
+                  <div className="proof-receipt" data-sequence="0.943">
+                    <span className="proof-receipt__label">Built by</span>
+                    <p>
+                      Two former centralized-exchange engineers — matching
+                      engines, settlement, custody. Systems where a bad fill is
+                      a lawsuit.
+                    </p>
+                  </div>
+                  <a
+                    className="proof-receipt proof-receipt--link"
+                    href={ERC8004_PUBLICATION_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-sequence="0.952"
+                  >
+                    <span className="proof-receipt__label">
+                      Published research
+                    </span>
+                    <p className="proof-receipt__cite">
+                      [1]&ensp;Verifiable AI Reviewers — decentralized skill
+                      matching and soulbound reputation for multi-agent peer
+                      review.
+                    </p>
+                    <span className="proof-receipt__venue">
+                      IEEE Conference Publication · 2026 ↗
+                    </span>
+                  </a>
+                  <div className="proof-receipt" data-sequence="0.961">
+                    <span className="proof-receipt__label">Shipped</span>
+                    <p>
+                      Live on Monad testnet — real identities, real
+                      attestations, real stakes.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
             {scene.id === "darkness" && (

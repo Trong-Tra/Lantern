@@ -228,8 +228,8 @@ test("progress helpers clamp and feather both ends", () => {
   assert.equal(math.windowProgress(0.2, 0.4, 0.4), 0);
 });
 
-test("all 11 chapters form one continuous timeline", () => {
-  assert.equal(LATTERN_SCENES.length, 11);
+test("all 12 chapters form one continuous timeline", () => {
+  assert.equal(LATTERN_SCENES.length, 12);
   assert.equal(LATTERN_SCENES[0].start, 0);
   assert.equal(LATTERN_SCENES.at(-1).end, 1);
   LATTERN_SCENES.forEach((scene, index) => {
