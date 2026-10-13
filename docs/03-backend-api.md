@@ -53,13 +53,16 @@ Errors: `{ success:false, message, code? }` with `code = INVALID_AGENT_ID | INVA
 * `AgentProfile.bio?` is the persona blurb (mock-only for now; live data TBD).
 * Verified live: two real free-tier calls returned in-character replies. No auth/rate-limit on this endpoint yet — **add before any public deploy**.
 
-## Score/risk formula — v0 LANDED (owner-approved 2026-10-10); score still TBD
+## Score/risk formula — risk v0 + lumen score v1 LANDED (risk owner-approved 2026-10-10, score v1 owner-approved 2026-10-13)
 
-Location: **option B — API-side** (this doc's recommendation). v0 banding in `deriveRiskV0` (envioAgentRepository.ts), deterministic + stated in `reasons[]`:
+Location: **option B — API-side** (this doc's recommendation). Both derivations deterministic, exported from `apps/api/src/repositories/scoring.ts` (re-exported by envioAgentRepository.ts):
 
 * `<10 executions → UNKNOWN` ("too early to judge").
-* else banded by failure rate: `<5% LOW`, `<15% MEDIUM`, else `HIGH`.
-* `score` (0–100) remains omitted everywhere — weighted/recency formula still owner-TBD; UI shows `N/A`.
+* else banded by failure rate: `<5% LOW`, `<15% MEDIUM`, else `HIGH` — stated in `reasons[]`.
+* **Lumen score v1** (0–100) = `100 × A × V`:
+  `A = Σᵢ γ^aᵢ·xᵢ / Σᵢ γ^aᵢ` — recency-weighted accuracy; `xᵢ ∈ {0,1}` outcome, `aᵢ` age in days, `γ = 2^(−1/30)` (30-day half-life: every execution's vote halves each month; failures fade from the average, the raw record never forgets).
+  `V = min(n, 50)/50` — track record; a perfect 2-run record still scores 4, not 100 (Sybil can't borrow credibility).
+  Zero executions → `score` absent (UI → `N/A`). `deriveScoreV0` (counts only) kept as the documented pre-timestamp approximation. The mock source synthesizes fresh events from its authoritative fictional counts (identical results). UI: `ScoreGauge` lumen ring on `/explore` + the `/docs` scoring paper.
 
 Historical options memo (kept for context):
 
@@ -74,7 +77,7 @@ Formula sketch for B (v0 landed per above; kept for history — recency decay an
 * `score` 0–100 = weighted success rate over executions with recency decay + minimum-volume damping (few executions → pulls toward neutral, not 100).
 * `risk`: `UNKNOWN` below a minimum execution count (cold start); else banded by failure rate (bands + thresholds TBD: LOW/MEDIUM/HIGH).
 * `reasons[]` = deterministic contributors ("4 failures in 128 executions") so the Snap panel can explain the band.
-* ~~While undecided: API omits `score`~~ → resolved 2026-10-13: option B + the v0 formula above; mock derives the same formula at read time.
+* ~~While undecided: API omits `score`~~ → resolved 2026-10-13: option B; v1 (recency-weighted) formula above, mock derives the same formula at read time.
 
 ## Envio consumption (LANDED 2026-10-10)
 

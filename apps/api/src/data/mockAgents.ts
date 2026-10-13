@@ -5,14 +5,14 @@
  * must never be mixed with live/indexed data. When Envio lands, the real
  * repository replaces this source (see ../repositories/agentRepository.ts).
  *
- * - `score` is derived at read time with the shared v0 formula (scoring.ts),
+ * - `score` is derived at read time with the shared v1 formula (scoring.ts),
  *   same as the Envio source — the numbers here are still fictional inputs.
  * - `risk` values are structural placeholders so the response shape is testable.
  * - Amounts are decimal strings of mock wei values. Timestamps are unix seconds.
  */
 import type { AgentProfile, AgentSummary, Attestation, RiskReport } from "@lantern/types";
 import type { AgentRepository, Page } from "../repositories/agentRepository.js";
-import { deriveScoreV0 } from "../repositories/scoring.js";
+import { deriveScoreV1, type ScoreEvent } from "../repositories/scoring.js";
 
 const MOCK_AGENTS: AgentProfile[] = [
   {
@@ -106,11 +106,24 @@ const MOCK_RISK_REASONS: Record<number, string[]> = {
   3: ["No attestations yet (mock data)"],
 };
 
+/**
+ * Mock profiles carry authoritative fictional counts but only sample
+ * attestation rows, so we synthesize one fresh event per counted execution
+ * (failures first — deterministic) and run the same v1 formula as the live
+ * source. Uniform timestamps ⇒ no decay ⇒ identical to the count formula.
+ */
+function syntheticEvents(executions: number, failures: number, now: number): ScoreEvent[] {
+  return Array.from({ length: executions }, (_, i) => ({
+    success: i >= failures,
+    timestamp: now,
+  }));
+}
+
 function toSummary(agent: AgentProfile): AgentSummary {
   const { identityUri: _identityUri, passportUri: _passportUri, attestations: _attestations, ...summary } =
     agent;
-  // Same v0 formula as the Envio source (scoring.ts) so both data sources agree.
-  return { ...summary, score: deriveScoreV0(agent.executions, agent.failures) };
+  const now = Math.floor(Date.now() / 1000);
+  return { ...summary, score: deriveScoreV1(syntheticEvents(agent.executions, agent.failures, now), now) };
 }
 
 function paginate<T>(items: T[], page: number, limit: number): Page<T> {

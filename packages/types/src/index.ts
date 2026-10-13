@@ -52,8 +52,9 @@ export interface AgentSummary {
   passportTokenId?: number;
   owner: string;
   /**
-   * v0 score (owner-approved 2026-10-13): 100 × success_rate ×
-   * min(executions, 50)/50 — accuracy weighted by track record.
+   * Lumen score v1 (owner-approved 2026-10-13, docs/03): 100 × A × V where
+   * A = Σ γ^aᵢ·xᵢ / Σ γ^aᵢ (recency-weighted accuracy, 30-day half-life)
+   * and V = min(n, 50)/50 (track record — Sybil can't borrow credibility).
    * Absent when the agent has zero executions; UI falls back to N/A.
    */
   score?: number;

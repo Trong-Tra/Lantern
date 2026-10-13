@@ -9,8 +9,27 @@ import {
   createEnvioAgentRepository,
   deriveRiskV0,
   deriveScoreV0,
+  deriveScoreV1,
   nameFromUri,
 } from "./envioAgentRepository.js";
+import type { ScoreEvent } from "./scoring.js";
+
+const NOW = 1_800_000_000;
+const DAY = 86_400;
+
+function events(spec: [successes: number, ageDays: number][]): ScoreEvent[] {
+  const out: ScoreEvent[] = [];
+  for (const [count, age] of spec) {
+    for (let i = 0; i < count; i++) {
+      out.push({ success: true, timestamp: NOW - age * DAY });
+    }
+  }
+  return out;
+}
+
+function failures(count: number, ageDays: number, now = NOW): ScoreEvent[] {
+  return Array.from({ length: count }, () => ({ success: false, timestamp: now - ageDays * DAY }));
+}
 
 // ---------------------------------------------------------------------------
 // Fakes
@@ -52,6 +71,42 @@ const ATTESTATION_ROW = {
 // ---------------------------------------------------------------------------
 // v0 risk + score + name derivation
 // ---------------------------------------------------------------------------
+
+describe("deriveScoreV1", () => {
+  it("no events → undefined (UI renders N/A)", () => {
+    assert.equal(deriveScoreV1([], NOW), undefined);
+  });
+
+  it("uniform ages reduce to the count formula — demo numbers unchanged", () => {
+    const yieldKeeper = [...failures(5, 0), ...events([[57, 0]])];
+    assert.equal(deriveScoreV1(yieldKeeper, NOW), 92);
+    const swapRouter = [...failures(6, 0), ...events([[9, 0]])];
+    assert.equal(deriveScoreV1(swapRouter, NOW), 18);
+    assert.equal(deriveScoreV1(events([[2, 0]]), NOW), 4); // Sybil can't borrow credibility
+  });
+
+  it("30-day half-life: a month-old failure weighs exactly half a fresh one", () => {
+    // 1 fresh success + 1 failure 30 days old: A = 1/1.5 = 66.7%
+    const mixed = [...events([[1, 0]]), ...failures(1, 30)];
+    assert.equal(deriveScoreV1(mixed, NOW), 3); // 100 × 2/3 × 2/50
+    const bothFresh = [...events([[1, 0]]), ...failures(1, 0)];
+    assert.equal(deriveScoreV1(bothFresh, NOW), 2); // 100 × 1/2 × 2/50
+  });
+
+  it("ancient failures fade from a long fresh record", () => {
+    // 49 fresh successes + 1 failure 300 days old (weight ≈ 1/1000)
+    const stale = [...events([[49, 0]]), ...failures(1, 300)];
+    assert.equal(deriveScoreV1(stale, NOW), 100);
+    const fresh = [...events([[49, 0]]), ...failures(1, 0)];
+    assert.equal(deriveScoreV1(fresh, NOW), 98);
+  });
+
+  it("track-record cap and clock-skew clamp", () => {
+    assert.equal(deriveScoreV1(events([[200, 0]]), NOW), 100);
+    // future timestamp → full weight, no negative-age blowup (1 event → V = 1/50)
+    assert.equal(deriveScoreV1([{ success: true, timestamp: NOW + 10 * DAY }], NOW), 2);
+  });
+});
 
 describe("deriveScoreV0", () => {
   it("no executions → no score (UI renders N/A)", () => {
