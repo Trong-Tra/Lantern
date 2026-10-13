@@ -1,9 +1,11 @@
 /**
- * Radial "lumen" gauge for the v0 score — the network page's light metaphor:
- * earned trust emits light. Server-safe (pure SVG, no hooks).
- * score = 100 × success_rate × min(execs, 50)/50 (apps/api/src/repositories/scoring.ts).
+ * Radial "lumen" gauge for the v1 lumen score — the network page's light
+ * metaphor: earned trust emits light. Server-safe (pure SVG + CSS; the
+ * arc ignites via the lantern-ignite keyframe on stroke-dashoffset).
+ * score = 100 × A × V (apps/api/src/repositories/scoring.ts).
  * Absent score renders a dim "N/A" — no invented light.
  */
+import type { CSSProperties } from "react";
 export function ScoreGauge({ score, size = 64 }: { score?: number; size?: number }) {
   const stroke = 4;
   const radius = (size - stroke) / 2;
@@ -45,8 +47,16 @@ export function ScoreGauge({ score, size = 64 }: { score?: number; size?: number
             stroke="#ffc46b"
             strokeWidth={stroke}
             strokeLinecap="round"
-            strokeDasharray={`${arc} ${circumference}`}
-            style={{ filter: "drop-shadow(0 0 6px rgba(255, 196, 107, 0.45))" }}
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference - arc}
+            className="gauge-arc"
+            style={
+              {
+                "--gauge-c": circumference,
+                "--gauge-to": circumference - arc,
+                filter: "drop-shadow(0 0 6px rgba(255, 196, 107, 0.45))",
+              } as CSSProperties
+            }
           />
         ) : null}
       </svg>

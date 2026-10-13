@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getMonadExplorerUrl } from "@lantern/config";
 import { SiteHeader } from "@/components/organisms/site-header";
+import { Atmosphere } from "@/components/molecules/atmosphere";
 import { LatternMark } from "@/components/icons/lattern-mark";
 
 export const metadata: Metadata = { title: "Docs — Lattern" };
@@ -32,6 +33,7 @@ export default function DocsPage() {
   return (
     <main className="relative mx-auto w-full max-w-3xl overflow-x-clip px-6 pt-36 pb-16">
       <SiteHeader active="docs" />
+      <Atmosphere />
 
       <div
         aria-hidden="true"
@@ -42,7 +44,7 @@ export default function DocsPage() {
         }}
       />
 
-      <div className="relative">
+      <div className="page-in relative">
         <header>
           <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-lantern/80">
             Lattern · Docs
@@ -58,7 +60,7 @@ export default function DocsPage() {
         </header>
 
         {/* ---------------- the project ---------------- */}
-        <section className="mt-16">
+        <section className="reveal mt-16">
           <SectionHeading index="01" title="The project" />
           <div className="mt-5 space-y-4 text-sm leading-relaxed text-paper/70">
             <p>
@@ -155,7 +157,7 @@ export default function DocsPage() {
         </blockquote>
 
         {/* ---------------- the potential ---------------- */}
-        <section>
+        <section className="reveal">
           <SectionHeading index="02" title="The potential" />
           <div className="mt-5 space-y-4 text-sm leading-relaxed text-paper/70">
             <p>
@@ -195,7 +197,7 @@ export default function DocsPage() {
         </section>
 
         {/* ---------------- the lumen score ---------------- */}
-        <section className="mt-20">
+        <section className="reveal mt-20">
           <SectionHeading index="03" title="The lumen score (v1)" />
           <p className="mt-5 text-sm leading-relaxed text-paper/70">
             One number from 0 to 100, deliberately simple enough to recompute by hand. Two honest
@@ -295,7 +297,7 @@ export default function DocsPage() {
         </section>
 
         {/* ---------------- faq ---------------- */}
-        <section className="mt-20">
+        <section className="reveal mt-20">
           <SectionHeading index="04" title="Fair questions" />
           <div className="mt-6">
             {FAQS.map((faq) => (

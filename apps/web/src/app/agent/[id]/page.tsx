@@ -11,6 +11,7 @@ import { buildApiUrl, formatAddress } from "@lantern/utils";
 import { AgentChatPanel, DemoBanner, NoticeCard, RiskBadge, VaultPanel } from "@/components/molecules";
 import { ScoreGauge } from "@/components/molecules/score-gauge";
 import { SiteHeader } from "@/components/organisms/site-header";
+import { Atmosphere } from "@/components/molecules/atmosphere";
 import { fetchAgentProfile, fetchRiskReport } from "@/libs/explorer/api";
 import { formatUpdatedAt, parseAgentId, parsePage } from "@/libs/explorer/present";
 
@@ -126,7 +127,7 @@ export default async function AgentPage({
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1fr_360px]">
         {/* ---------------- main column ---------------- */}
         <div className="min-w-0">
-          <section className="rounded-2xl border border-paper/10 bg-paper/[0.03] p-5">
+          <section className="reveal rounded-2xl border border-paper/10 bg-paper/[0.03] p-5">
             <h2 className="font-syne text-lg text-paper">On record</h2>
             <div className="mt-4 flex flex-wrap items-center gap-6">
               <dl className="grid flex-1 grid-cols-3 gap-3 text-sm">
@@ -174,7 +175,7 @@ export default async function AgentPage({
             )}
           </section>
 
-          <section className="mt-4 rounded-2xl border border-paper/10 bg-paper/[0.03] p-5">
+          <section className="reveal mt-4 rounded-2xl border border-paper/10 bg-paper/[0.03] p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="font-syne text-lg text-paper">Attestation history</h2>
               <p className="font-mono text-[11px] text-paper/40">
@@ -275,6 +276,7 @@ function Shell({ children }: { children: ReactNode }) {
   return (
     <main className="relative mx-auto w-full max-w-6xl overflow-x-clip px-6 pt-36 pb-12">
       <SiteHeader active="network" />
+      <Atmosphere />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-72"
@@ -283,7 +285,7 @@ function Shell({ children }: { children: ReactNode }) {
             "radial-gradient(60% 100% at 50% 0%, rgba(255, 196, 107, 0.06), transparent 75%)",
         }}
       />
-      <div className="relative">{children}</div>
+      <div className="page-in relative">{children}</div>
     </main>
   );
 }

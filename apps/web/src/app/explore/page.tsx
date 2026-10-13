@@ -6,6 +6,7 @@ import { DemoBanner, NoticeCard, RiskBadge } from "@/components/molecules/explor
 import { ScoreGauge } from "@/components/molecules/score-gauge";
 import { LatternMark } from "@/components/icons/lattern-mark";
 import { SiteHeader } from "@/components/organisms/site-header";
+import { Atmosphere } from "@/components/molecules/atmosphere";
 import { fetchAgentsPage, withQuery } from "@/libs/explorer/api";
 import { formatUpdatedAt, parsePage } from "@/libs/explorer/present";
 
@@ -40,7 +41,9 @@ export default async function ExplorePage({
       />
 
       <SiteHeader active="network" />
+      <Atmosphere />
 
+      <div className="page-in relative">
       <header className="relative">
         <div>
           <p className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.3em] text-lantern/80">
@@ -96,9 +99,11 @@ export default async function ExplorePage({
         </div>
       ) : (
         <>
-          <ul className="relative mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="relative mt-8">
+            <NetworkConstellation />
+            <ul className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {result.data.data.map((agent) => (
-              <li key={agent.agentId} className="h-full">
+              <li key={agent.agentId} className="reveal h-full">
                 <div className="group relative block h-full overflow-hidden rounded-2xl border border-paper/10 bg-paper/[0.03] p-5 transition-colors duration-300 hover:border-lantern/40">
                   {/* stretched card link — sits above the content but below
                       the passport link (z-10), so both destinations work */}
@@ -197,7 +202,8 @@ export default async function ExplorePage({
                 </div>
               </li>
             ))}
-          </ul>
+            </ul>
+          </div>
 
           {result.data.totalPages > 1 ? (
             <nav className="relative mt-10 flex items-center justify-between border-t border-paper/10 pt-6 font-mono text-sm">
@@ -228,6 +234,39 @@ export default async function ExplorePage({
           ) : null}
         </>
       )}
+      </div>
     </main>
+  );
+}
+
+/** Amber node-field behind the card grid — the page called "Network" should feel like one. */
+function NetworkConstellation() {
+  const nodes: [number, number][] = [
+    [60, 140], [210, 90], [380, 160], [560, 100], [760, 170],
+    [110, 430], [290, 360], [470, 440], [650, 370], [840, 430],
+    [420, 260], [700, 280], [150, 250], [520, 300],
+  ];
+  return (
+    <svg
+      aria-hidden="true"
+      className="pointer-events-none absolute -inset-x-8 -top-8 h-[calc(100%+4rem)] w-[calc(100%+4rem)] text-lantern opacity-[0.06]"
+      viewBox="0 0 900 520"
+      fill="none"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <path d="M60 140 L210 90 L380 160 L560 100 L760 170" stroke="currentColor" strokeWidth="1" />
+      <path d="M110 430 L290 360 L470 440 L650 370 L840 430" stroke="currentColor" strokeWidth="1" />
+      <path d="M210 90 L290 360 M560 100 L470 440 M380 160 L420 260 L700 280" stroke="currentColor" strokeWidth="1" />
+      {nodes.map(([cx, cy], i) => (
+        <circle
+          key={`${cx}-${cy}`}
+          cx={cx}
+          cy={cy}
+          r={i % 5 === 0 ? 3 : 2}
+          fill="currentColor"
+          opacity={i % 5 === 0 ? 0.9 : 0.55}
+        />
+      ))}
+    </svg>
   );
 }

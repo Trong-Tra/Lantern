@@ -192,3 +192,84 @@ body {
 @media (max-width: 640px) {
   .light-title { font-size: clamp(2.65rem, 14vw, 4.8rem); }
 }
+
+// ==========================================
+// Visual polish pack (2026-10-13)
+// Chiaroscuro finish shared by app pages: amber selection, themed
+// scrollbar, page entrance, gauge ignition, scroll-driven reveals.
+// All animations honor prefers-reduced-motion.
+// ==========================================
+::selection {
+  background: rgba(255, 196, 107, 0.28);
+  color: #fff7eb;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #090807;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a251d;
+  border-radius: 8px;
+  border: 2px solid #090807;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 196, 107, 0.35);
+}
+
+/* gentle page entrance — apply to a wrapper with no position:fixed children */
+@keyframes lantern-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.page-in {
+  animation: lantern-page-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* lumen ring ignition — custom props --gauge-c / --gauge-to set inline */
+@keyframes lantern-ignite {
+  from {
+    stroke-dashoffset: var(--gauge-c, 0);
+  }
+  to {
+    stroke-dashoffset: var(--gauge-to, 0);
+  }
+}
+.gauge-arc {
+  animation: lantern-ignite 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both;
+}
+
+/* scroll-driven reveals — progressive enhancement, no-JS, no-deps */
+@keyframes lantern-rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: lantern-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 45%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-in,
+  .gauge-arc,
+  .reveal {
+    animation: none !important;
+  }
+}
