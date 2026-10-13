@@ -151,6 +151,95 @@ describe("createOpenRouterChatService", () => {
     assert.equal(calls, 2);
   });
 
+  it("falls back to the next model when the first is rate-limited", async () => {
+    const calls: { model: string }[] = [];
+    const fetcher: ChatFetcher = async (_url, init) => {
+      const body = JSON.parse(init?.body ?? "{}") as { model: string };
+      calls.push({ model: body.model });
+      if (body.model === "model-a") {
+        return { ok: false, status: 429, json: async () => ({}) };
+      }
+      return { ok: true, status: 200, json: async () => ({ choices: [{ message: { content: "from b" } }] }) };
+    };
+    const service = createOpenRouterChatService({
+      apiKey: "k",
+      models: ["model-a", "model-b"],
+      fetcher,
+    });
+
+    const reply = await service.complete(PROFILE, "hi", []);
+    assert.equal(reply, "from b");
+    assert.deepEqual(
+      calls.map((c) => c.model),
+      ["model-a", "model-b"],
+    );
+  });
+
+  it("aborts the chain on auth failures — no model can fix a bad key", async () => {
+    let calls = 0;
+    const fetcher: ChatFetcher = async () => {
+      calls += 1;
+      return { ok: false, status: 401, json: async () => ({}) };
+    };
+    const service = createOpenRouterChatService({
+      apiKey: "k",
+      models: ["model-a", "model-b"],
+      fetcher,
+    });
+    await assert.rejects(service.complete(PROFILE, "hi", []), /HTTP 401/);
+    assert.equal(calls, 1);
+  });
+
+  it("advances past a model that keeps returning empty content", async () => {
+    const calls: string[] = [];
+    const fetcher: ChatFetcher = async (_url, init) => {
+      const body = JSON.parse(init?.body ?? "{}") as { model: string };
+      calls.push(body.model);
+      if (body.model === "empty-model") {
+        return { ok: true, status: 200, json: async () => ({ choices: [] }) };
+      }
+      return { ok: true, status: 200, json: async () => ({ choices: [{ message: { content: "lit" } }] }) };
+    };
+    const service = createOpenRouterChatService({
+      apiKey: "k",
+      models: ["empty-model", "real-model"],
+      fetcher,
+    });
+
+    const reply = await service.complete(PROFILE, "hi", []);
+    assert.equal(reply, "lit");
+    // empty-model gets its bounded retry (2 calls) before the chain advances
+    assert.deepEqual(calls, ["empty-model", "empty-model", "real-model"]);
+  });
+
+  it("walks the env chain from CHAT_MODEL + CHAT_MODEL_FALLBACKS", async () => {
+    const calls: string[] = [];
+    const fetcher: ChatFetcher = async (_url, init) => {
+      const body = JSON.parse(init?.body ?? "{}") as { model: string };
+      calls.push(body.model);
+      if (body.model === "m3") {
+        return { ok: true, status: 200, json: async () => ({ choices: [{ message: { content: "third" } }] }) };
+      }
+      return { ok: false, status: 429, json: async () => ({}) };
+    };
+    const service = createOpenRouterChatService({ apiKey: "k", fetcher });
+
+    const prevPrimary = process.env.CHAT_MODEL;
+    const prevFallbacks = process.env.CHAT_MODEL_FALLBACKS;
+    process.env.CHAT_MODEL = "m1";
+    process.env.CHAT_MODEL_FALLBACKS = "m2, m3";
+    try {
+      const reply = await service.complete(PROFILE, "hi", []);
+      assert.equal(reply, "third");
+    } finally {
+      if (prevPrimary === undefined) delete process.env.CHAT_MODEL;
+      else process.env.CHAT_MODEL = prevPrimary;
+      if (prevFallbacks === undefined) delete process.env.CHAT_MODEL_FALLBACKS;
+      else process.env.CHAT_MODEL_FALLBACKS = prevFallbacks;
+    }
+    assert.deepEqual(calls, ["m1", "m2", "m3"]);
+  });
+
   it("throws on non-2xx provider responses", async () => {
     const { fetcher } = fakeFetcher({}, { ok: false, status: 429 });
     const service = createOpenRouterChatService({ apiKey: "k", fetcher });

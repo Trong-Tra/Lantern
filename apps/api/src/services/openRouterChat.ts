@@ -2,14 +2,26 @@
  * LLM chat brains for ERC-8004 agent identities via OpenRouter.
  *
  * - The API key NEVER leaves this server (never sent to the browser, never logged).
- * - Config comes from env: OPENROUTER_API_KEY (required), CHAT_MODEL (default
- *   "openrouter/free" — the owner's free-tier router, see .env.example).
+ * - Config comes from env: OPENROUTER_API_KEY (required), CHAT_MODEL (primary),
+ *   CHAT_MODEL_FALLBACKS (comma-separated chain). Free-tier models rate-limit
+ *   fast, so the service walks the chain: per-model bounded retry for the
+ *   empty-content flake, then the next model on rate limits / overload /
+ *   unknown-model / timeouts. Auth and shape failures abort immediately.
  * - Everything is injectable (fetcher/config) so tests never hit the network.
  */
 import type { AgentProfile, ChatMessage } from "@lantern/types";
 
 export const OPENROUTER_DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
 export const DEFAULT_CHAT_MODEL = "openrouter/free";
+/**
+ * Free-tier fallback models (env-overridable via CHAT_MODEL_FALLBACKS).
+ * Model availability shifts on OpenRouter — treat these as defaults, not
+ * contracts; the chain just skips models that error or vanish.
+ */
+export const DEFAULT_CHAT_MODEL_FALLBACKS = [
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "google/gemma-3-27b-it:free",
+];
 
 /** Missing/invalid local configuration — route maps this to 503. */
 export class ChatConfigError extends Error {
@@ -41,10 +53,33 @@ export type ChatFetcher = (
 
 export interface ChatServiceConfig {
   apiKey?: string | undefined;
+  /** Single model — only used when `models` is not given. */
   model?: string | undefined;
+  /** Full model chain, most-preferred first. Overrides `model`. */
+  models?: string[] | undefined;
   baseUrl?: string | undefined;
   fetcher?: ChatFetcher;
   timeoutMs?: number;
+}
+
+/** Env chain: CHAT_MODEL primary + CHAT_MODEL_FALLBACKS (comma-separated). */
+export function resolveChatModels(): string[] {
+  const primary = process.env.CHAT_MODEL ?? DEFAULT_CHAT_MODEL;
+  const raw = process.env.CHAT_MODEL_FALLBACKS;
+  const fallbacks = (
+    raw === undefined ? DEFAULT_CHAT_MODEL_FALLBACKS : raw.split(",")
+  )
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  return [primary, ...fallbacks.filter((model) => model !== primary)];
+}
+
+/** Auth/shape failures — no other model can fix these; abort the chain. */
+class FatalChatError extends Error {}
+
+/** Rate limits, overload, unknown model id, timeouts — the next model may do better. */
+function isRetryableStatus(status: number): boolean {
+  return status === 404 || status === 408 || status === 409 || status === 429 || status >= 500;
 }
 
 /**
@@ -107,7 +142,8 @@ export function createOpenRouterChatService(config: ChatServiceConfig = {}): Cha
       if (!apiKey) {
         throw new ChatConfigError("OPENROUTER_API_KEY is not set");
       }
-      const model = config.model ?? process.env.CHAT_MODEL ?? DEFAULT_CHAT_MODEL;
+      const models =
+        config.models ?? (config.model !== undefined ? [config.model] : resolveChatModels());
       const baseUrl = (config.baseUrl ?? OPENROUTER_DEFAULT_BASE_URL).replace(/\/+$/, "");
       const timeoutMs = config.timeoutMs ?? 15_000;
 
@@ -115,7 +151,6 @@ export function createOpenRouterChatService(config: ChatServiceConfig = {}): Cha
       const safeHistory = history.filter(isChatMessage).slice(-10);
 
       const body = {
-        model,
         messages: [
           { role: "system", content: buildSystemPrompt(profile) },
           ...safeHistory,
@@ -124,36 +159,47 @@ export function createOpenRouterChatService(config: ChatServiceConfig = {}): Cha
         max_tokens: 300,
       };
 
-      let lastError = new Error("chat failed");
-      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-        try {
-          let response: Awaited<ReturnType<ChatFetcher>>;
+      const modelErrors: string[] = [];
+      for (const model of models) {
+        let lastError = new Error("chat failed");
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
           try {
-            response = await fetcher(`${baseUrl}/chat/completions`, {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(body),
-              signal: AbortSignal.timeout(timeoutMs),
-            });
+            let response: Awaited<ReturnType<ChatFetcher>>;
+            try {
+              response = await fetcher(`${baseUrl}/chat/completions`, {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${apiKey}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ model, ...body }),
+                signal: AbortSignal.timeout(timeoutMs),
+              });
+            } catch (err) {
+              const reason = err instanceof Error ? err.message : String(err);
+              throw new Error(`OpenRouter unreachable: ${reason}`);
+            }
+
+            if (!response.ok) {
+              lastError = new Error(`OpenRouter HTTP ${response.status}`);
+              if (!isRetryableStatus(response.status)) {
+                throw new FatalChatError(lastError.message);
+              }
+              // Rate-limited/overloaded: retrying the same model in milliseconds
+              // cannot help — the next model IS the retry.
+              break;
+            }
+
+            return extractReply(await response.json());
           } catch (err) {
-            const reason = err instanceof Error ? err.message : String(err);
-            throw new Error(`OpenRouter unreachable: ${reason}`);
+            lastError = err instanceof Error ? err : new Error(String(err));
+            if (err instanceof FatalChatError) throw err;
+            if (attempt === MAX_ATTEMPTS) break;
           }
-
-          if (!response.ok) {
-            throw new Error(`OpenRouter HTTP ${response.status}`);
-          }
-
-          return extractReply(await response.json());
-        } catch (err) {
-          lastError = err instanceof Error ? err : new Error(String(err));
-          if (attempt === MAX_ATTEMPTS) break;
         }
+        modelErrors.push(`${model}: ${lastError.message}`);
       }
-      throw lastError;
+      throw new Error(`all ${models.length} chat model(s) failed — ${modelErrors.join(" | ")}`);
     },
   };
 }

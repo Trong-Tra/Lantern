@@ -47,7 +47,7 @@ Errors: `{ success:false, message, code? }` with `code = INVALID_AGENT_ID | INVA
 
 ## Chat brains (OpenRouter — landed 2026-10-07)
 
-* `services/openRouterChat.ts` — persona = system prompt built from the agent's profile (`bio` + on-record stats), model = `CHAT_MODEL` (default `openrouter/free`), 300 max tokens, 15s timeout, **1 bounded retry** (free-tier routing occasionally returns an empty message).
+* `services/openRouterChat.ts` — persona = system prompt built from the agent's profile (`bio` + on-record stats), **model chain** = `CHAT_MODEL` primary + `CHAT_MODEL_FALLBACKS` (comma-separated; defaults in `DEFAULT_CHAT_MODEL_FALLBACKS`), 300 max tokens, 15s timeout. Failover (owner-approved 2026-10-13): per-model **1 bounded retry** for the empty-content flake; on 429/404/408/409/5xx/timeout the chain **advances to the next model immediately** (a rate limit can't clear in ms); 4xx auth/shape errors abort the whole chain. All models failed → one 502 with every model's error.
 * Key rules: `OPENROUTER_API_KEY` **server-side only** (never in `NEXT_PUBLIC_*`, never logged); missing key → 503 `OPENROUTER_NOT_CONFIGURED`, provider failure → 502 `CHAT_UPSTREAM_ERROR`.
 * Env lives in the **repo-root `.env`** (gitignored; keys documented in `.env.example`). `apps/api/src/index.ts` loads package-local `.env` first, then repo-root.
 * `AgentProfile.bio?` is the persona blurb (mock-only for now; live data TBD).
