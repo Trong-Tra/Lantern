@@ -170,6 +170,30 @@ export function LatternExperience() {
                 </button>
               )}
               {scene.id === "finale" && (
+                <div className="receipts" data-sequence="0.962">
+                  <span className="micro-label">Why believe us</span>
+                  <p className="receipts__founders">
+                    Built by former centralized-exchange engineers — people who
+                    kept matching engines honest, now keeping agents honest.
+                  </p>
+                  <a
+                    className="receipts__paper"
+                    href={ERC8004_PUBLICATION_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span className="receipts__cite">
+                      [1]&ensp;Verifiable AI Reviewers — decentralized skill
+                      matching and soulbound reputation for multi-agent peer
+                      review.
+                    </span>
+                    <span className="receipts__venue">
+                      IEEE Conference Publication · 2026 ↗
+                    </span>
+                  </a>
+                </div>
+              )}
+              {scene.id === "finale" && (
                 <div className="final-actions" data-sequence="0.975">
                   <button
                     className="primary-action"
@@ -194,28 +218,7 @@ export function LatternExperience() {
                       GitHub <small>Not published yet</small>
                     </span>
                   </div>
-                  <div className="built-signal" data-sequence="0.985">
-                    <div className="built-signal__item">
-                      <span className="micro-label">Built by</span>
-                      <p>
-                        Former centralized-exchange engineers — people who kept
-                        matching engines honest, now keeping agents honest.
-                      </p>
-                    </div>
-                    <div className="built-signal__item">
-                      <span className="micro-label">Research</span>
-                      <p>
-                        <a
-                          href={ERC8004_PUBLICATION_URL}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          “Verifiable AI Reviewers” — IEEE, soulbound reputation
-                          for multi-agent peer review ↗
-                        </a>
-                      </p>
-                    </div>
-                  </div>
+
                 </div>
               )}
             </div>

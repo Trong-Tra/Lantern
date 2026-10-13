@@ -1,6 +1,13 @@
 import { infrastructureLayerStart } from "@/libs/cinematic/infrastructure";
 
 export function SceneDetails({ id }: Readonly<{ id: string }>) {
+  if (id === "ignition")
+    return (
+      <p className="early-signal" data-sequence="0.128">
+        Built by former centralized-exchange engineers · IEEE-published
+        ERC-8004 research
+      </p>
+    );
   if (id === "discover")
     return (
       <dl className="static-agent-profile">

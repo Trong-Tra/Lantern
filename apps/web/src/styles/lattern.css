@@ -725,37 +725,64 @@ html.lenis body {
   font-size: 8px;
   color: #a49782;
 }
-/* credibility signal — founders + research, understated by design */
-.built-signal {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 24px 56px;
-  margin-top: 22px;
-  padding-top: 16px;
-  border-top: 1px solid #d8b2791f;
+/* early credibility whisper — ignition scene (02) */
+.early-signal {
+  margin: 18px 0 0;
+  font:
+    9px var(--font-jetbrains-mono),
+    monospace;
+  letter-spacing: 0.14em;
+  color: #8b7a61;
 }
-.built-signal__item {
-  max-width: 250px;
+
+/* closing receipts — founders' statement + IEEE citation card (finale) */
+.receipts {
+  margin: 30px auto 0;
+  max-width: 540px;
   text-align: center;
+  border-top: 1px solid #d8b2791f;
+  padding-top: 22px;
 }
-.built-signal__item p {
-  margin: 8px 0 0;
-  font-size: 11px;
-  line-height: 1.65;
-  color: #bdb19c;
+.receipts__founders {
+  margin: 12px 0 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #e6dcc8;
 }
-.built-signal__item a {
-  color: #e8c88f;
+.receipts__paper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 18px auto 0;
+  padding: 14px 18px;
+  max-width: 460px;
+  border: 1px solid #d8b27930;
+  border-radius: 10px;
+  background: #120c0620;
   text-decoration: none;
-  border-bottom: 1px solid #e8c88f40;
   transition:
-    color 0.2s,
-    border-color 0.2s;
+    border-color 0.25s,
+    box-shadow 0.25s;
 }
-.built-signal__item a:hover {
-  color: #ffcf87;
-  border-color: #ffcf87;
+.receipts__paper:hover {
+  border-color: #ffcf8766;
+  box-shadow: 0 0 24px #dba65a1f;
+}
+.receipts__cite {
+  font:
+    10.5px var(--font-jetbrains-mono),
+    monospace;
+  line-height: 1.7;
+  color: #d9c9a8;
+  text-align: left;
+}
+.receipts__venue {
+  font:
+    9px var(--font-jetbrains-mono),
+    monospace;
+  letter-spacing: 0.14em;
+  color: #e8c88f;
+  text-align: right;
 }
 .lattern-controls {
   position: fixed;
