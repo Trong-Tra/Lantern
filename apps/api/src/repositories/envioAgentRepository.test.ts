@@ -8,6 +8,7 @@ import type { AgentSummary, Attestation } from "@lantern/types";
 import {
   createEnvioAgentRepository,
   deriveRiskV0,
+  deriveScoreV0,
   nameFromUri,
 } from "./envioAgentRepository.js";
 
@@ -49,8 +50,33 @@ const ATTESTATION_ROW = {
 };
 
 // ---------------------------------------------------------------------------
-// v0 risk + name derivation
+// v0 risk + score + name derivation
 // ---------------------------------------------------------------------------
+
+describe("deriveScoreV0", () => {
+  it("no executions → no score (UI renders N/A)", () => {
+    assert.equal(deriveScoreV0(0, 0), undefined);
+  });
+
+  it("perfect but tiny record scores low — Sybil can't borrow credibility", () => {
+    assert.equal(deriveScoreV0(2, 0), 4);
+    assert.equal(deriveScoreV0(9, 0), 18);
+  });
+
+  it("accuracy × track record at demo scale", () => {
+    assert.equal(deriveScoreV0(15, 6), 18); // 9/15 success × 0.3 confidence
+    assert.equal(deriveScoreV0(62, 5), 92); // Yield Keeper
+  });
+
+  it("volume confidence caps at 50 executions", () => {
+    assert.equal(deriveScoreV0(50, 0), 100);
+    assert.equal(deriveScoreV0(200, 0), 100);
+  });
+
+  it("failures beyond executions clamp to zero", () => {
+    assert.equal(deriveScoreV0(3, 10), 0);
+  });
+});
 
 describe("deriveRiskV0", () => {
   it("UNKNOWN below 10 executions", () => {

@@ -78,8 +78,14 @@ describe("api", () => {
       assert.ok(typeof summary.name === "string");
       assert.equal("identityUri" in summary, false);
       assert.equal("attestations" in summary, false);
-      // Score formula is TBD — absent so the UI renders N/A.
-      assert.equal(summary.score, undefined);
+      // v0 score = 100 × success_rate × min(execs, 50)/50 (scoring.ts).
+      // Mock data: #1 124/128 → 97, #2 45/57 → 79, #3 no executions → N/A.
+      const expectedScores: Record<number, number | undefined> = {
+        1: 97,
+        2: 79,
+        3: undefined,
+      };
+      assert.equal(summary.score, expectedScores[summary.agentId]);
     }
   });
 

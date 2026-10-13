@@ -69,12 +69,12 @@ Historical options memo (kept for context):
 | **B. API-side (recommended)** | `apps/api` derives from attestation feed, cached | matches this doc's "backend owns score/risk derivation"; iterate fast, formula versionable, no reindex; Snap endpoint stays fast via cache | needs caching layer (already planned) |
 | C. On-chain | contract stores running score | trustless | gas per action, rigid, contradicts `docs/02` "keep contract append-only" |
 
-Formula sketch for B (**all thresholds TBD — owner to approve before coding**):
+Formula sketch for B (v0 landed per above; kept for history — recency decay and beyond-cap refinements remain future work):
 
 * `score` 0–100 = weighted success rate over executions with recency decay + minimum-volume damping (few executions → pulls toward neutral, not 100).
 * `risk`: `UNKNOWN` below a minimum execution count (cold start); else banded by failure rate (bands + thresholds TBD: LOW/MEDIUM/HIGH).
 * `reasons[]` = deterministic contributors ("4 failures in 128 executions") so the Snap panel can explain the band.
-* While undecided: API omits `score` (UI → `N/A`), mock returns placeholder `risk` only. **Owner picks A/B/C + thresholds → then code.**
+* ~~While undecided: API omits `score`~~ → resolved 2026-10-13: option B + the v0 formula above; mock derives the same formula at read time.
 
 ## Envio consumption (LANDED 2026-10-10)
 
@@ -87,5 +87,8 @@ Formula sketch for B (**all thresholds TBD — owner to approve before coding**)
 
 * One router per resource once file grows past ~100 lines (currently only `routes/agents.ts`).
 * Validate inputs, add request logging before any public deploy (error middleware already landed).
+* CORS allowlist must become env-driven, not hardcoded, before Snap/web leave localhost.
+* Every new endpoint: type in `packages/types` + constructor via `packages/utils` + test.
+add request logging before any public deploy (error middleware already landed).
 * CORS allowlist must become env-driven, not hardcoded, before Snap/web leave localhost.
 * Every new endpoint: type in `packages/types` + constructor via `packages/utils` + test.

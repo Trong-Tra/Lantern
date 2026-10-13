@@ -12,14 +12,18 @@ import type {
   RiskReport,
 } from "@lantern/types";
 import type { AgentRepository, Page } from "./agentRepository.js";
+import { deriveScoreV0 } from "./scoring.js";
+
+export { deriveScoreV0 } from "./scoring.js";
 
 export const DEFAULT_ENVIO_GRAPHQL_URL = "http://localhost:8080/v1/graphql";
 /** Local Hasura default (docs/05). Empty on Envio Cloud (public endpoint). */
 export const DEFAULT_ENVIO_ADMIN_SECRET = "testing";
 
 // ---------------------------------------------------------------------------
-// v0 risk derivation (owner-approved 2026-10-10, docs/03): transparent,
-// deterministic, stated in reasons[] so the UI and Snap can explain it.
+// v0 risk derivation (owner-approved 2026-10-10, docs/03) and v0 score
+// derivation (owner-approved 2026-10-13, scoring.ts): transparent,
+// deterministic, stated so the UI and demo can explain them.
 // ---------------------------------------------------------------------------
 
 export function deriveRiskV0(
@@ -177,6 +181,7 @@ export function createEnvioAgentRepository(
       passportTokenId: row.passports[0] ? Number(row.passports[0].tokenId) : undefined,
       owner: row.owner,
       risk,
+      score: deriveScoreV0(stats.executions, stats.failures),
       executions: stats.executions,
       failures: stats.failures,
       updatedAt: stats.updatedAt || Number(row.registeredAt),

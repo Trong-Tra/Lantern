@@ -51,7 +51,11 @@ export interface AgentSummary {
   /** Absent until the passport is minted (1:1 with agentId, docs/02). */
   passportTokenId?: number;
   owner: string;
-  /** Score formula TBD — absent until scoring lands; UI falls back to N/A. */
+  /**
+   * v0 score (owner-approved 2026-10-13): 100 × success_rate ×
+   * min(executions, 50)/50 — accuracy weighted by track record.
+   * Absent when the agent has zero executions; UI falls back to N/A.
+   */
   score?: number;
   risk: RiskLevel;
   executions: number;
