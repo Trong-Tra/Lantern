@@ -35,6 +35,7 @@ Keep landing as-is (it's the narrative). Add app routes alongside it:
 ## Rules
 
 * `transpilePackages: [@lantern/types, @lantern/utils, @lantern/config]` already in `next.config.ts` — import shared types/utils from there, don't duplicate.
-* Display via `formatAddress` / `formatScore` (`packages/utils`). Scores `N/A` until backend returns numbers.
+* Display via `formatAddress` / `formatScore` (`packages/utils`). Score renders as a `ScoreGauge` lumen ring (`components/molecules/score-gauge.tsx`) — `N/A` only when the agent has zero executions (v0 formula, docs/03). `/explore` redesigned 2026-10-13 to the ink/paper/lantern theme ("A network, illuminated.").
+* Chain links: `buildExplorerTxUrl` (attestations, vault txs) + `buildExplorerPassportUrl(tokenId)` (ERC-721 passport → Monadscan `/nft/<contract>/<tokenId>`; contract address env-overridable, defaults to docs/02 deployment). Passport link on `/explore` cards (stretched-overlay pattern) + profile Identity card.
 * **On-chain write UX (LANDED 2026-10-10)**: `vault-panel.tsx` on the vault agent's profile — wagmi v3 + `injected()` connector (MetaMask/Flask; RainbowKit deferred — no WalletConnect projectId needed for the demo). Deposit/withdraw MON against the live AgentVault (docs/02); confirmed txs link to Monadscan and the minted attestation flows into the history via the indexer. Browser RPC via `NEXT_PUBLIC_MONAD_RPC_URL`; panel self-disables with a notice when it's unset. Pure amount validation in `src/libs/explorer/vault.ts` (tests/vault.test.mjs). Providers wrap the root layout (`src/components/providers.tsx`).
 * Run per change: `pnpm test`, `pnpm exec tsc --noEmit`, `pnpm lint` (+ visual check for CSS/WebGL).

@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -107,7 +108,8 @@ export function LatternExperience() {
         </button>
         <nav className="lattern-top-nav" aria-label="Main navigation">
           <button onClick={() => jump(0.315)}>The trust layer</button>
-          <button onClick={() => jump(0.657)}>How it works</button>
+          <Link href="/docs">Docs</Link>
+          <Link href="/explore">Network</Link>
         </nav>
         <ConnectWalletButton />
       </header>
@@ -172,6 +174,12 @@ export function LatternExperience() {
                     Explore the interactive demo · Sample agents
                   </p>
                   <div className="final-resources">
+                    <Link
+                      href="/docs"
+                      className="unpublished no-underline transition-colors hover:text-lantern"
+                    >
+                      Docs <small>the scoring paper</small>
+                    </Link>
                     <span className="unpublished">
                       View Contracts <small>Not published yet</small>
                     </span>

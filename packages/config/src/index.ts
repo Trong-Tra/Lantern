@@ -43,6 +43,27 @@ export function buildExplorerTxUrl(txHash: string): string {
   return `${getMonadExplorerUrl()}/tx/${txHash}`;
 }
 
+/**
+ * Deployed AgentPassport (ERC-721) on Monad testnet (docs/02, MEMORY.md).
+ * Env-overridable for future redeploys/mainnet.
+ */
+export const DEFAULT_AGENT_PASSPORT_ADDRESS =
+  "0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8";
+
+export function getAgentPassportAddress(): string {
+  const envAddress =
+    typeof globalThis !== "undefined"
+      ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
+          ?.NEXT_PUBLIC_AGENT_PASSPORT_ADDRESS
+      : undefined;
+  return envAddress || DEFAULT_AGENT_PASSPORT_ADDRESS;
+}
+
+/** Link to an Agent Passport token (ERC-721) on the Monad testnet explorer. */
+export function buildExplorerPassportUrl(tokenId: number): string {
+  return `${getMonadExplorerUrl()}/nft/${getAgentPassportAddress()}/${tokenId}`;
+}
+
 export const APP_CONFIG = {
   name: "Lantern",
   tagline: "Illuminate the agent economy",
