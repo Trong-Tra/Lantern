@@ -26,6 +26,10 @@ const LatternWorld = dynamic(
 // reputation; the direct intellectual ancestor of Lantern's ERC-5192 layer.
 const ERC8004_PUBLICATION_URL =
   "https://ieeexplore.ieee.org/abstract/document/11685704";
+// Owner's second publication (2025, co-author) — privacy-preserving digital
+// identity across chains; the root of the FISCO BCOS port (docs/09 §5, ref [19]).
+const LOTUS_PUBLICATION_URL =
+  "https://ieeexplore.ieee.org/abstract/document/11231625";
 
 const subscribeMotion = (callback: () => void) => {
   const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -210,7 +214,7 @@ export function LatternExperience() {
                   <div className="proof-receipt" data-sequence="0.943">
                     <span className="proof-receipt__label">Built by</span>
                     <p>
-                      Two former centralized-exchange engineers — matching
+                      Engineers out of centralized exchanges — matching
                       engines, settlement, custody. Systems where a bad fill is
                       a lawsuit.
                     </p>
@@ -220,26 +224,38 @@ export function LatternExperience() {
                     href={ERC8004_PUBLICATION_URL}
                     target="_blank"
                     rel="noreferrer"
-                    data-sequence="0.952"
+                    data-sequence="0.951"
                   >
                     <span className="proof-receipt__label">
-                      Published research
+                      Published research · 1 / 2
                     </span>
                     <p className="proof-receipt__cite">
-                      Verifiable AI Reviewers — decentralized skill matching
-                      and soulbound reputation for multi-agent peer review.
+                      Verifiable AI Reviewers: Decentralized Skill Matching
+                      and Soulbound Reputation for Multi-Agent Peer Review.
                     </p>
                     <span className="proof-receipt__venue">
-                      IEEE Conference Publication · 2026 ↗
+                      MAPR 2026 · IEEE Xplore 11685704 · 1st author ↗
                     </span>
                   </a>
-                  <div className="proof-receipt" data-sequence="0.961">
-                    <span className="proof-receipt__label">Shipped</span>
-                    <p>
-                      Live on Monad testnet — real identities, real
-                      attestations, real stakes.
+                  <a
+                    className="proof-receipt proof-receipt--link"
+                    href={LOTUS_PUBLICATION_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-sequence="0.959"
+                  >
+                    <span className="proof-receipt__label">
+                      Published research · 2 / 2
+                    </span>
+                    <p className="proof-receipt__cite">
+                      Lotus: A Hybrid Cross-Chain Framework for
+                      Privacy-Preserving Digital Identity.
                     </p>
-                  </div>
+                    <span className="proof-receipt__venue">
+                      ISCIT 2025 · IEEE Xplore 11231625 · co-author ↗
+                    </span>
+                  </a>
+
                 </div>
               </div>
             )}

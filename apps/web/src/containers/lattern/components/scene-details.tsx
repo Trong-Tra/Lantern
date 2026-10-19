@@ -4,8 +4,8 @@ export function SceneDetails({ id }: Readonly<{ id: string }>) {
   if (id === "ignition")
     return (
       <p className="early-signal" data-sequence="0.128">
-        Built by former centralized-exchange engineers · IEEE-published
-        ERC-8004 research
+        Built by engineers from centralized exchanges · two papers behind
+        the protocol (IEEE + consortium digital identity) · ERC-8004 research
       </p>
     );
   if (id === "discover")
@@ -70,7 +70,7 @@ export function SceneDetails({ id }: Readonly<{ id: string }>) {
       <div className="route-intent">
         <span className="micro-label">YOUR INTENT</span>
         <p>
-          Swap MON <span>→</span> USDC
+          Swap MON <span>→</span> CNY
         </p>
         <div className="route-checks">
           <span data-sequence=".62">× Unverified agent</span>
@@ -102,7 +102,7 @@ export function SceneDetails({ id }: Readonly<{ id: string }>) {
             <b>↗</b>
           </span>
         ))}
-        <small>ILLUSTRATIVE FLOW · NO LIVE TRANSACTION</small>
+        <small>ILLUSTRATIVE FLOW · THE LIVE VERSION RUNS ON /AGENT/1</small>
       </div>
     );
   if (id === "monad")

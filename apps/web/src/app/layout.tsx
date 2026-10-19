@@ -23,7 +23,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Lattern — Illuminate the agent economy",
   description:
-    "Trust shouldn't be a leap in the dark. Discover agent identity, reputation and history. Find a trusted path with Lattern.",
+    "Identity, soulbound reputation and a lumen score for every agent — verify before you sign. Sign once, and your agent runs the corridor under an immutable onchain policy. Built on Monad.",
 };
 
 export default function RootLayout({

@@ -2,11 +2,12 @@ import Link from "next/link";
 import { LatternMark } from "@/components/icons/lattern-mark";
 import { ConnectWalletButton } from "@/containers/lattern/components/connect-wallet-button";
 
-export type SiteTab = "home" | "network" | "docs";
+export type SiteTab = "home" | "network" | "wallet" | "docs";
 
 const TABS: { id: SiteTab; href: string; label: string }[] = [
   { id: "home", href: "/", label: "Home" },
   { id: "network", href: "/network", label: "Network" },
+  { id: "wallet", href: "/wallet", label: "Wallet" },
   { id: "docs", href: "/docs", label: "Docs" },
 ];
 

@@ -8,7 +8,14 @@ import {
   getApiBaseUrl,
 } from "@lantern/config";
 import { buildApiUrl, formatAddress } from "@lantern/utils";
-import { AgentChatPanel, DemoBanner, NoticeCard, RiskBadge, VaultPanel } from "@/components/molecules";
+import {
+  AgentChatPanel,
+  DemoBanner,
+  NoticeCard,
+  RiskBadge,
+  SwapDemoPanel,
+  VaultPanel,
+} from "@/components/molecules";
 import { ScoreGauge } from "@/components/molecules/score-gauge";
 import { SiteHeader } from "@/components/organisms/site-header";
 import { Atmosphere } from "@/components/molecules/atmosphere";
@@ -264,6 +271,7 @@ export default async function AgentPage({
 
         {/* ---------------- sticky sidebar: stake + chat ---------------- */}
         <aside className="min-w-0 space-y-4 lg:sticky lg:top-6">
+          <SwapDemoPanel agentId={profile.agentId} />
           <VaultPanel agentId={profile.agentId} />
           <AgentChatPanel agentId={profile.agentId} agentName={profile.name} />
         </aside>
