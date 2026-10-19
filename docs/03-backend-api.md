@@ -1,11 +1,13 @@
 # 03 — Backend API
 
+> **Backend layer detail. Current state: `MEMORY.md` §Current state (wins on conflict).** Scoring: v1 is what the code runs; the canonical v2 formula (Bayesian shrinkage) lives in `docs/09` §4.2 — recalibration planned, not coded.
+
 > Owner: backend buddy. **First slice landed 2026-10-02** (structure + 4 read endpoints + tests). **Chat brains landed 2026-10-07**: `POST /api/agents/:id/chat` via OpenRouter (see "Chat brains" section below; 29 tests).
 
 ## Today (after first slice — verified)
 
 * `express@5.2.1` + `cors + dotenv`, ESM (`type: module`), `tsx watch` dev, `tsc → dist/` build.
-* Structure: `src/app.ts` (testable `createApp(options?)`, no listen) · `src/index.ts` (listen + loads **repo-root `.env`** explicitly, since pnpm runs from `apps/api`) · `src/routes/agents.ts` (factory + injected chat) · `src/repositories/agentRepository.ts` (interface + active-source selection) · `src/services/openRouterChat.ts` (LLM personas) · `src/data/mockAgents.ts` (**quarantined fictional data**, docs/06).
+* Structure: `src/app.ts` (testable `createApp(options?)`, no listen) · `src/index.ts` (listen + loads **repo-root `.env`** explicitly, since pnpm runs from `apps/api`) · `src/routes/agents.ts` (factory + injected chat) · `src/repositories/agentRepository.ts` (interface + active-source selection) · `src/services/openRouterChat.ts` (LLM personas) · `src/data/mockAgents.ts` (**quarantined fictional data** — rule: root `AGENTS.md`).
 * `cors({ origin: "http://localhost:3000" })` still hardcoded (env-driven TODO before leaving localhost). `express.json()` only. 404 + central error middleware added (envelope-shaped).
 * Endpoints live: `GET /`, `GET /api/hello`, plus the four below. `POST /api/agents/register` **skipped** (operator-gating TBD).
 * Envelope: `createApiResponse` / `createApiErrorResponse` from `packages/utils`. `API_ENDPOINTS` in `packages/config` holds all paths.
@@ -27,12 +29,12 @@ AgentProfile also gained `bio?` (chat persona blurb, mock-only for now)
 
 Decisions taken while landing (flag if you disagree):
 
-* `score?` omitted everywhere — formula TBD, UI `formatScore` → `N/A`. Mock API also never invents one.
+* **Lumen v1 is the shipped approximation.** The canonical product formula is **Lumen v2** (`docs/09` §4.2): `L = 100 × [V·A + (1−V)·A₀]`, Bayesian trust mass `V = n/(n+m)` (m=30) over the same EWMA accuracy — replaces v1's multiplicative `min(n,50)/50` (zero-trap on cold start). Same `A` and γ. Recalibration = Pilot Phase 1 task.
 * `passportTokenId?` / `passportUri?` optional — passport mint is separate from registration.
 * `amount` is a **decimal string** (uint256 precision), `timestamp`/`updatedAt` are **unix seconds**.
 * Mock data carries placeholder `risk` values (clearly labeled) so the response shape is testable.
 
-## Endpoints (live, mock-backed)
+## Endpoints (live; envio-backed by default, quarantined mock for tests/offline)
 
 ```
 GET  /api/agents/lookup/:address  → ApiResponse<AgentSummary | null>  (Snap: address→agent; 400 INVALID_ADDRESS; null = no match)

@@ -1,6 +1,6 @@
 # 02 — Identity Contracts (Monad)
 
-> Owner: contracts buddy. **Landed 2026-10-02**: `contracts/` (Foundry) with all three contracts + tests. **2026-10-07**: added `script/{Deploy,SeedAgents}.s.sol` + 15-identity `script/seed/agents.json` (`forge test` 57/57). **2026-10-10: testnet deploy + seed EXECUTED on Monad chain 10143 — addresses below.** All commits: docs + code together.
+> Owner: contracts buddy. **Landed 2026-10-02**: `contracts/` (Foundry) with all three contracts + tests. **2026-10-07**: added `script/{Deploy,SeedAgents}.s.sol` + 15-identity `script/seed/agents.json` (`forge test` 57/57). **2026-10-10: testnet deploy + seed EXECUTED on Monad chain 10143 — addresses below.** **2026-10-16: `DemoSwap` + `MockUSDC` mandate demo deployed (later superseded).** **2026-10-18: `DemoFX` corridor (MockUSD/MockCNY/MockSGD + DemoFXPool) deployed — current demo, `docs/11` v3; `forge test` 96/96.** All commits: docs + code together.
 
 ## Model
 
@@ -51,6 +51,27 @@ Every agent = 1 × ERC-8004 identity : 1 × ERC-721 Passport : N × ERC-5192 att
 * Plain ETH sends revert (`use deposit()`); CEI ordering on withdraw; constructor reverts for unknown agentId.
 * This is the Snap demo target: a user deposit is a real tx the MetaMask Snap can intercept and enrich (docs/05).
 
+## DemoSwap — 3-swap mandate demo (deployed 2026-10-16, **SUPERSEDED 2026-10-18 by DemoFX below**)
+
+> Never executed a mandate on-chain; kept for history. Its `MockUSDC` mint rights are locked in
+> the contract by design — the DemoFX corridor therefore deployed its own fresh mocks.
+
+* FinTechathon demo protocol (owner's scenario: **one signature → agent executes 3 swaps → each attested**; master plan in `docs/11`). Two new contracts: `src/DemoSwap.sol` + `src/MockUSDC.sol` (6-decimal mUSDC, in-house style).
+* Flow: `delegateSwap(agentId)` payable with **exactly 0.3 MON** (3 × 0.1) stores a per-user mandate (the ONE user signature); `executeSwap(user)` is callable **only by the agent's owner** — checks mandate remaining (policy gate: 4th call reverts `DemoSwap: mandate exhausted`), mints 300 mUSDC to the user, and mints a SWAP/SUCCESS attestation through `Reputation` (DemoSwap is an authorized executor → `setExecutor` in the deploy script).
+* **Live:** `DemoSwap` `0xD27386feFE7bAcd910816Fdc3d27a96C957EEabf` · `MockUSDC` `0xf19882021a0767d02168872a39a2B234ED9a7F72` (serves agent 1; keys in root `.env` + `.env.example`).
+* `script/DeployDemoSwap.s.sol` deploys both, moves MockUSDC ownership to the pool, authorizes the executor — ONE broadcast. `script/RunAgentSwaps.s.sol` is the “agent worker”: with `USER_ADDRESS` + `DEMO_SWAP_ADDRESS` env it executes the mandate's 3 swaps.
+* **Zero indexer changes:** attestations mint on `Reputation`, so the existing Envio `AttestationMinted` handler picks them up automatically.
+* UI: `swap-demo-panel.tsx` on `/agent/1` (delegate button + mandate progress) — docs/11.
+
+## DemoFX — agent-wallet currency corridor (deployed 2026-10-18 — **the current demo**)
+
+* v3 demo protocol (owner's ruling: *the agent must actually automate actions on a wallet*; master plan `docs/11`). Four contracts: `src/DemoFXPool.sol` + `src/{MockUSD,MockCNY,MockSGD}.sol` (6-decimal, in-house style, sole minter = pool — **no public faucet / public USDC**).
+* Flow: user **creates a browser wallet** (demo-grade local key, stated in UI), **funds it once from MetaMask (the only signature)**, then the agent acts unattended: `enroll(3)` commits a **one-active-mandate policy** — never raised/reset mid-flight; after FULL consumption the same wallet may commit a fresh mandate (the wallet and its funds are permanent, only authority is re-granted); boot leg `MON→CNY` (uncounted); three counted hops `CNY→USDC→MON→SGD` — each mints SWAP/SUCCESS (amount normalized to MON-wei, `protocol = demo://protocols/demo-fx`); **4th counted swap reverts `DemoFX: policy exhausted`** (the gate).
+* Fixed symmetric rates vs MON numeraire (no arb): 1 MON = 12 mUSDC = 85.2 mCNY = 15.84 mSGD ⇒ 1 USDC = 7.10 CNY = 1.32 SGD (docs/09 corridor).
+* **Live (v2, redeployed 2026-10-18 for re-enroll):** `DemoFXPool` `0xC8929Caaa4370B756c927E4b99883eb5FBED77cd` · mUSDC `0x2295654Bbef45d4594317fD075101C9E2dFE4240` · mCNY `0x6BCc3AC9C2D82308F9a0AdbB2E456D86E8D5968B` · mSGD `0x2119161E3f789E7946F7aCAe8516C63Db8a57077` (keys in root `.env` + templates; serves agent 1). v1 pool `0xae88078A…9d75` retired.
+* `script/DeployDemoFX.s.sol`: deploys 4 contracts, moves mock ownership to the pool, authorizes the Reputation executor — one broadcast (gas dry-run first). Policy/quote surface for UI: `policies(address)`, `quote(routeId, inAmount)`.
+* `DemoSwap` V1 gate patterns were reused here (CEI, pull/mint, receive-revert, soulbound attestations); tests in `test/DemoFX.t.sol` — 96/96 total.
+
 ## Demo attestation history (seeded 2026-10-10)
 
 * `script/SeedAttestations.s.sol` + `script/seed/attestations.json` mint realistic fictional histories for agents 1–5 (120 attestations, tokenIds 3–122 on testnet; ~86% success, failures included — reputation = earned). Same quarantine rules as agents.json (all `demo://`, disclaimer in JSON). String enums parsed in-Solidity with revert on unknown values; `MAX_ATTESTATIONS = 500` guard; same `*FromJson()` in-memory test pattern as SeedAgents.
@@ -65,8 +86,8 @@ Every agent = 1 × ERC-8004 identity : 1 × ERC-721 Passport : N × ERC-5192 att
 
 * Location: `contracts/` at repo root (Foundry — **locked 2026-10-02**; not a pnpm workspace member).
 * Shared **in-house ERC721 base** in `contracts/src/utils/ERC721.sol` (+ `Ownable.sol`) — no OpenZeppelin dep.
-* Layout: `src/{AgentRegistry,AgentPassport,Reputation,AgentVault}.sol`, `src/utils/*`, `test/*.t.sol`, `script/{Deploy,DeployAgentVault,SeedAgents,SeedAttestations}.s.sol`, `script/seed/{agents,attestations}.json`.
-* Tests required per contract (mint, soulbound lock, access control). No test = not done. Run: `forge test` in `contracts/` (71 green incl. seed pipelines).
+* Layout: `src/{AgentRegistry,AgentPassport,Reputation,AgentVault,DemoSwap,MockUSDC,DemoFXPool,MockUSD,MockCNY,MockSGD}.sol`, `src/utils/*`, `test/*.t.sol`, `script/{Deploy,DeployAgentVault,DeployDemoSwap,DeployDemoFX,RunAgentSwaps,SeedAgents,SeedAttestations}.s.sol`, `script/seed/{agents,attestations}.json`.
+* Tests required per contract (mint, soulbound lock, access control). No test = not done. Run: `forge test` in `contracts/` (96 green incl. seed pipelines + DemoFX + DemoSwap).
 * No addresses in frontend until deployed — **now deployed (2026-10-10, above): frontend may surface them once actually wired** (until then keep `Not published yet`).
 * Every contract change updates this file + Envio schema (`05-integrations.md`) in the same commit.
 

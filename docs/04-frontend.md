@@ -1,5 +1,7 @@
 # 04 — Frontend
 
+> **Frontend layer detail. Current state: `MEMORY.md` §Current state (wins on conflict).**
+
 > Owner: frontend. Source of truth for landing: `apps/web/design.md` + `apps/web/docs/cinematic-experience.md`.
 
 ## Today (verified)
@@ -9,10 +11,9 @@
 * Explorer data layer: `src/libs/explorer/{api,present}.ts` — pure, package-free helpers (envelope parsing, query building, risk tone, UTC timestamps, id/page parsing) loaded by `tests/explorer.test.mjs`.
 * **Live-data mode (2026-10-10)**: `DemoBanner` takes a `live` prop (server pages read `DATA_SOURCE`); emerald "Live testnet data" vs amber mock copy. Attestation rows link to `testnet.monadscan.com/tx/<hash>` via `buildExplorerTxUrl` (`packages/config`, env-overridable) when `txHash` is present.
 * UI pieces: `src/components/molecules/explorer.tsx` (`DemoBanner` = honest-data guard, `RiskBadge`, `NoticeCard`) + `agent-chat-panel.tsx` (client, posts to `POST /api/agents/:id/chat` — key stays server-side).
-* First live fetches exist: pages call `getApiBaseUrl()` + `buildApiUrl(API_ENDPOINTS.* , fetch)` with graceful error/not-found cards. Fictional-data banner is mandatory until Envio lands (docs/06).
+* First live fetches exist: pages call `getApiBaseUrl()` + `buildApiUrl(API_ENDPOINTS.* , fetch)` with graceful error/not-found cards. `DemoBanner` reflects `DATA_SOURCE` (live envio vs quarantined mock) — never mix `DEMO_AGENTS` into live views.
 * Landing unchanged: 11 scroll scenes (`src/constants/lattern-scenes.ts`), playhead in `src/libs/cinematic/runtime.ts`, styling in `src/styles/lattern.css` (1207 lines).
-* `lattern-preview` demo is **fictional**: `DEMO_AGENTS[6]`, regex `resolveIntent()` (swap/payment/bridge), `discoverAgents()` top-3 by reputation. No wallet, no RPC anywhere in `src/`; `fetch` is confined to `src/libs/explorer/` (used only by `/network` + `/agent/[id]`).
-* Connect Wallet = Radix dialog saying "no wallet in demo". GitHub/Contracts = `Not published yet`. These are intentional guards — keep until wired.
+* Connect Wallet = **real wagmi injected flow** (LANDED 2026-10-13: connect → switch-to-Monad-testnet → disconnect; RPC-missing shows an honest notice). `DEMO_AGENTS` in `lattern-preview` remains **fictional** (6 agents, `resolveIntent()`, `discoverAgents()`) — quarantined to the landing preview.
 * Tests: `tests/{cinematic,explorer}.test.mjs` (`node --test`, shared loader `tests/helpers/load-source.mjs`), pure logic only — 34 green. No Vitest/Jest/Playwright.
 * Dead code — ignore: `containers/home/`, `components/experience/`, `components/lantern/`, `styles/globals.scss`, empty `store/` + `actions/`.
 
@@ -38,4 +39,5 @@ Keep landing as-is (it's the narrative). Add app routes alongside it:
 * Display via `formatAddress` / `formatScore` (`packages/utils`). Score renders as a `ScoreGauge` lumen ring (`components/molecules/score-gauge.tsx`) — `N/A` only when the agent has zero executions (v1 recency-weighted formula, docs/03). `/network` redesigned 2026-10-13 to the ink/paper/lantern theme ("A network, illuminated."); formula footnote links `/docs`.
 * Chain links: `buildExplorerTxUrl` (attestations, vault txs) + `buildExplorerPassportUrl(tokenId)` (ERC-721 passport → Monadscan `/nft/<contract>/<tokenId>`; contract address env-overridable, defaults to docs/02 deployment). Passport link on `/network` cards (stretched-overlay pattern) + profile Identity card.
 * **On-chain write UX (LANDED 2026-10-10)**: `vault-panel.tsx` on the vault agent's profile — wagmi v3 + `injected()` connector (MetaMask/Flask; RainbowKit deferred — no WalletConnect projectId needed for the demo). Deposit/withdraw MON against the live AgentVault (docs/02); confirmed txs link to Monadscan and the minted attestation flows into the history via the indexer. Browser RPC via `NEXT_PUBLIC_MONAD_RPC_URL`; panel self-disables with a notice when it's unset. Pure amount validation in `src/libs/explorer/vault.ts` (tests/vault.test.mjs). Providers wrap the root layout (`src/components/providers.tsx`).
+* **Agent-wallet corridor (LANDED 2026-10-18, the v3 demo)**: `swap-demo-panel.tsx` on agent 1's profile (docs/11 v3) — create a browser-local demo wallet → fund once from MetaMask (the only user signature) → "Release the agent" runs the 6-step sequence against the live `DemoFXPool` (viem local signer, allowances auto-approved, gate probe catches `DemoFX: policy exhausted`), then a done card with real 4-asset balances + attestations refresh. Hydration-safe localStorage restore; interrupted runs offer a fresh-wallet reset (on-chain policies are immutable).
 * Run per change: `pnpm test`, `pnpm exec tsc --noEmit`, `pnpm lint` (+ visual check for CSS/WebGL).

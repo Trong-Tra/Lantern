@@ -1,5 +1,7 @@
 # 05 — Integrations (Dynamic / MetaMask Snap / Envio / OpenRouter)
 
+> **Integrations layer detail. Current state: `MEMORY.md` §Current state (wins on conflict).**
+
 ## OpenRouter — chat "brains" for identities (LANDED)
 
 * Goal: chat with any ERC-8004 identity from its Explorer profile.

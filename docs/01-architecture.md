@@ -1,5 +1,7 @@
 # 01 — Architecture
 
+> **TARGET design.** Current state lives in `MEMORY.md` §Current state — MEMORY wins on any conflict.
+
 ## 5 layers
 
 ```
@@ -40,13 +42,13 @@ Reference yield loop (first agent): `loop-staking across Monad DeFi → each act
 | Layer | Repo location | Status |
 | --- | --- | --- |
 | Web landing | `apps/web/src/containers/lattern/`, `components/organisms/lattern-world/`, `cinematic-lantern/`, `styles/lattern.css` | Done (cinematic, fictional data) |
-| Web Explorer/Profile | `apps/web/src/app/explore/` (list) + `app/agent/[id]/` (profile + chat), helpers in `src/libs/explorer/`, UI in `components/molecules/` | Landed, reads live API; 34 tests |
+| Web Explorer/Profile | `apps/web/src/app/network/` (list; was `/explore`, 308s) + `app/agent/[id]/` (profile + chat + live vault panel), helpers in `src/libs/explorer/`, UI in `components/molecules/` | Landed, reads live API; 36 tests |
 | Web Dashboard | — (only `/`, `/explore`, `/agent/[id]` today) | Missing |
-| Indexing | `indexer/` — Envio HyperIndex v3: `config.yaml` + `schema.graphql` + `src/handlers/` + `src/effects.ts` (on-chain reads) + vitest | Scaffolded 2026-10-10; local/cloud sync pending `ENVIO_API_TOKEN` (see `05`) |
+| Indexing | `indexer/` — Envio HyperIndex v3: `config.yaml` + `schema.graphql` + `src/handlers/` + `src/effects.ts` (on-chain reads) + vitest | **Live locally** (`pnpm dev`, OrbStack; GraphQL :8080); cloud deploy pending `ENVIO_API_TOKEN` |
 | Identity contracts | `contracts/src/{AgentRegistry,AgentPassport,Reputation,AgentVault}.sol` + `test/*.t.sol` (Foundry); seed/deploy in `script/{Deploy,DeployAgentVault,SeedAgents,SeedAttestations}.s.sol` | **Live on testnet**: 3 contracts + vault deployed, 15 agents + 120 attestations seeded (docs/02) |
-| Wallet (Dynamic) | — (Connect button is a Radix dialog stub) | Missing |
+| Wallet (Dynamic) | User connect = **wagmi injected** (LANDED 2026-10-13, landing + header). Dynamic passkey operator flow | Dynamic missing |
 | Verification (Snap) | `packages/snap/` — Transaction Insights snap: `onTransaction` → `GET /api/agents/lookup/:address` → identity/risk panel | Landed 2026-10-10; local Flask testing (public Snap ID TBD) |
-| Shared API | `apps/api/src/` — `app.ts` (testable factory), `routes/agents.ts` (5 GETs + chat), `services/openRouterChat.ts`, `repositories/agentRepository.ts`, `data/mockAgents.ts` (quarantined) | 6 endpoints live (mock-backed + OpenRouter chat) + 33 tests |
+| Shared API | `apps/api/src/` — `app.ts` (testable factory), `routes/agents.ts` (5 GETs + lookup + chat), `services/openRouterChat.ts` (model fallback chain), `repositories/agentRepository.ts` (mock quarantined for tests), `repositories/scoring.ts` (lumen v1), `loadEnv.ts` | **Live envio-backed** (`DATA_SOURCE=envio`); 60 tests |
 | Shared libs | `packages/config` (endpoint paths), `packages/types` (agent/attestation/risk types), `packages/utils` | Done, extend as needed |
 
 Dead code — do not build on: `apps/web/src/containers/home/`, `components/experience/`, `components/lantern/`, `styles/globals.scss`.
@@ -74,6 +76,6 @@ Dead code — do not build on: `apps/web/src/containers/home/`, `components/expe
 * [~] Monad network IDs + RPCs? **Testnet DONE: chain ID 10143, RPC in `.env` (2026-10-10).** Mainnet switch still open.
 * [ ] ERC-8004 reference implementation — use canonical or minimal registry? **(first slice coded the minimal interface from `docs/02` — confirm or swap to canonical)**
 * [ ] 5192 metadata schema + score/risk formula location (on-chain vs indexer vs API)?
-* [ ] Envio project slug + GraphQL endpoint?
+* [~] Envio cloud slug/endpoint? **Local endpoint LIVE (2026-10-10): `http://localhost:8080/v1/graphql`.** Cloud deploy pending `ENVIO_API_TOKEN`.
 * [ ] Snap ID / install link + insights source (API vs direct RPC)?
 * [ ] Dynamic environment ID + server-side wallet template?
