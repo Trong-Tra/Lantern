@@ -66,9 +66,3 @@ cast call 0x62cd4e0Ca6341 "ownerOf(uint256)(address)" 1 --rpc-url $MONAD_TESTNET
 | Forge test suite | `contracts/` | 90/90 pass |
 | API test suite | `apps/api/` | 85/85 pass |
 | Web test suite | `apps/web/` | 36/36 pass |
-
-## To complete
-
-- [ ] Capture and fill in all TBD tx hashes above (via `cast tx` / Monadscan after deployment dry run)
-- [ ] Add Explorer links for the funding / withdraw demo txs on the agent wallet corridor
-- [ ] Record the passport token URI and agent 1's attestation tokenIds

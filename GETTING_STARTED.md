@@ -191,10 +191,3 @@ The agent-wallet corridor (`swap-demo-panel.tsx`) uses a **2-wallet architecture
 - **User wallet (MetaMask)** — funds the agent wallet (send MON to agent address) and can **withdraw** from it anytime (agent auto-sends MON back, keeping a small gas reserve).
 
 Funds live in the agent wallet directly; `DemoFXPool.sol` is swap-only (no pool credit/parking).
-
-## Do not build on
-
-Dead code — never use as a reference or foundation:
-- `apps/web/src/containers/home|experience|lantern`
-- `apps/web/styles/globals.scss`
-- `docs/06-agent-sync.md`, `docs/07-first-slice-plan.md`, `docs/09-video-scripts.md` (archived)
