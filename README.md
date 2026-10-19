@@ -10,9 +10,9 @@ Passport-native agent identity + reputation on Monad (ERC-8004 + ERC-721 Passpor
 Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 ├── README.md                     # this file — root navigation
 ├── AGENTS.md                     # cold-start protocol for AI agents (read first)
-├── MEMORY.md                     # living log — current state + decisions + TBD (single truth)
+├── MEMORY.md                     # living log — current state + decisions + TBD
 ├── GETTING_STARTED.md            # setup, run, test commands for every workspace
-├── CONTRIBUTING.md               # (superseded by GETTING_STARTED.md)
+├── TEST_CASE.md                  # all test files and counts
 ├── package.json                  # root workspace scripts
 ├── pnpm-workspace.yaml           # workspaces: apps/*, packages/*, indexer
 ├── .env.example                  # root env template (copy to .env, never commit .env)
@@ -20,15 +20,9 @@ Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 │   ├── src/                      # AgentRegistry, AgentPassport, Reputation, AgentVault, DemoFXPool, corridor mocks
 │   ├── test/                     # Forge tests (90 tests)
 │   ├── script/                   # deployment + seeder scripts
-│   ├── foundry.toml
 │   └── README.md
 ├── apps/api/                     # Express 5 backend (port 4000)
-│   ├── src/
-│   │   ├── index.ts              # app entry; loads .env FIRST via loadEnv.ts
-│   │   ├── app.ts                # Express app + routes
-│   │   ├── routes/               # agent endpoints, chat, Snap lookup
-│   │   ├── repositories/         # scoring.ts (Lumen Score v1), envio/mock agent repos
-│   │   └── services/             # OpenRouter chat
+│   ├── src/                      # index.ts, app.ts, routes/, repositories/, services/
 │   └── package.json
 ├── apps/web/                     # Next.js 16 (dev :3000, falls back to :3001)
 │   ├── src/app/                  # App Router (/agent/[id], /wallet, /network, /docs)
@@ -41,6 +35,18 @@ Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 │   └── snap/                     # MetaMask Snap (Transaction Insights)
 └── indexer/                      # Envio HyperIndex (local Hasura GraphQL :8080)
 ```
+
+## Deployed contracts — Monad testnet (chain 10143)
+
+| Contract | Address | MonadScan |
+|----------|---------|-----------|
+| AgentRegistry (ERC-8004) | `0x62cd4e0C…a6341` | [MonadScan](https://testnet.monadscan.com/address/0x62cd4e0Ca6341) |
+| AgentPassport (ERC-721) | `0x5Df5E5FD…40B8` | [MonadScan](https://testnet.monadscan.com/address/0x5Df5E5FD40B8) |
+| Reputation (ERC-5192) | `0xb5A7CEB3…b72f8` | [MonadScan](https://testnet.monadscan.com/address/0xb5A7CEB3b72f8) |
+| AgentVault (serves agent 1) | `0xe09b3836…26328` | [MonadScan](https://testnet.monadscan.com/address/0xe09b383626328) |
+| DemoFXPool v2 (agent-wallet corridor) | `0xC8929Caa…77cd` | [MonadScan](https://testnet.monadscan.com/address/0xC8929Caa77cd) |
+
+Deployer / owner: `0x7EA634e3…2F1F2`
 
 ## Quick start
 
@@ -55,7 +61,7 @@ cp apps/web/.env.example apps/web/.env
 # 3. Fill .env at minimum:
 #    MONAD_TESTNET_RPC_URL          # Monad testnet RPC
 #    NEXT_PUBLIC_MONAD_RPC_URL      # browser RPC (apps/web/.env)
-#    AGENT_REGISTRY_ADDRESS         # from contracts deployment
+#    AGENT_REGISTRY_ADDRESS         # from contracts deployment (see table above)
 #    AGENT_PASSPORT_ADDRESS
 #    REPUTATION_ADDRESS
 #    DEMO_FX_POOL_ADDRESS
@@ -113,8 +119,3 @@ Read, in order:
 3. **One** layer doc from `docs/00`–`05` or `08`–`09`, depending on your task
 
 Never invent contract addresses, URLs, scores, or tx hashes — mark `TBD` instead. Docs + code change in the same commit.
-
-## Dead code (never build on)
-
-- `apps/web/src/containers/home|experience|lantern`
-- `apps/web/styles/globals.scss` (removed)
