@@ -136,6 +136,11 @@ const AGENT_FIELDS = /* GraphQL */ `
   }
 `;
 
+/** Demo persona blurbs for the seeded agents (rendered under the demo banner). */
+const DEMO_PERSONA_BIOS: Record<number, string> = {
+  1: "Yield Keeper moves your MON across CNY, USDC and SGD at the best rate it can find — one signature, fully autonomous, every swap attested to its passport.",
+};
+
 export function createEnvioAgentRepository(
   config: EnvioAgentRepositoryConfig = {},
 ): AgentRepository {
@@ -242,7 +247,7 @@ export function createEnvioAgentRepository(
         ...summary,
         identityUri: row.uri,
         passportUri: undefined, // fetched on demand when metadata URIs resolve (TBD)
-        bio: undefined, // persona blurb is mock-only until off-chain metadata lands
+        bio: DEMO_PERSONA_BIOS[agentId] ?? undefined,
         attestations: row.attestations.map((att) => ({
           ...toAttestation(att),
           agentId,

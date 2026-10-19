@@ -218,7 +218,11 @@ describe("createEnvioAgentRepository", () => {
     const profile = await repo.getAgent(1);
     assert.ok(profile);
     assert.equal(profile.identityUri, "demo://lantern/yield-keeper");
-    assert.equal(profile.bio, undefined);
+    // Agent 1 carries the demo persona blurb (DEMO_PERSONA_BIOS in the repo).
+    assert.equal(
+      profile.bio,
+      "Yield Keeper moves your MON across CNY, USDC and SGD at the best rate it can find — one signature, fully autonomous, every swap attested to its passport.",
+    );
     const att = profile.attestations[0] as Attestation;
     assert.equal(att.tokenId, 5);
     assert.equal(att.agentId, 1);
