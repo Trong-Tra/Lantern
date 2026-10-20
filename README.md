@@ -84,7 +84,7 @@ pnpm dev:api   # Express (:4000)
 | packages/snap | pnpm | `pnpm serve` | — | `pnpm test` | — |
 | indexer | pnpm | `pnpm dev` | — | — | — |
 
-Test counts (latest): contracts 90/90, API 85/85, web 36/36, snap 9/9.
+Test counts (latest): contracts 90/90, API 86/86, web 36/36, snap 9/9.
 
 ## Key env vars
 

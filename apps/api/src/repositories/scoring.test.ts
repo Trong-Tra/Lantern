@@ -186,6 +186,52 @@ describe("Lumen Score v1 — v0 ↔ v1 consistency", () => {
   });
 });
 
+describe("Lumen Score v1 — live metrics report (demo)", () => {
+  const tierOf = (s: number): string => (s < 40 ? "T0" : s < 70 ? "T1" : s < 90 ? "T2" : "T3");
+
+  it("prints the numbers behind every claim (fixed clock, deterministic)", () => {
+    const row = (label: string, events: ScoreEvent[]): number => {
+      const score = deriveScoreV1(events, NOW)!;
+      console.log(`  ${label.padEnd(52)} score ${String(score).padStart(3)}   ${tierOf(score)}`);
+      return score;
+    };
+
+    console.log("");
+    console.log("=== Lumen Score v1 — live metrics ===");
+    console.log("score = 100 x accuracy(30-day half-life) x trust mass(min(n,50)/50)");
+
+    console.log("--- permission tiers: same formula, four careers ---");
+    const t0 = row("brand-new agent, 2/2 fresh ..................", freshSuccesses(2));
+    const t1 = row("25 ok / 5 fail, all fresh ...................", [...freshSuccesses(25), ...aged(5, 0, false)]);
+    const t2 = row("80 ok / 20 fail, all fresh ..................", [...freshSuccesses(80), ...aged(20, 0, false)]);
+    const t3 = row("475 ok / 25 fail, all fresh .................", [...freshSuccesses(475), ...aged(25, 0, false)]);
+    const farmer = row("volume farmer: 150 ok / 50 fail (n=200) .....", [...freshSuccesses(150), ...aged(50, 0, false)]);
+
+    console.log("--- volume asymptote: past 50 attestations, volume stops helping ---");
+    const half = row("50 ok / 50 fail (n=100) .....................", aged(50, 0, true).concat(aged(50, 0, false)));
+    const dbl = row("500 ok / 500 fail (n=1000) ..................", aged(500, 0, true).concat(aged(500, 0, false)));
+
+    console.log("--- decay: one failure among 49 fresh successes, sting vs age ---");
+    const decayCurve = [0, 7, 14, 30, 60, 90].map((age) => {
+      const score = deriveScoreV1([...freshSuccesses(49), ...aged(1, age, false)], NOW)!;
+      console.log(`  failure ${String(age).padStart(2)} days old ............................................ score ${String(score).padStart(3)}`);
+      return score;
+    });
+
+    console.log("--- double penalty: one fresh failure at full trust ---");
+    const full = row("50/50 successes .............................", freshSuccesses(50));
+    const hit = row("50 successes + 1 fresh failure ..............", [...freshSuccesses(50), ...aged(1, 0, false)]);
+
+    // The claims, guarded by the printed numbers.
+    assert.ok(t0 < t1 && t1 < t2 && t2 < t3, `tier ladder must climb: ${t0} < ${t1} < ${t2} < ${t3}`);
+    assert.equal(t0, 4, "Sybil 2/2 must score 4, not 100");
+    assert.ok(t3 >= 90 && farmer < 90, `T3 needs accuracy AND volume (${t3} vs farmer ${farmer})`);
+    assert.equal(half, dbl, "volume asymptote: n=100 and n=1000 score identically at 50% accuracy");
+    assert.ok(decayCurve.every((s, i) => i === 0 || s >= decayCurve[i - 1]), "decay curve must be monotonic");
+    assert.ok(hit < full, `one failure must hurt at full trust: ${full} -> ${hit}`);
+  });
+});
+
 describe("Lumen Score v1 — worked examples from docs/09 §4.2", () => {
   it("α — brand new 2/2 today → 53 per docs example table", () => {
     // docs table says 53 for α — but our formula gives 4 (2×0.5 conf ×1.0 acc).

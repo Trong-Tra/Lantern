@@ -7,10 +7,10 @@ Index of every test file in the source, what each covers, and the test counts.
 | Area | Framework | Files | Tests | Suites | Command |
 |------|-----------|-------|-------|--------|---------|
 | Contracts (Foundry) | Forge | 9 | 90 | 9 | `forge test` |
-| API (Node + tsx) | node:test | 3 | 85 | 18 | `pnpm --filter @lantern/api test` |
+| API (Node + tsx) | node:test | 3 | 86 | 18 | `pnpm --filter @lantern/api test` |
 | Web (Node) | node:test | 1+ | 36 | 1 | `pnpm --filter @lantern/web test` |
 | Snap (vitest) | vitest | 1 | 9 | 1 | `pnpm test` in `packages/snap` |
-| **Total** | | **14+** | **220** | **29** | |
+| **Total** | | **14+** | **221** | **29** | |
 
 ---
 
@@ -48,7 +48,7 @@ forge test --match-contract LumenGasComparison -vv  # gas proof only
 
 **Framework:** Node `node:test` with tsx  
 **Command:** `pnpm --filter @lantern/api test` (from root) or `pnpm test` (from `apps/api/`)  
-**Count:** 85 tests, 18 suites, 0 failed
+**Count:** 86 tests, 18 suites, 0 failed
 
 ### Test files
 
@@ -56,13 +56,13 @@ forge test --match-contract LumenGasComparison -vv  # gas proof only
 |------|----------------|
 | `apps/api/src/app.test.ts` | Express app — GET agents, GET profile, GET attestations, GET risk, POST chat, Snap lookup, error envelopes, model fallback chain |
 | `apps/api/src/repositories/envioAgentRepository.test.ts` | Envio-backed repository (faked GraphQL, zero network) — list agents, get agent, attestations pagination, risk derivation, score derivation (v0/v1), findByAddress, DATA_SOURCE switch |
-| `apps/api/src/repositories/scoring.test.ts` | **Lumen Score v1** — accuracy (recency-weighted), trust mass/volume (caps at n=50), decay/dormancy (30-day half-life), double penalty on failure, tier boundaries (T0–T3), volume asymptote, Sybil resistance, v0↔v1 consistency, determinism, clock-skew guard |
+| `apps/api/src/repositories/scoring.test.ts` | **Lumen Score v1** — accuracy (recency-weighted), trust mass/volume (caps at n=50), decay/dormancy (30-day half-life), double penalty on failure, tier boundaries (T0–T3), volume asymptote, Sybil resistance, v0↔v1 consistency, determinism, clock-skew guard, **live metrics report** (console-prints tier ladder, asymptote, decay curve, double penalty) |
 
 ### Run
 ```bash
 cd apps/api
-pnpm test                      # all 85
-node --import tsx --test "src/repositories/scoring.test.ts"  # scoring only (25 tests)
+pnpm test                      # all 86
+node --import tsx --test "src/repositories/scoring.test.ts"  # scoring only (26 tests, prints live metrics)
 ```
 
 ---
@@ -135,7 +135,7 @@ pnpm typecheck   # tsc --noEmit
 
 All suites must be green before merging:
 - `forge test` → 90/90
-- `pnpm --filter @lantern/api test` → 85/85
+- `pnpm --filter @lantern/api test` → 86/86
 - `pnpm --filter @lantern/web test` → 36/36
 - `pnpm test` in `packages/snap` → 9/9
 - `pnpm typecheck` → clean
