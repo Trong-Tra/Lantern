@@ -84,11 +84,8 @@ export default async function ExplorePage({
       </div>
 
       {!result.ok ? (
-        <div className="relative mt-6">
-          <NoticeCard title="Couldn't load agents">
-            {result.error} — is the API running? Start it with{" "}
-            <code className="font-mono text-lantern">pnpm dev:api</code>.
-          </NoticeCard>
+        <div className="relative mt-10">
+          <BackendOfflineMask />
         </div>
       ) : result.data.data.length === 0 ? (
         <div className="relative mt-6">
@@ -236,6 +233,67 @@ export default async function ExplorePage({
       )}
       </div>
     </main>
+  );
+}
+
+/**
+ * Production mask — shown when the API can't be reached (e.g. the Vercel
+ * deployment ships the UI only, no backend). Points visitors at the repo
+ * guide to run the full stack themselves.
+ */
+function BackendOfflineMask() {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-paper/10 bg-paper/[0.03] px-6 py-16 text-center sm:px-12">
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(50% 60% at 50% 0%, rgba(255, 196, 107, 0.07), transparent 75%)",
+        }}
+      />
+      <svg
+        aria-hidden="true"
+        className="relative mx-auto size-10 text-lantern/70"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      >
+        <rect x="4" y="10" width="16" height="10" rx="2" />
+        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+      </svg>
+      <h2 className="relative mt-6 font-syne text-2xl text-paper">
+        The backend is not deployed on production
+      </h2>
+      <p className="relative mx-auto mt-3 max-w-md text-sm leading-relaxed text-paper/60">
+        This deployment ships the explorer UI only. To see the live agent network, please run
+        the source on your own — the guide in the GitHub repo walks through the API and
+        indexer setup in a few minutes.
+      </p>
+      <div className="relative mt-7 flex flex-wrap items-center justify-center gap-3 font-mono text-xs">
+        <a
+          href="https://github.com/Trong-Tra/Lantern"
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-lg border border-lantern/50 bg-lantern/10 px-4 py-2 text-lantern transition hover:bg-lantern/20"
+        >
+          GitHub repo ↗
+        </a>
+        <a
+          href="https://github.com/Trong-Tra/Lantern/blob/main/GETTING_STARTED.md"
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-lg border border-paper/25 bg-paper/5 px-4 py-2 text-paper/80 transition hover:bg-paper/10"
+        >
+          Setup guide ↗
+        </a>
+      </div>
+      <p className="relative mt-6 font-mono text-[11px] text-paper/35">
+        local dev? start the API with <code className="text-lantern">pnpm dev:api</code> and
+        reload
+      </p>
+    </div>
   );
 }
 
