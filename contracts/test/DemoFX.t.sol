@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {AgentRegistry} from "../src/AgentRegistry.sol";
 import {Reputation} from "../src/Reputation.sol";
 import {MockUSD} from "../src/MockUSD.sol";
@@ -126,6 +126,10 @@ contract DemoFXTest is Test {
         assertEq(maxSwaps, 2);
         assertEq(used, 0);
         assertTrue(set);
+        console.log("");
+        console.log("=== Re-enroll after exhaustion: same wallet, fresh mandate ===");
+        console.log("new mandate: max 2 swaps, used 0; wallet funds never left the wallet");
+        console.log("wallet mCNY balance intact:", cny.balanceOf(alice));
     }
 
     function test_EnrollZeroReverts() public {
@@ -161,9 +165,15 @@ contract DemoFXTest is Test {
         uint8 r2 = pool.R_USDC_MON();
         uint8 r3 = pool.R_MON_SGD();
 
-        // The whole agent-wallet demo in one wallet: fund → boot → enroll → 3 hops.
+        console.log("");
+        console.log("=== Agent-wallet corridor: fund -> boot -> enroll -> 3 hops ===");
+        console.log("route: mCNY -> mUSDC -> MON -> mSGD (amounts in raw token units)");
+
+        // The whole agent-wallet demo in one wallet: fund -> boot -> enroll -> 3 hops.
         _boot(alice);
+        console.log("boot leg MON->mCNY (no policy needed): mCNY balance:", cny.balanceOf(alice));
         _enroll(alice);
+        console.log("mandate enrolled: max 3 counted swaps, wallet funds untouched");
         _approveMax(alice, IERC20View(address(cny)));
         _approveMax(alice, IERC20View(address(usdc)));
 
@@ -175,6 +185,8 @@ contract DemoFXTest is Test {
         assertEq(usdc.balanceOf(alice), HOP1_USDC);
         assertEq(cny.balanceOf(alice), 0);
 
+        console.log("hop 1 mCNY->mUSDC: in", BOOT_CNY, "out", usdc.balanceOf(alice));
+
         Reputation.Attestation memory att = reputation.getAttestation(attId + 1);
         assertEq(att.agentId, 1);
         assertEq(uint256(att.actionType), uint256(Reputation.ActionType.SWAP));
@@ -182,6 +194,7 @@ contract DemoFXTest is Test {
         assertEq(att.amount, 0.3 ether); // normalized: 25.56 mCNY == 0.3 MON-wei
         assertEq(att.protocol, "demo://protocols/demo-fx");
         assertEq(att.uri, "demo://demofx/corridor-swap");
+        console.log("  attestation #1: agent 1 SWAP SUCCESS, amount (MON wei):", att.amount);
 
         // hop 2: all USDC -> MON (native out, paid from the pool's boot reserves)
         uint256 balanceBefore = alice.balance;
@@ -190,16 +203,22 @@ contract DemoFXTest is Test {
         assertEq(alice.balance - balanceBefore, HOP2_MON);
         assertEq(usdc.balanceOf(alice), 0);
         assertEq(reputation.getAttestation(attId + 2).amount, 0.3 ether);
+        console.log("hop 2 mUSDC->MON: in", HOP1_USDC, "out (MON wei):", HOP2_MON);
+        console.log("  attestation #2: agent 1 SWAP SUCCESS, amount (MON wei):", reputation.getAttestation(attId + 2).amount);
 
         // hop 3: part of the MON -> SGD (native input must ride along as value)
         vm.prank(alice);
         pool.swap{value: HOP3_MON}(r3, HOP3_MON);
         assertEq(sgd.balanceOf(alice), HOP3_SGD);
         assertEq(reputation.getAttestation(attId + 3).amount, HOP3_MON);
+        console.log("hop 3 MON->mSGD: in (MON wei):", HOP3_MON, "out", sgd.balanceOf(alice));
+        console.log("  attestation #3: agent 1 SWAP SUCCESS, amount (MON wei):", reputation.getAttestation(attId + 3).amount);
 
         (, uint16 used,) = pool.policies(alice);
         assertEq(used, 3);
         assertEq(_attestationCount(), 3);
+        console.log("mandate consumed: 3/3 swaps used; attestations minted:", _attestationCount());
+        console.log("wallet mSGD balance (raw):", sgd.balanceOf(alice));
     }
 
     function test_FourthAgentSwapRevertsExhausted() public {
@@ -212,12 +231,22 @@ contract DemoFXTest is Test {
         pool.swap(r1, 1_000_000); // 1 mCNY
         pool.swap(r1, 1_000_000);
         pool.swap(r1, 1_000_000);
+        vm.stopPrank();
+        uint256 cnyBeforeBlocked = cny.balanceOf(alice); // after exactly 3 successful hops
+
+        vm.startPrank(alice);
         vm.expectRevert("DemoFX: policy exhausted");
         pool.swap(r1, 1_000_000);
         vm.stopPrank();
 
+        console.log("");
+        console.log("=== Policy gate: 4th swap attempted inside a 3-swap mandate ===");
+        console.log("gate reverted 'DemoFX: policy exhausted' BEFORE any state change");
+        console.log("wallet mCNY unchanged after blocked attempt:", cny.balanceOf(alice) == cnyBeforeBlocked);
+
         (, uint16 used,) = pool.policies(alice);
         assertEq(used, 3);
+        console.log("mandate state: used 3/3 (the blocked attempt did not consume a swap)");
     }
 
     function test_UnknownRouteReverts() public {
