@@ -1290,3 +1290,15 @@ html.lenis body {
   color: #e6bb76;
   text-align: right;
 }
+
+/* The story is framed as an illuminated manuscript against a night sky. */
+.lattern-experience { --background: #080d16; }
+.lattern-vignette { background: linear-gradient(90deg, #080d16ed 0%, #080d16a6 38%, transparent 75%), radial-gradient(ellipse at 70% 40%, #384b631c, #080d16aa 85%); }
+.lattern-header { background: linear-gradient(#080d16d9, transparent); }
+.lattern-wordmark { font-family: Georgia, serif; letter-spacing: .3em; }
+.scene-title, .scene-problem .scene-title, .scene-soul .scene-title, .scene-discover .scene-title, .scene-reputation .scene-title, .scene-execution .scene-title { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; letter-spacing: -.045em; text-shadow: 0 2px 35px #0009; }
+.scene-kicker { color: #e2c18b; letter-spacing: .2em; }
+.scene-copy { color: #eee1ca; }
+.scene-aside { color: #b7b0a8; }
+.lattern-top-nav a { letter-spacing: .08em; }
+.lattern-static { background: radial-gradient(ellipse at 80% 5%, #26374b, #080d16 36%); }

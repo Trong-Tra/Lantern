@@ -17,7 +17,8 @@ export const LATTERN_SCENES = [
     kicker: "02 / Introducing Lattern",
     title: "Trust shouldn't be\na leap in the dark.",
     copy: "Verify before you sign — Lattern lights the way.",
-    aside: "The trust layer for agent wallets: identity, reputation, a portable passport.",
+    aside:
+      "The trust layer for agent wallets: identity, reputation, a portable passport.",
   },
   {
     id: "problem",
@@ -37,7 +38,8 @@ export const LATTERN_SCENES = [
     kicker: "04 / More than an address",
     title: "Some agents\nhave a soul.",
     copy: "Lattern helps you see it.",
-    aside: "One passport — identity, reputation, history — carried across chains and borders.",
+    aside:
+      "One passport — identity, reputation, history — carried across chains and borders.",
   },
   {
     id: "discover",
@@ -87,7 +89,8 @@ export const LATTERN_SCENES = [
     kicker: "09 / Built on Monad",
     title: "Agents operate\nat machine speed.",
     copy: "Their trust layer should too.",
-    aside: "Identity, reputation, execution — the corridor demo runs live on Monad testnet.",
+    aside:
+      "Identity, reputation, execution — the corridor demo runs live on Monad testnet.",
   },
   {
     id: "product",
@@ -107,11 +110,12 @@ export const LATTERN_SCENES = [
     kicker: "11 / The people behind the light",
     title: "We've kept\ntrust before.",
     copy: "Engineers out of centralized exchanges — where a bad fill is a lawsuit, not a footnote. Two papers back the protocol. The receipts are onchain.",
-    aside: "Two papers, one protocol: Verifiable AI Reviewers (MAPR 2026 · 1st author) and Lotus — privacy-preserving cross-chain identity (ISCIT 2025 · co-author), the root of the FISCO BCOS path.",
+    aside:
+      "Two papers, one protocol: Verifiable AI Reviewers (MAPR 2026 · 1st author) and Lotus — privacy-preserving cross-chain identity (ISCIT 2025 · co-author), the root of the FISCO BCOS path.",
   },
   {
     id: "finale",
-    name: "A network illuminated",
+    name: "A constellation of souls",
     start: 0.972,
     end: 1,
     kicker: "12 / A network illuminated",

@@ -5,6 +5,8 @@
 
 ## Current state (2026-10-18)
 
+* **Frontend release (2026-11-07)**: `/` now renders the twelve-chapter `MythLanding` with worker-prepared procedural paths and reading/reduced-motion fallbacks. Next.js 16.4.1; design: `apps/web/design.md`; validation and deployment limits: `apps/web/docs/frontend-release.md`.
+
 * **Contracts LIVE on Monad testnet** (chain 10143): `AgentRegistry` `0x62cd4e0C…a6341`, `AgentPassport` `0x5Df5E5FD…40B8`, `Reputation` `0xb5A7CEB3…b72f8`, `AgentVault` `0xe09b3836…26328` (serves agent 1), **`DemoFXPool` v2 `0xC8929Caa…77cd` + mocks mUSDC / mCNY / mSGD** (agent-wallet corridor = CURRENT demo; v2 redeployed 2026-10-18 with re-enroll-after-exhaustion — same wallet keeps its funds; v1 retired; pool authorized Reputation executor — verified on-chain). Retired DemoSwap/`MockUSDC` removed. 15 seed agents + 120 seeded attestations; deployer/owner `0x7EA634e3…2F1F2` (~2.09 MON left). Addresses in root `.env` + docs/02. `forge test` 90/90 (incl. `LumenGasComparison` gas proof, docs/09 §4.2).
 * **API** (`apps/api`, port 4000): serves **live indexer data** (`DATA_SOURCE=envio`, local Hasura `:8080/v1/graphql`) — 5 GETs + Snap lookup + `POST /api/agents/:id/chat` (OpenRouter, model fallback chain). **Lumen score off-chain** in `repositories/scoring.ts` (v1 shipped; v2 formula canonical in docs/09 §4.2, not yet recoded). Risk v0 banding. 86/86 tests.
 * **Web** (`apps/web`, dev `:3000` — RAAC's server stopped there 2026-10-16; auto-falls to `:3001`): cinematic landing + `/network` + `/agent/[id]` (profile, chat, live vault deposit panel + **agent-wallet corridor panel** `swap-demo-panel.tsx`: permanent agent wallet auto-signs swaps; MetaMask funds/withdraws) + `/docs`. 36/36 tests. Connect wallet = real injected wagmi; Dynamic passkey still missing.
@@ -35,6 +37,10 @@
 * FinTechathon: team registration + passport pages (deadline 2026-10-20); CNY corridor partner (HK-first) — post-submission.
 
 ## Log (newest on top; older entries were pruned)
+
+* `2026-11-07` — Tai frontend release on `frontend-Tai`: new landing, journey, assets and 97 frontend tests; existing application routes retained.
+  Next.js and matching ESLint configuration upgraded to 16.4.1; frontend production dependency audit has no advisories.
+  Checks and deployment limits: `apps/web/docs/frontend-release.md`; API/indexer/Snap advisories remain outside this frontend release.
 
 * `2026-10-20` — agent: **demo metric tests now print live numbers** — `DemoFX.t.sol` corridor logs (hop amounts, attestations, gate revert + unchanged-balance proof, re-enroll); `scoring.test.ts` +26th test "live metrics report" console-prints tier ladder (2/2→4 T0 … 475/25→95 T3), volume asymptote (n=100 ≡ n=1000 → 50), decay curve (failure sting 98→100 over 90d), double penalty (100→98). API 86/86 (was 85); TEST_CASE.md + README synced. Two commits: `4819cc5` (SECURITY.md), `127f7b5` (DemoFX logs).
 * `2026-10-20` — agent: **SECURITY.md rewritten to FinTechathon organizer format** — §1 Permission-Tier Implementation (Who/What/How-enforced/How-prove + RGA pipeline) + §2 Known Security Risks (risk table w/ Residual Risk column, severity per NIST SP 800-30, OWASP/ERC refs). No technical claims changed; same evidence mapping. Working tree was already clean (old ⚠ uncommitted flags stale); `/wallet` page exists+committed (MEMORY “user Dashboard missing” now stale). ⚠ uncommitted.

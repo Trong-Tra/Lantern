@@ -169,28 +169,35 @@ export function Lantern() {
   return (
     <>
       <group ref={group} dispose={null}>
-        <mesh geometry={resources.geometries.silk} material={resources.silk} />
-        <mesh geometry={resources.geometries.ribs} material={resources.ribs} />
-        <mesh
-          geometry={resources.geometries.hardware}
-          material={resources.brass}
-        />
-        <mesh
-          geometry={resources.geometries.cord}
-          material={resources.thread}
-        />
-        <mesh
-          geometry={resources.sphere}
-          material={resources.brass}
-          position={[0, -1.44, 0]}
-          scale={[0.052, 0.07, 0.052]}
-        />
-        <group ref={tassel} position={[0, -1.51, 0]}>
-          <mesh
-            geometry={resources.geometries.tassel}
-            material={resources.thread}
-          />
-        </group>
+        {/* A brass, glass-sided beacon replaces the paper lantern silhouette. */}
+        <mesh position={[0, -0.9, 0]} material={resources.brass}>
+          <cylinderGeometry args={[0.61, 0.68, 0.16, 8]} />
+        </mesh>
+        <mesh position={[0, 0.72, 0]} material={resources.brass}>
+          <cylinderGeometry args={[0.3, 0.65, 0.3, 8]} />
+        </mesh>
+        <mesh position={[0, 0.94, 0]} material={resources.brass}>
+          <cylinderGeometry args={[0.13, 0.25, 0.16, 8]} />
+        </mesh>
+        <mesh position={[0, 1.22, 0]} material={resources.brass}>
+          <torusGeometry args={[0.22, 0.035, 8, 32]} />
+        </mesh>
+        <mesh position={[0, -0.05, 0]}>
+          <cylinderGeometry args={[0.53, 0.57, 1.42, 8, 1, true]} />
+          <meshStandardMaterial color="#d4a76b" transparent opacity={0.16} roughness={0.2} metalness={0.2} side={2} depthWrite={false} />
+        </mesh>
+        {Array.from({ length: 8 }, (_, i) => {
+          const angle = (i / 8) * Math.PI * 2;
+          return <mesh key={i} position={[Math.sin(angle) * 0.55, -0.05, Math.cos(angle) * 0.55]} material={resources.brass}>
+            <cylinderGeometry args={[0.025, 0.025, 1.48, 6]} />
+          </mesh>;
+        })}
+        {[-0.68, 0.55].map((y) => <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]} material={resources.brass}>
+          <torusGeometry args={[0.56, 0.025, 6, 8]} />
+        </mesh>)}
+        <mesh position={[0, -0.46, 0]} material={resources.brass}>
+          <cylinderGeometry args={[0.16, 0.23, 0.12, 16]} />
+        </mesh>
         <mesh
           ref={flame}
           geometry={resources.sphere}
