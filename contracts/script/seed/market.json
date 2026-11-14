@@ -1,0 +1,23 @@
+{
+  "//": "Phase 0 demo pool topology (docs/market.md proposal: 5 tokens, 8-10 pools at varied liquidity). Liquidity is in whole tokens; the script scales by 1e18. Indices reference the tokens array.",
+  "tokenCount": 5,
+  "tokens": [
+    { "name": "Mock USD Coin", "symbol": "mUSDC" },
+    { "name": "Mock Tether USD", "symbol": "mUSDT" },
+    { "name": "Mock Wrapped AVAX", "symbol": "mWAVAX" },
+    { "name": "Mock Wrapped Ether", "symbol": "mWETH" },
+    { "name": "Mock Wrapped Bitcoin", "symbol": "mWBTC" }
+  ],
+  "poolCount": 9,
+  "pools": [
+    { "token0": 0, "token1": 1, "liquidity0": 500000, "liquidity1": 500000 },
+    { "token0": 0, "token1": 1, "liquidity0": 50000, "liquidity1": 50000 },
+    { "token0": 0, "token1": 2, "liquidity0": 400000, "liquidity1": 20000 },
+    { "token0": 0, "token1": 2, "liquidity0": 40000, "liquidity1": 2000 },
+    { "token0": 1, "token1": 2, "liquidity0": 200000, "liquidity1": 10000 },
+    { "token0": 2, "token1": 3, "liquidity0": 60000, "liquidity1": 600 },
+    { "token0": 2, "token1": 3, "liquidity0": 6000, "liquidity1": 60 },
+    { "token0": 3, "token1": 4, "liquidity0": 300, "liquidity1": 15 },
+    { "token0": 0, "token1": 3, "liquidity0": 300000, "liquidity1": 150 }
+  ]
+}

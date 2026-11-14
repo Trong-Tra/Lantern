@@ -32,14 +32,11 @@ Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 └── indexer/                      # Envio HyperIndex (local Hasura GraphQL :8080)
 ```
 
-## Deployed contracts — Monad testnet (chain 10143)
+## Deployed contracts — Avalanche Fuji (chain 43113)
 
-| Contract | Address |
-|----------|---------|
-| AgentRegistry (ERC-8004) | `0x62cd4e0C5B0D4587861a21710ed15ba1823a6341` |
-| Reputation (ERC-5192) | `0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8` |
+Fuji redeploy **pending** (Phase 0 — owner needs faucet AVAX; addresses land here after `Deploy.s.sol` + `DeployMarket.s.sol`).
 
-Deployer: `0x7EA634e331CF7b503df2e224f77a7C589462F1F2`. (Old-concept deployments — Passport, Vault, DemoFX — still exist on-chain but are unsupported; code removed 2026-11-14.)
+Legacy Monad testnet (chain 10143, read-only): AgentRegistry `0x62cd4e0C5B0D4587861a21710ed15ba1823a6341`, Reputation `0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8`, deployer `0x7EA634e331CF7b503df2e224f77a7C589462F1F2`. (Old-concept deployments — Passport, Vault, DemoFX — still exist on Monad but are unsupported; code removed 2026-11-14.)
 
 ## Quick start
 
@@ -51,8 +48,8 @@ pnpm install
 cp .env.example .env
 
 # 3. Fill .env at minimum:
-#    MONAD_TESTNET_RPC_URL          # Monad testnet RPC
-#    AGENT_REGISTRY_ADDRESS         # from the table above
+#    AVAX_FUJI_RPC_URL              # Avalanche Fuji RPC
+#    AGENT_REGISTRY_ADDRESS         # from the Fuji redeploy (pending)
 #    REPUTATION_ADDRESS
 #    ENVIO_GRAPHQL_URL              # optional; defaults to local :8080
 

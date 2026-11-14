@@ -37,18 +37,18 @@ contracts/src/                 services/market/ (Go)            indexer/
 ### 1. Contracts (Foundry, `contracts/src/`)
 
 * `MockToken.sol` — one minimal mintable ERC-20 (fresh single implementation; the old corridor mocks are gone).
-* `DemoPool.sol` — constant-product pair pool: `swap(tokenIn, amountIn)`, `getReserves()`, events `Swap` + `Sync(reserve0, reserve1)`. Multiple pools per pair at varied liquidity so route/slice choice actually matters (TBD: exact token set + pool count; proposal: 5 tokens, 8–10 pools).
+* `DemoPool.sol` — constant-product pair pool: `swap(tokenIn, amountIn)`, `getReserves()`, `getAmountOut()`, owner-only `seed()` (mints land in the pool, `seed()` adopts balances as reserves). 30 bps pool fee. Events `Swap` + `Sync(reserve0, reserve1)` (Sync fires on seed and every swap — the reserve source of truth). Multiple pools per pair at varied liquidity so route/slice choice actually matters — topology locked 2026-11-14: **5 tokens, 9 pools** (`script/seed/market.json`).
 * `LanternMarket.sol` — settlement for **picked** quotes:
   * `executeSwap(quote, solverSignature)` — the quote encodes: intent (tokenIn/tokenOut/amountIn), routes + allocation bps, `quotedOut`, `deadline`, `nonce`, `agentId`.
-  * Verifies: signature by the owner of a **registered ERC-8004 agent** (`AgentRegistry.ownerOf(agentId)`), deadline not passed, nonce unused.
+  * Verifies: EIP-191 signature by the owner of a **registered ERC-8004 agent** (`AgentRegistry.ownerOf(agentId)`), deadline not passed, nonce unused, caller = `quote.user`.
   * Re-quotes the route set against **current** pool reserves on-chain (constant-product math is cheap at demo scale); reverts if output < `minOut` (quote went stale between pick and execution).
   * Executes the route set atomically, takes the fee to the solver's agent owner, mints the attestation via `Reputation` (market contract is an authorized executor).
-  * TBD (owner): fee bps (proposal: 10–30), quote TTL (proposal: ~30–60s / N blocks), who submits `executeSwap` (proposal v1: the user's wallet submits; keeper relay later), failure accounting (reverted/expired quotes mint nothing — track record = settled trades only, flag if you want FAIL attestations).
-* Tests per contract, then deploy + seed pools; extend `script/`. Attestation `ActionType` reuses `SWAP` for v1 (enum rework deferred — MEMORY §TBD).
+  * **Locked (owner, 2026-11-14): fee 20 bps; quote TTL ~45s (off-chain guidance — contract enforces only `deadline`); v1 submitter = the user's wallet (keeper relay later); failure accounting: reverted/expired quotes mint nothing — track record = settled trades only.**
+* Tests per contract, then deploy + seed pools; `script/DeployMarket.s.sol` deploys tokens + pools + market from `script/seed/market.json`. Attestation `ActionType` reuses `SWAP` for v1 (enum rework deferred — MEMORY §TBD).
 
 ### 2. Indexer (Envio)
 
-* Add `DemoPool` (`Swap`, `Sync`) + `LanternMarket` (`TradeSettled`) to `indexer/config.yaml`; entities `Pool` (current reserves), `Trade`.
+* Add `DemoPool` (`Sync` — reserve source of truth, fires on seed + every swap; `Swap` deliberately unindexed until volume analytics need it) + `LanternMarket` (`TradeSettled`) to `indexer/config.yaml`; entities `Pool` (current reserves), `Trade`. Done 2026-11-14 with zero-address placeholders pending the Fuji redeploy.
 * The Go service consumes state via **Hasura GraphQL subscriptions (WS)** — no custom indexing code.
 
 ### 3. Go service (`services/market/`)
@@ -85,18 +85,18 @@ Key choices:
 
 `packages/types` stays the TS source of truth for the frozen frontend era. New market types (Intent, Quote, PoolSnapshot, Trade) are defined **once in the GraphQL schema** (`services/market/internal/api/schema.graphqls`); TS types get generated from it when the frontend rebuilds. No hand-maintained duplicate shapes.
 
-### 5. Chain migration notes (Phase 0, with the Fuji redeploy)
+### 5. Chain migration notes (Phase 0 — code side done 2026-11-14, Fuji redeploy pending)
 
-* Env rename across `.env.example` / scripts / indexer / Go config: `MONAD_TESTNET_RPC_URL` → `AVAX_FUJI_RPC_URL`; key names stay (`MONAD_PRIVATE_KEY` → `DEPLOYER_PRIVATE_KEY` at the same time).
-* `packages/config`: explorer URLs move to Snowtrace testnet (`https://testnet.snowtrace.io`).
-* Indexer `config.yaml`: chain id `10143` → `43113`; addresses come from the Fuji redeploy (TBD until executed — owner needs Fuji AVAX from the faucet).
+* Env rename done across `.env.example` / scripts / indexer / docs: `MONAD_TESTNET_RPC_URL` → `AVAX_FUJI_RPC_URL`; `MONAD_PRIVATE_KEY` → `DEPLOYER_PRIVATE_KEY`; `ENVIO_MONAD_RPC_URL` → `ENVIO_AVAX_FUJI_RPC_URL`. (Go service config reads the same keys when built in Phase 1.)
+* `packages/config`: explorer URLs moved to Snowtrace testnet (`https://testnet.snowtrace.io`; `getMonadExplorerUrl` → `getExplorerUrl`, `NEXT_PUBLIC_MONAD_EXPLORER_URL` → `NEXT_PUBLIC_EXPLORER_URL`).
+* Indexer `config.yaml`: chain id `10143` → `43113` done; addresses are zero-address placeholders until the redeploy (TBD until executed — owner needs Fuji AVAX from the faucet).
 * The Monad testnet deployment (Registry `0x62cd4e0C…a6341`, Reputation `0xb5A7CEB3…b72f8` + 15 seeded agents) stays readable as legacy data but receives no new development.
 
 ## Phases (each independently verifiable)
 
 | Phase | Deliverable | Verify |
 | --- | --- | --- |
-| 0 — chain move + contracts | Redeploy identity stack (AgentRegistry + Reputation) on **Fuji (43113)**; `MockToken`, `DemoPool`, `LanternMarket` + tests, deploy scripts, seeded pools; indexer re-pointed at Fuji and extended | `forge test`; entities visible in Hasura |
+| 0 — chain move + contracts | Redeploy identity stack (AgentRegistry + Reputation) on **Fuji (43113)**; `MockToken`, `DemoPool`, `LanternMarket` + tests, deploy scripts, seeded pools; indexer re-pointed at Fuji and extended. **Code done 2026-11-14 (93/93 forge, indexer 7/7); on-chain redeploy pending owner faucet AVAX** | `forge test`; entities visible in Hasura (after redeploy) |
 | 1 — Go skeleton | module, config, Envio subscription ingest, in-memory graph store that tracks reserves live | `go test ./...`; log line per block showing graph consistency vs on-chain reserves |
 | 2 — quote flow e2e | intent → reference solver quotes → pick → `executeSwap` settles → attestation minted | scripted demo flow; attestation visible via API/indexer |
 | 3 — x402 + protocol hardening | graph feed paywalled; quote signatures/deadlines/retraction enforced; bad-signature + stale-quote rejection tests | integration tests |

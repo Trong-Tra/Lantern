@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=./node_modules/envio/evm.schema.json
 name: lantern-indexer
-description: Lantern — ERC-8004 solver identity + ERC-5192 soulbound track record on Monad testnet
+description: Lantern — ERC-8004 solver identity + ERC-5192 soulbound track record + market (pools, settled trades) on Avalanche Fuji
 schema: ./schema.graphql
 field_selection:
   transaction_fields:
@@ -15,11 +15,29 @@ contracts:
     abi_file_path: ./abis/Reputation.json
     events:
       - event: AttestationMinted
+  # DemoPool: Sync alone is the reserve source of truth — it fires on seed()
+  # and after every swap(), so the Swap event adds nothing to index yet.
+  - name: DemoPool
+    abi_file_path: ./abis/DemoPool.json
+    events:
+      - event: Sync
+  - name: LanternMarket
+    abi_file_path: ./abis/LanternMarket.json
+    events:
+      - event: TradeSettled
 chains:
-  - id: 10143 # Monad testnet — native HyperSync
+  - id: 43113 # Avalanche Fuji — native HyperSync
     start_block: 0 # auto-fast-forwards to the first relevant block
     contracts:
+      # TBD — all addresses come from the Fuji redeploy (Phase 0, pending owner
+      # faucet AVAX). Zero-address placeholders index nothing until filled in.
       - name: AgentRegistry
-        address: "0x62cd4e0C5B0D4587861a21710ed15ba1823a6341"
+        address: "0x0000000000000000000000000000000000000000"
       - name: Reputation
-        address: "0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8"
+        address: "0x0000000000000000000000000000000000000000"
+      - name: DemoPool
+        # One entry per seeded pool (9 in script/seed/market.json) — add the
+        # addresses logged by DeployMarket.s.sol after the redeploy.
+        address: "0x0000000000000000000000000000000000000000"
+      - name: LanternMarket
+        address: "0x0000000000000000000000000000000000000000"

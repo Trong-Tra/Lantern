@@ -22,21 +22,21 @@ export const API_ENDPOINTS = {
   AGENT_ATTESTATIONS: "/api/agents/:id/attestations",
 } as const;
 
-/** Monad testnet explorer (official: monad.xyz/developers). Env-overridable. */
-export const DEFAULT_MONAD_EXPLORER_URL = "https://testnet.monadscan.com";
+/** Avalanche Fuji testnet explorer (Snowtrace). Env-overridable. */
+export const DEFAULT_EXPLORER_URL = "https://testnet.snowtrace.io";
 
-export function getMonadExplorerUrl(): string {
+export function getExplorerUrl(): string {
   const envUrl =
     typeof globalThis !== "undefined"
       ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
-          ?.NEXT_PUBLIC_MONAD_EXPLORER_URL
+          ?.NEXT_PUBLIC_EXPLORER_URL
       : undefined;
-  return envUrl || DEFAULT_MONAD_EXPLORER_URL;
+  return envUrl || DEFAULT_EXPLORER_URL;
 }
 
-/** Link to a transaction on the Monad testnet explorer. */
+/** Link to a transaction on the Fuji testnet explorer. */
 export function buildExplorerTxUrl(txHash: string): string {
-  return `${getMonadExplorerUrl()}/tx/${txHash}`;
+  return `${getExplorerUrl()}/tx/${txHash}`;
 }
 
 export const APP_CONFIG = {

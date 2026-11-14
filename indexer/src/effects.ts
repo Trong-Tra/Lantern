@@ -4,29 +4,29 @@ import { createPublicClient, defineChain, http } from "viem";
 // ---------------------------------------------------------------------------
 // On-chain reads for fields the events don't carry (Effect API — cached,
 // rate-limited, preload-safe). See docs/indexer.md: AttestationMinted lacks
-// amount/protocol/uri — resolved here from contract storage instead of
-// requiring a contract redeploy.
+// amount/protocol/uri and DemoPool.Sync lacks the token pair — resolved here
+// from contract storage instead of requiring a contract redeploy.
 // ---------------------------------------------------------------------------
 
 const RPC_URL =
-  process.env.ENVIO_MONAD_RPC_URL ??
-  process.env.MONAD_TESTNET_RPC_URL ??
-  // Public HyperRPC for Monad testnet (Envio docs) — last-resort fallback.
-  "https://monad-testnet.rpc.hypersync.xyz";
+  process.env.ENVIO_AVAX_FUJI_RPC_URL ??
+  process.env.AVAX_FUJI_RPC_URL ??
+  // Public HyperRPC for Avalanche Fuji (Envio docs) — last-resort fallback.
+  "https://fuji.hypersync.xyz";
 
-const monadTestnet = defineChain({
-  id: 10143,
-  name: "Monad Testnet",
-  nativeCurrency: { name: "MON", symbol: "MON", decimals: 18 },
+const avalancheFuji = defineChain({
+  id: 43113,
+  name: "Avalanche Fuji",
+  nativeCurrency: { name: "AVAX", symbol: "AVAX", decimals: 18 },
   rpcUrls: { default: { http: [RPC_URL] } },
 });
 
-const client = createPublicClient({ chain: monadTestnet, transport: http(RPC_URL) });
+const client = createPublicClient({ chain: avalancheFuji, transport: http(RPC_URL) });
 
-// Deployed address (docs/contracts.md). Env var wins when set — on Envio Cloud set
-// REPUTATION_ADDRESS in the dashboard if it differs.
+// TBD until the Fuji redeploy (Phase 0) — env var wins. On Envio Cloud set
+// REPUTATION_ADDRESS in the dashboard once Deploy.s.sol has run.
 const REPUTATION_ADDRESS = (process.env.REPUTATION_ADDRESS ??
-  "0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8") as Address;
+  "0x0000000000000000000000000000000000000000") as Address;
 
 const reputationAbi = [
   {
@@ -77,5 +77,41 @@ export const getAttestationDetails = createEffect(
       protocol: attestation.protocol,
       uri: attestation.uri,
     };
+  },
+);
+
+const demoPoolAbi = [
+  {
+    type: "function",
+    name: "token0",
+    inputs: [],
+    outputs: [{ name: "", type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "token1",
+    inputs: [],
+    outputs: [{ name: "", type: "address" }],
+    stateMutability: "view",
+  },
+] as const;
+
+// Pool token pair is immutable, so this effect caches forever per pool.
+export const getPoolTokens = createEffect(
+  {
+    name: "getPoolTokens",
+    input: { pool: S.string },
+    output: { token0: S.string, token1: S.string },
+    rateLimit: { calls: 10, per: "second" },
+    cache: true,
+  },
+  async ({ input }) => {
+    const pool = input.pool as Address;
+    const [token0, token1] = await Promise.all([
+      client.readContract({ address: pool, abi: demoPoolAbi, functionName: "token0" }),
+      client.readContract({ address: pool, abi: demoPoolAbi, functionName: "token1" }),
+    ]);
+    return { token0, token1 };
   },
 );

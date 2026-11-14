@@ -46,7 +46,7 @@ The insight: every aggregator builds a graph of pools (assets = nodes, pools = e
 
 | Layer | Repo location | Status |
 | --- | --- | --- |
-| Identity contracts | `contracts/src/{AgentRegistry,Reputation}.sol` + `src/utils/` (in-house ERC721/Ownable), tests in `test/`, deploy/seed in `script/` | Live on Monad testnet (legacy); Fuji redeploy in Phase 0; `forge test` 53/53 |
+| Identity + market contracts | `contracts/src/{AgentRegistry,Reputation,MockToken,DemoPool,LanternMarket}.sol` + `src/utils/` (in-house ERC721/Ownable), tests in `test/`, deploy/seed in `script/` | Phase 0 code done 2026-11-14; Fuji deploy pending owner faucet AVAX; Monad deployment legacy; `forge test` 93/93 |
 | Indexing | `indexer/` — Envio HyperIndex v3: `config.yaml` + `schema.graphql` + `src/handlers/` + `src/effects.ts` + vitest | Local (Docker; GraphQL :8080); cloud deploy pending `ENVIO_API_TOKEN` |
 | API | `apps/api/src/` — `app.ts` (factory, injectable repository), `routes/agents.ts`, `repositories/{agentRepository,envioAgentRepository}.ts`, `loadEnv.ts` | Envio-backed only; 18 tests |
 | Shared libs | `packages/config` (endpoint paths, explorer URLs), `packages/types` (agent/attestation types), `packages/utils` (envelope, formatting) | Done, extend as needed |

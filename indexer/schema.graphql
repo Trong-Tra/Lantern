@@ -22,6 +22,7 @@ type Agent {
   registeredAt: BigInt!
   updatedAt: BigInt
   attestations: [Attestation!]! @derivedFrom(field: "agent")
+  trades: [Trade!]! @derivedFrom(field: "agent")
 }
 
 type Attestation {
@@ -34,6 +35,34 @@ type Attestation {
   protocol: String
   uri: String
   mintedAt: BigInt!
+  blockNumber: BigInt!
+  txHash: String!
+}
+
+# --- Lantern Market (docs/market.md) ---
+#   Pool.id  = pool contract address
+#   Trade.id = settlement tx hash (one executeSwap per tx in v1)
+
+type Pool {
+  id: ID!
+  token0: String!
+  token1: String!
+  reserve0: BigInt!
+  reserve1: BigInt!
+  updatedAtBlock: BigInt!
+}
+
+type Trade {
+  id: ID!
+  agent: Agent!
+  user: String!
+  tokenIn: String!
+  tokenOut: String!
+  amountIn: BigInt!
+  amountOut: BigInt!
+  fee: BigInt!
+  nonce: BigInt!
+  settledAt: BigInt!
   blockNumber: BigInt!
   txHash: String!
 }

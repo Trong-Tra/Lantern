@@ -41,7 +41,7 @@ Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 - **Node.js** (v20+), **pnpm@12.4.2** (root packageManager)
 - **Foundry** (`forge`, `cast`) — for contracts
 - **Docker / OrbStack** — only for the Envio indexer (Hasura on :8080)
-- A **Monad testnet RPC** (`MONAD_TESTNET_RPC_URL`) — required for anything that touches chain
+- An **Avalanche Fuji RPC** (`AVAX_FUJI_RPC_URL`) — required for anything that touches chain
 
 ## One-time setup
 
@@ -53,7 +53,7 @@ pnpm install
 cp .env.example .env
 
 # 3. Fill in .env with at least:
-#    MONAD_TESTNET_RPC_URL  (or MONAD_PRIVATE_KEY for deployments)
+#    AVAX_FUJI_RPC_URL  (or DEPLOYER_PRIVATE_KEY for deployments)
 #    AGENT_REGISTRY_ADDRESS, REPUTATION_ADDRESS
 #    ENVIO_GRAPHQL_URL  (optional; defaults to local http://localhost:8080/v1/graphql)
 ```
@@ -116,11 +116,11 @@ Blocked from cloud deploy until `ENVIO_API_TOKEN` is set.
 
 | Var | Where | Purpose |
 |-----|-------|---------|
-| `MONAD_TESTNET_RPC_URL` | root `.env` | Monad testnet RPC (contracts, indexer effects) |
-| `MONAD_PRIVATE_KEY` | root `.env` | deployer key (contracts deployment) |
+| `AVAX_FUJI_RPC_URL` | root `.env` | Avalanche Fuji RPC (contracts, indexer effects) |
+| `DEPLOYER_PRIVATE_KEY` | root `.env` | deployer key (contracts deployment) |
 | `AGENT_REGISTRY_ADDRESS` / `REPUTATION_ADDRESS` | root `.env` | deployed identity contract addresses |
 | `ENVIO_GRAPHQL_URL` / `ENVIO_ADMIN_SECRET` | root `.env` | Hasura GraphQL endpoint / secret |
-| `ENVIO_API_TOKEN` / `ENVIO_MONAD_RPC_URL` | `indexer/.env` | HyperSync token / RPC for effects |
+| `ENVIO_API_TOKEN` / `ENVIO_AVAX_FUJI_RPC_URL` | `indexer/.env` | HyperSync token / RPC for effects |
 
 ## Cold-start protocol (for agents / new contributors)
 

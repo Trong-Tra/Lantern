@@ -10,7 +10,7 @@ import {AgentRegistry} from "../src/AgentRegistry.sol";
 ///         registers every identity (docs/contracts.md).
 ///
 /// Usage (from contracts/, after Deploy — env from repo-root .env):
-///   forge script script/SeedAgents.s.sol:SeedAgents --rpc-url $MONAD_TESTNET_RPC_URL --broadcast
+///   forge script script/SeedAgents.s.sol:SeedAgents --rpc-url $AVAX_FUJI_RPC_URL --broadcast
 ///
 /// The registration loop lives in {registerFromJson} so tests can exercise the
 /// exact same code path in-memory without broadcasting anything.
@@ -42,7 +42,7 @@ contract SeedAgents is Script {
         string memory json = vm.readFile(SEED_PATH);
         uint256 count = vm.parseJsonUint(json, ".count");
 
-        vm.startBroadcast(vm.envUint("MONAD_PRIVATE_KEY"));
+        vm.startBroadcast(vm.envUint("DEPLOYER_PRIVATE_KEY"));
         uint256[] memory ids = registerFromJson(registry, json);
         vm.stopBroadcast();
 
