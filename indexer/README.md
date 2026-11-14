@@ -1,30 +1,27 @@
 # @lantern/indexer — Envio HyperIndex on Monad testnet
 
-Indexes the three Lantern identity contracts (docs/02) into a GraphQL API.
+Indexes the Lantern identity contracts (docs/contracts.md) into a GraphQL API.
 
 ## What it indexes
 
 | Contract | Events | Entities written |
 | --- | --- | --- |
 | `AgentRegistry` | `AgentRegistered`, `AgentUpdated` | `Agent` |
-| `AgentPassport` (ERC-721) | `Transfer` | `Passport` (mint + holder updates) |
 | `Reputation` (ERC-5192) | `AttestationMinted` | `Attestation` |
 
 Entity ids = on-chain numeric ids as decimal strings (`Agent.id` = agentId,
-`Passport.id`/`Attestation.id` = tokenId).
+`Attestation.id` = tokenId).
 
 ## Design notes
 
 - **Chain**: Monad testnet, chain id 10143, native HyperSync (no RPC sync config).
 - **Fields the events don't carry are resolved on-chain** via the Effect API
-  (`src/effects.ts`, cached + rate-limited): `Transfer` has no agentId/uri →
-  `agentOf`/`tokenURI`; `AttestationMinted` has no amount/protocol/uri →
-  `getAttestation`. This avoids a contract redeploy — if the contracts ever
-  gain richer events, drop the effects and read from `event.params`.
+  (`src/effects.ts`, cached + rate-limited): `AttestationMinted` has no
+  amount/protocol/uri → `getAttestation`. This avoids a contract redeploy —
+  if the contracts ever gain richer events, drop the effect and read from
+  `event.params`.
 - **Enums** (`ActionType`, `ActionResult`) are stored as schema enums; uint8
   indices are mapped in `src/mappings.ts`.
-- **Tx entity** from the original docs/05 proposal is intentionally omitted
-  (KISS); revisit when the Snap needs raw transaction context.
 
 ## Env
 

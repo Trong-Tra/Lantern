@@ -3,11 +3,11 @@ import express, { type ErrorRequestHandler } from "express";
 import { API_ENDPOINTS } from "@lantern/config";
 import { createApiErrorResponse, createApiResponse } from "@lantern/utils";
 import { createAgentsRouter } from "./routes/agents.js";
-import { createOpenRouterChatService, type ChatService } from "./services/openRouterChat.js";
+import { agentRepository, type AgentRepository } from "./repositories/agentRepository.js";
 
 export interface AppOptions {
-  /** Override the LLM chat service (tests inject fakes; never hits the network). */
-  chatService?: ChatService;
+  /** Override the agent repository (tests inject fakes; never hits the network). */
+  repository?: AgentRepository;
 }
 
 /**
@@ -17,7 +17,7 @@ export interface AppOptions {
 export function createApp(options: AppOptions = {}): express.Express {
   const app = express();
 
-  // TODO(docs/03): make the allowlist env-driven before leaving localhost.
+  // TODO(docs/api.md): make the allowlist env-driven before leaving localhost.
   app.use(cors({ origin: "http://localhost:3000" }));
   app.use(express.json());
 
@@ -31,7 +31,7 @@ export function createApp(options: AppOptions = {}): express.Express {
 
   app.use(
     API_ENDPOINTS.AGENTS,
-    createAgentsRouter({ chat: options.chatService ?? createOpenRouterChatService() }),
+    createAgentsRouter({ repository: options.repository ?? agentRepository }),
   );
 
   // 404 in the standard error envelope (must come after all routers).

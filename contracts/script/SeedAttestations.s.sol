@@ -5,9 +5,9 @@ import {Script, console} from "forge-std/Script.sol";
 import {Reputation} from "../src/Reputation.sol";
 
 /// @title SeedAttestations
-/// @notice Mints the fictional demo attestation history (script/seed/attestations.json)
-///         for agents 1-5 so the Explorer/Snap demo has realistic reputation data.
-///         Same quarantine rules as agents.json (docs/06): everything demo://.
+/// @notice Mints the fictional attestation history (script/seed/attestations.json)
+///         for agents 1-5 so the arena has realistic track-record data.
+///         Everything in the seed JSON uses the non-resolvable demo:// scheme.
 ///
 /// Usage (from contracts/, after the deployer is a minter — agent owner or executor):
 ///   forge script script/SeedAttestations.s.sol:SeedAttestations --rpc-url $MONAD_TESTNET_RPC_URL --broadcast

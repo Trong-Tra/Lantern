@@ -1,51 +1,39 @@
 # Memory — living log (agents update this)
 
-> **Cold start: read §Current state below (that's the truth) + your one layer doc.** Log = last ~week of history; older entries were pruned (submission artifacts, pre-live plans).
-> Vision/spec live in `docs/00`–`docs/05` + `09`. Docs describe TARGET; this section describes NOW.
+> **Cold start: read §Current state below (that's the truth) + your one layer doc.** Log = recent history; pre-pivot history lives in git.
+> Vision/spec live in `docs/` (map in `AGENTS.md`). Docs describe TARGET; this section describes NOW.
 
-## Current state (2026-10-18)
+## Current state (2026-11-14 — pivot 3: solver arena)
 
-* **Frontend release (2026-11-07)**: `/` now renders the twelve-chapter `MythLanding` with worker-prepared procedural paths and reading/reduced-motion fallbacks. Next.js 16.4.1; design: `apps/web/design.md`; validation and deployment limits: `apps/web/docs/frontend-release.md`.
+**Product (new concept):** Lantern is a **competitive multihop swap routing arena** on Monad. We build and serve the **pool graph** (assets = nodes, pools = edges). Off-chain **solver agents** — each with an on-chain ERC-8004 identity — compete on every swap intent: they propose routes **and split allocations** across routes (the slicing problem: coarse slices solve fast, fine slices price better). The user takes the best solution; the winning solver earns the fee. Track record is **earned on-chain** via soulbound ERC-5192 attestations of real execution outcomes — no self-claimed reputation, no persona marketing.
 
-* **Contracts LIVE on Monad testnet** (chain 10143): `AgentRegistry` `0x62cd4e0C…a6341`, `AgentPassport` `0x5Df5E5FD…40B8`, `Reputation` `0xb5A7CEB3…b72f8`, `AgentVault` `0xe09b3836…26328` (serves agent 1), **`DemoFXPool` v2 `0xC8929Caa…77cd` + mocks mUSDC / mCNY / mSGD** (agent-wallet corridor = CURRENT demo; v2 redeployed 2026-10-18 with re-enroll-after-exhaustion — same wallet keeps its funds; v1 retired; pool authorized Reputation executor — verified on-chain). Retired DemoSwap/`MockUSDC` removed. 15 seed agents + 120 seeded attestations; deployer/owner `0x7EA634e3…2F1F2` (~2.09 MON left). Addresses in root `.env` + docs/02. `forge test` 90/90 (incl. `LumenGasComparison` gas proof, docs/09 §4.2).
-* **API** (`apps/api`, port 4000): serves **live indexer data** (`DATA_SOURCE=envio`, local Hasura `:8080/v1/graphql`) — 5 GETs + Snap lookup + `POST /api/agents/:id/chat` (OpenRouter, model fallback chain). **Lumen score off-chain** in `repositories/scoring.ts` (v1 shipped; v2 formula canonical in docs/09 §4.2, not yet recoded). Risk v0 banding. 86/86 tests.
-* **Web** (`apps/web`, dev `:3000` — RAAC's server stopped there 2026-10-16; auto-falls to `:3001`): cinematic landing + `/network` + `/agent/[id]` (profile, chat, live vault deposit panel + **agent-wallet corridor panel** `swap-demo-panel.tsx`: permanent agent wallet auto-signs swaps; MetaMask funds/withdraws) + `/docs`. 36/36 tests. Connect wallet = real injected wagmi; Dynamic passkey still missing.
-* **Envio indexer** (`indexer/`, HyperIndex v3): LIVE locally (OrbStack Docker; GraphQL `:8080`, admin secret `testing`) — 15 Agents / 1 Passport / attestations verified. Cloud deploy blocked on `ENVIO_API_TOKEN` only.
-* **MetaMask Snap** (`packages/snap/`): Transaction Insights — `onTransaction` → `GET /api/agents/lookup/:address` → identity/risk panel. 9 vitest; local Flask `:8081` only, public Snap ID TBD.
-* **Hackathon track (active)**: FinTechathon PBCSF/WeBank Shenzhen International, **Topic F — Agent Wallet**; deadline **2026-10-20 23:59 Beijing**. Canonical framing: `docs/09-agent-wallet-strategy.md` (**v2**; single-entry locked). Product vocabulary (Qualified Agents List, Wallet Worker Slot, dual registration) is VISION-level — code truth is 4 contracts + explorer + Snap; **no on-chain RGA gate yet** (score write-back = missing 50%).
-* **Missing / blockers**: manual browser+MetaMask dry run of agent-wallet corridor; user Dashboard, Dynamic passkey wallet, Envio cloud deploy. Repo: `main`, pnpm@12.4.2 monorepo.
+**What exists NOW (after the 2026-11-14 prune):**
+
+* **Contracts** (`contracts/`, Foundry): `AgentRegistry` (minimal ERC-8004) + `Reputation` (ERC-5192 soulbound attestations) only. Live on Monad testnet (chain 10143): Registry `0x62cd4e0C…a6341`, Reputation `0xb5A7CEB3…b72f8`; 15 seeded demo agents + 120 seeded attestations from the old demo still on-chain. `forge test` 53/53.
+* **API** (`apps/api`, Express 5, port 4000): identity read layer over the indexer — `GET /`, `GET /api/hello`, `GET /api/agents`, `GET /api/agents/:id`, `GET /api/agents/:id/attestations`. Raw counts only — **no score, no risk banding, no chat, no lookup** (deleted with the old concept). Envio GraphQL is the only data source (mock source deleted). 18/18 tests.
+* **Indexer** (`indexer/`, Envio HyperIndex v3): indexes Registry + Reputation → GraphQL `:8080` local. Passport entity/handler removed. 4/4 vitest.
+* **Web** (`apps/web`): **frozen — untouched in the pivot.** Landing style/vibe/name stay. Explorer pages, chat/swap/vault panels, and `/wallet` still reference removed API/types/config exports, so **web typecheck/build is expected to fail until the frontend rebuild**. Do not fix it piecemeal.
+* **Gone:** AgentPassport, AgentVault, DemoFXPool + mock tokens, MetaMask Snap (`packages/snap`), OpenRouter chat, Lumen score/risk, quarantined mock data, all FinTechathon hackathon artifacts (docs/08, docs/09, EXECUTION_EVIDENCE, SECURITY, TEST_CASE).
+
+**Missing / next (the arena build):** pool-graph model + registry of pools, arena contract(s) (intents, solution submission, winner settlement, fees), solver protocol/off-chain solver SDK, quote API, new swap UI. None of it exists yet — do not build on deleted code (git history has it if ever needed).
 
 ## Decisions (locked unless owner reopens)
 
-* [2026-09-30] Chain = Monad. First asset pair class: MON↔USDC-type intents.
-* [2026-09-30] Identity = ERC-8004 canonical + ERC-721 Passport visual + ERC-5192 locked history.
-* [2026-09-30] Wallet = Dynamic passkey-native (P256/WebAuthn, server-side, no seed).
-* [2026-09-30] Verification = MetaMask Snap (Transaction Insights). Discovery = web explorer.
-* [2026-09-30] Indexer = Envio HyperIndex on Monad → GraphQL.
+* [2026-09-30] Chain = Monad. Identity = ERC-8004 canonical-style registry + ERC-5192 soulbound history.
+* [2026-10-02] Contracts toolchain = Foundry. Network = Monad testnet first (live since 2026-10-10, chain 10143).
 * [2026-09-30] Docs are memory: docs/ + code in same commit, `TBD` > invented values.
-* [2026-10-02] First slice = contracts + API skeleton (not Envio/Snap/Explorer — downstream).
-* [2026-10-02] Network = Monad testnet first; mainnet later. Testnet live: chain 10143 (2026-10-10).
-* [2026-10-02] Contracts toolchain = Foundry.
-* [2026-10-16] Single FinTechathon entry: Topic F only; cross-border = flagship story inside it.
+* [2026-11-14] **Pivot 3:** product = multihop swap solver arena (Matcha-style aggregation, but an open competitive network of ERC-8004-identified solvers). Identity + soulbound track record survive; everything persona/score/demo-protocol related was pruned.
+* [2026-11-14] Frontend is frozen until its own rebuild session — backend work must not touch `apps/web`.
 
 ## TBD / blocked (owner to answer when ready)
 
-* Monad mainnet switch (testnet live since 2026-10-10).
-* 8004 impl: canonical vs minimal registry + interface freeze.
-* 5192 metadata schema + score/risk formula home (API-side now; v2 in-contract planned).
-* Envio cloud deploy (`ENVIO_API_TOKEN` owner) → `ENVIO_GRAPHQL_URL`. Snap: public ID/npm publish. Dynamic: env ID/flow.
-* FinTechathon: team registration + passport pages (deadline 2026-10-20); CNY corridor partner (HK-first) — post-submission.
+* Arena design: pool-graph source (own demo pools vs existing Monad DEXs), solution submission format, winner selection (best-quote vs auction), fee split, solver deposit/slashing (if any).
+* Whether attestation `ActionType` enum (`STAKE/UNSTAKE/HARVEST/SWAP`) gets reworked for arena outcomes (contract change → redeploy + reindex).
+* Monad mainnet switch. Envio cloud deploy (`ENVIO_API_TOKEN`).
 
 ## Log (newest on top; older entries were pruned)
 
-* `2026-11-07` — Tai frontend release on `frontend-Tai`: new landing, journey, assets and 97 frontend tests; existing application routes retained.
-  Next.js and matching ESLint configuration upgraded to 16.4.1; frontend production dependency audit has no advisories.
-  Checks and deployment limits: `apps/web/docs/frontend-release.md`; API/indexer/Snap advisories remain outside this frontend release.
-
-* `2026-10-20` — agent: **demo metric tests now print live numbers** — `DemoFX.t.sol` corridor logs (hop amounts, attestations, gate revert + unchanged-balance proof, re-enroll); `scoring.test.ts` +26th test "live metrics report" console-prints tier ladder (2/2→4 T0 … 475/25→95 T3), volume asymptote (n=100 ≡ n=1000 → 50), decay curve (failure sting 98→100 over 90d), double penalty (100→98). API 86/86 (was 85); TEST_CASE.md + README synced. Two commits: `4819cc5` (SECURITY.md), `127f7b5` (DemoFX logs).
-* `2026-10-20` — agent: **SECURITY.md rewritten to FinTechathon organizer format** — §1 Permission-Tier Implementation (Who/What/How-enforced/How-prove + RGA pipeline) + §2 Known Security Risks (risk table w/ Residual Risk column, severity per NIST SP 800-30, OWASP/ERC refs). No technical claims changed; same evidence mapping. Working tree was already clean (old ⚠ uncommitted flags stale); `/wallet` page exists+committed (MEMORY “user Dashboard missing” now stale). ⚠ uncommitted.
-* `2026-10-18` — agent: **codebase cleanup** — removed retired DemoSwap protocol (`DemoSwap.sol`, `MockUSDC.sol`, `DeployDemoSwap.s.sol`, `RunAgentSwaps.s.sol`, `DemoSwap.t.sol`); removed dead web container `src/containers/home` + `containers/index.ts` barrel; removed `docs/archive/` (video scripts, demo plan, first-slice plan, memory-log); deleted `docs/06-agent-sync.md`, `docs/07-first-slice-plan.md`, `docs/09-video-scripts.md`. Updated `docs/README.md` doc map and `contracts/README.md`. Forge 90/90, next build OK, web lint 0 / tests 36/36. ⚠ uncommitted.
-* `2026-10-18` — agent: **2-wallet architecture fixed + clean simple UI** — agent wallet is a separate permanent key (`localStorage`, never regenerated, funds never lost) that auto-signs all swaps (user never signs a trade); user MetaMask wallet funds it and withdraws anytime (agent auto-sends MON back, keeps gas reserve). Panel: no wallet → "Create agent wallet"; has wallet → shortened address + monadscan link, balance, Fund input, Withdraw whenever spendable MON exists (not gated by run minimum), "Release agent"/"Continue agent" when balance ≥ 0.6 MIN, live swap steps, done → asset summary. No pool credit/parking (funds live in agent wallet directly). Forge 90/90, ESLint 0, tsc 0, next build OK, web 36/36. ⚠ uncommitted.
-* `2026-10-18` — agent: **wallet made PERMANENT + resume/run-again** — pool v2 `0xC8929Caa…77cd` redeployed with re-enroll-after-exhaustion; panel: all wallet-destruction/reset UI removed, paused runs → "Continue agent" (resume from live chain state), exhausted → "Run again" (fresh mandate, same wallet). Web: lint 0 / 36/36 / SSR 200. ⚠ uncommitted.
-* `2026-10-18` — agent: **API env-loading race fixed** (commit `19af488`) — network page showed 3 mock agents; fixed with `apps/api/src/loadEnv.ts` imported FIRST in index.ts. Verified: 15 live agents, api 60/60.
-* `2026-10-10` — agent: **live-data mode landed** — `DATA_SOURCE=envio` switches API to Envio repo; 15 agents w/ URI-slug names, agent 1 profile with 62 attestations + txHashes, vault lookup resolves. api 46/46, web 34/34.
+* `2026-11-14` — agent: **agent-nav redesign** — docs renamed to semantic names (`architecture/contracts/api/indexer.md`; `frontend.md` frozen-historical, off the map); single routing table in AGENTS.md, docs/README.md now just points back; all code/comment references updated; stale `contracts/out/` artifacts cleared; seed JSON disclaimers de-referenced from deleted docs. Forge 53/53, api 18/18.
+* `2026-11-14` — agent: **pivot-3 prune executed** — contracts cut to Registry + Reputation (53/53); API cut to 3 agent GETs over Envio only (18/18; chat/scoring/risk/lookup/mock deleted); snap package deleted; indexer Passport removed (4/4); hackathon docs deleted; MEMORY/AGENTS/README/docs 01–03,05 rewritten for the solver-arena concept. Web frozen (known-broken typecheck until frontend rebuild).
+* `2026-11-07` — Tai frontend release on `frontend-Tai`: cinematic twelve-chapter landing, 97 frontend tests. (Pre-pivot; frontend now frozen.)
+* `2026-10-20` — FinTechathon submission era ends (Topic F agent-wallet; docs removed in the pivot — see git history).

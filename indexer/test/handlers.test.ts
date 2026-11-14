@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createTestIndexer, type Address } from "envio";
-import { isMint, toActionResult, toActionType, ZERO_ADDRESS } from "../src/mappings.js";
+import { toActionResult, toActionType } from "../src/mappings.js";
 
 // Handler registration side effects (required by createTestIndexer).
 import "../src/handlers/AgentRegistry.js";
-import "../src/handlers/AgentPassport.js";
 import "../src/handlers/Reputation.js";
 
 const OWNER: Address = "0x7EA634e331CF7b503df2e224f77a7C589462F1F2";
@@ -22,11 +21,6 @@ describe("mappings", () => {
     expect(toActionResult(0n)).toBe("SUCCESS");
     expect(toActionResult(1n)).toBe("FAIL");
     expect(() => toActionResult(2n)).toThrow();
-  });
-
-  it("detects mints only from the zero address", () => {
-    expect(isMint(ZERO_ADDRESS)).toBe(true);
-    expect(isMint(OWNER)).toBe(false);
   });
 });
 

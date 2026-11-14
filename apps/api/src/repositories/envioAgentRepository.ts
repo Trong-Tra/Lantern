@@ -1,53 +1,17 @@
 /**
- * Envio GraphQL-backed AgentRepository (docs/03, option B).
- * Reads the indexer Hasura endpoint (docs/05); risk is derived API-side with
- * the owner-approved v0 rule below. Selection happens in agentRepository.ts
- * via the DATA_SOURCE env switch.
+ * Envio GraphQL-backed AgentRepository (docs/api.md).
+ * Reads the indexer Hasura endpoint (docs/indexer.md) over the surviving identity
+ * stack: AgentRegistry (ERC-8004) + Reputation (ERC-5192 attestations).
+ * Summaries carry raw attestation counts only — no derived score or risk.
  */
-import type {
-  AgentProfile,
-  AgentSummary,
-  Attestation,
-  RiskLevel,
-  RiskReport,
-} from "@lantern/types";
-import type { AgentRepository, Page } from "./agentRepository.js";
-import { deriveScoreV0, deriveScoreV1, type ScoreEvent } from "./scoring.js";
-
-export { deriveScoreV0, deriveScoreV1 } from "./scoring.js";
+import type { AgentProfile, AgentSummary, Attestation } from "@lantern/types";
+import type { AgentRepository } from "./agentRepository.js";
 
 export const DEFAULT_ENVIO_GRAPHQL_URL = "http://localhost:8080/v1/graphql";
-/** Local Hasura default (docs/05). Empty on Envio Cloud (public endpoint). */
+/** Local Hasura default (docs/indexer.md). Empty on Envio Cloud (public endpoint). */
 export const DEFAULT_ENVIO_ADMIN_SECRET = "testing";
 
-// ---------------------------------------------------------------------------
-// v0 risk derivation (owner-approved 2026-10-10, docs/03) and v1 lumen
-// score derivation (owner-approved 2026-10-13, scoring.ts — recency-
-// weighted): transparent, deterministic, stated so the UI can explain it.
-// ---------------------------------------------------------------------------
-
-export function deriveRiskV0(
-  executions: number,
-  failures: number,
-): { risk: RiskLevel; reasons: string[] } {
-  if (executions < 10) {
-    return {
-      risk: "UNKNOWN",
-      reasons: [`${executions} executions on record — too early to judge (v0 rule)`],
-    };
-  }
-  const failRate = failures / executions;
-  const risk: RiskLevel = failRate < 0.05 ? "LOW" : failRate < 0.15 ? "MEDIUM" : "HIGH";
-  return {
-    risk,
-    reasons: [
-      `${failures} failures in ${executions} executions`,
-      `Failure rate ${(failRate * 100).toFixed(1)}% — v0 bands: <5% LOW, <15% MEDIUM, else HIGH`,
-    ],
-  };
-}
-
-/** Display name from the on-chain URI slug: demo://lantern/yield-keeper → "Yield Keeper". */
+/** Display name from the on-chain URI slug: demo://lantern/route-runner → "Route Runner". */
 export function nameFromUri(uri: string, agentId: number): string {
   const match = /\/([a-z0-9-]+)$/.exec(uri);
   if (!match) return `Agent #${agentId}`;
@@ -88,28 +52,22 @@ interface AgentRow {
   owner: string;
   uri: string;
   registeredAt: string;
-  passports: { tokenId: string }[];
 }
 
 interface Stats {
   executions: number;
   failures: number;
   updatedAt: number;
-  /** Timestamped outcomes — feed for the v1 recency-weighted score. */
-  events: ScoreEvent[];
 }
 
 function collectStats(attestations: { result: string; mintedAt: string }[]): Stats {
   let updatedAt = 0;
   let failures = 0;
-  const events: ScoreEvent[] = [];
   for (const att of attestations) {
     if (att.result === "FAIL") failures += 1;
-    const timestamp = Number(att.mintedAt);
-    events.push({ success: att.result !== "FAIL", timestamp });
-    updatedAt = Math.max(updatedAt, timestamp);
+    updatedAt = Math.max(updatedAt, Number(att.mintedAt));
   }
-  return { executions: attestations.length, failures, updatedAt, events };
+  return { executions: attestations.length, failures, updatedAt };
 }
 
 function toAttestation(row: AttestationRow): Attestation {
@@ -131,15 +89,7 @@ const AGENT_FIELDS = /* GraphQL */ `
   owner
   uri
   registeredAt
-  passports {
-    tokenId
-  }
 `;
-
-/** Demo persona blurbs for the seeded agents (rendered under the demo banner). */
-const DEMO_PERSONA_BIOS: Record<number, string> = {
-  1: "Yield Keeper moves your MON across CNY, USDC and SGD at the best rate it can find — one signature, fully autonomous, every swap attested to its passport.",
-};
 
 export function createEnvioAgentRepository(
   config: EnvioAgentRepositoryConfig = {},
@@ -184,14 +134,10 @@ export function createEnvioAgentRepository(
 
   function rowToSummary(row: AgentRow, stats: Stats): AgentSummary {
     const agentId = Number(row.id);
-    const { risk } = deriveRiskV0(stats.executions, stats.failures);
     return {
       agentId,
       name: nameFromUri(row.uri, agentId),
-      passportTokenId: row.passports[0] ? Number(row.passports[0].tokenId) : undefined,
       owner: row.owner,
-      risk,
-      score: deriveScoreV1(stats.events, Math.floor(Date.now() / 1000)),
       executions: stats.executions,
       failures: stats.failures,
       updatedAt: stats.updatedAt || Number(row.registeredAt),
@@ -246,8 +192,6 @@ export function createEnvioAgentRepository(
       return {
         ...summary,
         identityUri: row.uri,
-        passportUri: undefined, // fetched on demand when metadata URIs resolve (TBD)
-        bio: DEMO_PERSONA_BIOS[agentId] ?? undefined,
         attestations: row.attestations.map((att) => ({
           ...toAttestation(att),
           agentId,
@@ -287,48 +231,6 @@ export function createEnvioAgentRepository(
         items: data.Attestation.map((att) => ({ ...toAttestation(att), agentId })),
         total: data.Attestation_aggregate.aggregate.count,
       };
-    },
-
-    async getRisk(agentId) {
-      const data = await gql<{
-        Agent_by_pk: { id: string } | null;
-        Attestation: { result: string }[];
-      }>(
-        `query ($id: String!) {
-          Agent_by_pk(id: $id) { id }
-          Attestation(where: {agent_id: {_eq: $id}}) { result }
-        }`,
-        { id: String(agentId) },
-      );
-      if (!data.Agent_by_pk) return null;
-      const failures = data.Attestation.filter((att) => att.result === "FAIL").length;
-      const { risk, reasons } = deriveRiskV0(data.Attestation.length, failures);
-      const report: RiskReport = { agentId, risk, reasons };
-      return report;
-    },
-
-    async findByAddress(address) {
-      // Demo vault mapping (same rule as the mock source): the deployed
-      // AgentVault serves the reference agent. The indexer-driven source
-      // could read vault.agentId on-chain later (docs/03 TODO).
-      const vaultAddress = process.env.AGENT_VAULT_ADDRESS?.toLowerCase();
-      if (vaultAddress && address === vaultAddress) {
-        const vaultAgentId = Number(process.env.AGENT_VAULT_AGENT_ID ?? 1);
-        const agent = await this.getAgent(vaultAgentId);
-        if (agent) {
-          const { identityUri: _i, passportUri: _p, attestations: _a, bio: _b, ...summary } = agent;
-          return summary;
-        }
-      }
-
-      const data = await gql<{ Agent: AgentRow[] }>(
-        `query { Agent(order_by: {id: asc}) { ${AGENT_FIELDS} } }`,
-        {},
-      );
-      const row = data.Agent.find((agent) => agent.owner.toLowerCase() === address);
-      if (!row) return null;
-      const statsByAgent = await fetchAllAttestationStats();
-      return rowToSummary(row, collectStats(statsByAgent.get(row.id) ?? []));
     },
   };
 }

@@ -7,7 +7,7 @@ import {AgentRegistry} from "../src/AgentRegistry.sol";
 /// @title SeedAgents
 /// @notice Registers the MVP set of ERC-8004 identities from script/seed/agents.json
 ///         into an already-deployed AgentRegistry. MVP: a single operator wallet
-///         registers every identity (docs/02).
+///         registers every identity (docs/contracts.md).
 ///
 /// Usage (from contracts/, after Deploy — env from repo-root .env):
 ///   forge script script/SeedAgents.s.sol:SeedAgents --rpc-url $MONAD_TESTNET_RPC_URL --broadcast

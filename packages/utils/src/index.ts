@@ -11,16 +11,6 @@ export function formatAddress(address: string, digits = 4): string {
 }
 
 /**
- * Formats a numeric reputation score to a readable string with fallback.
- */
-export function formatScore(score?: number, fallback = "N/A"): string {
-  if (typeof score !== "number" || Number.isNaN(score)) {
-    return fallback;
-  }
-  return score.toFixed(1);
-}
-
-/**
  * Promisified delay helper.
  */
 export function sleep(ms: number): Promise<void> {

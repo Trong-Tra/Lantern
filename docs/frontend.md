@@ -1,5 +1,7 @@
 # 04 — Frontend
 
+> **FROZEN (2026-11-14 pivot):** this doc describes the pre-pivot frontend, which is left untouched in `apps/web` but no longer matches the backend (it references removed APIs/types). Historical until the frontend rebuild — do not build on it.
+
 > **Frontend layer detail. Current state: `MEMORY.md` §Current state (wins on conflict).**
 
 > Owner: frontend. Source of truth for landing: `apps/web/design.md` + `apps/web/docs/cinematic-experience.md`.

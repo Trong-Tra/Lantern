@@ -1,8 +1,10 @@
 # Lantern
 
-Passport-native agent identity + reputation on Monad (ERC-8004 + ERC-721 Passport + ERC-5192 soulbound). Explorer + MetaMask Snap verification.
+A **competitive multihop swap routing arena** on Monad.
 
-**FinTechathon Track F — Agent Wallet.** A user signs once, their agent wallet trades autonomously, every action is attested to a soulbound passport, computed into a Lumen Score, and enforced through score-gated permissions. The user can withdraw their money anytime.
+Every aggregator searches the same kind of pool graph (assets = nodes, pools = edges) — but no single routing algorithm wins always, and the best **split allocation** across routes depends on swap size, graph topology, and pool state at that moment. Lantern builds the graph and lets a network of solver agents — each with a verifiable **ERC-8004 identity** — compete on every swap intent. The best solution wins the fee, and every outcome is written to a soulbound **ERC-5192** track record: reputation is earned by winning, never claimed.
+
+> Status: mid-rebuild (pivot 2026-11-14). The identity stack, indexer, and API read layer are live; the arena contracts, solver protocol, and new swap UI are not built yet. The pre-pivot frontend is frozen in place (see `MEMORY.md`).
 
 ## Monorepo structure
 
@@ -12,41 +14,32 @@ Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 ├── AGENTS.md                     # cold-start protocol for AI agents (read first)
 ├── MEMORY.md                     # living log — current state + decisions + TBD
 ├── GETTING_STARTED.md            # setup, run, test commands for every workspace
-├── TEST_CASE.md                  # all test files and counts
 ├── package.json                  # root workspace scripts
 ├── pnpm-workspace.yaml           # workspaces: apps/*, packages/*, indexer
 ├── .env.example                  # root env template (copy to .env, never commit .env)
-├── contracts/                    # Foundry (Solidity) — identity + agent-wallet contracts
-│   ├── src/                      # AgentRegistry, AgentPassport, Reputation, AgentVault, DemoFXPool, corridor mocks
-│   ├── test/                     # Forge tests (90 tests)
-│   ├── script/                   # deployment + seeder scripts
+├── contracts/                    # Foundry (Solidity) — identity stack
+│   ├── src/                      # AgentRegistry (ERC-8004), Reputation (ERC-5192), utils/
+│   ├── test/                     # Forge tests (53 tests)
+│   ├── script/                   # Deploy + SeedAgents + SeedAttestations
 │   └── README.md
 ├── apps/api/                     # Express 5 backend (port 4000)
-│   ├── src/                      # index.ts, app.ts, routes/, repositories/, services/
-│   └── package.json
-├── apps/web/                     # Next.js 16 (dev :3000, falls back to :3001)
-│   ├── src/app/                  # App Router (/agent/[id], /wallet, /network, /docs)
-│   ├── src/components/           # molecules: swap-demo-panel, vault-panel, agent-chat-panel
-│   └── package.json
+│   └── src/                      # app.ts, routes/, repositories/ (Envio-backed)
+├── apps/web/                     # Next.js 16 — FROZEN pre-pivot (do not touch; rebuild pending)
 ├── packages/                     # shared workspace libs
-│   ├── config/                   # endpoints, paths, createApiResponse envelope, explorer URLs
-│   ├── types/                    # shared TS types (AgentSummary, Attestation, ScoreEvent)
-│   ├── utils/                    # shared utilities
-│   └── snap/                     # MetaMask Snap (Transaction Insights)
+│   ├── config/                   # endpoint paths, explorer URLs
+│   ├── types/                    # shared TS types (AgentSummary, Attestation)
+│   └── utils/                    # envelope + formatting helpers
 └── indexer/                      # Envio HyperIndex (local Hasura GraphQL :8080)
 ```
 
 ## Deployed contracts — Monad testnet (chain 10143)
 
-| Contract | Address | MonadScan |
-|----------|---------|-----------|
-| AgentRegistry (ERC-8004) | `0x62cd4e0C…a6341` | [MonadScan](https://testnet.monadscan.com/address/0x62cd4e0Ca6341) |
-| AgentPassport (ERC-721) | `0x5Df5E5FD…40B8` | [MonadScan](https://testnet.monadscan.com/address/0x5Df5E5FD40B8) |
-| Reputation (ERC-5192) | `0xb5A7CEB3…b72f8` | [MonadScan](https://testnet.monadscan.com/address/0xb5A7CEB3b72f8) |
-| AgentVault (serves agent 1) | `0xe09b3836…26328` | [MonadScan](https://testnet.monadscan.com/address/0xe09b383626328) |
-| DemoFXPool v2 (agent-wallet corridor) | `0xC8929Caa…77cd` | [MonadScan](https://testnet.monadscan.com/address/0xC8929Caa77cd) |
+| Contract | Address |
+|----------|---------|
+| AgentRegistry (ERC-8004) | `0x62cd4e0C5B0D4587861a21710ed15ba1823a6341` |
+| Reputation (ERC-5192) | `0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8` |
 
-Deployer / owner: `0x7EA634e3…2F1F2`
+Deployer: `0x7EA634e331CF7b503df2e224f77a7C589462F1F2`. (Old-concept deployments — Passport, Vault, DemoFX — still exist on-chain but are unsupported; code removed 2026-11-14.)
 
 ## Quick start
 
@@ -54,68 +47,35 @@ Deployer / owner: `0x7EA634e3…2F1F2`
 # 1. Install
 pnpm install
 
-# 2. Env (copy templates, never commit real values)
+# 2. Env (copy template, never commit real values)
 cp .env.example .env
-cp apps/web/.env.example apps/web/.env
 
 # 3. Fill .env at minimum:
 #    MONAD_TESTNET_RPC_URL          # Monad testnet RPC
-#    NEXT_PUBLIC_MONAD_RPC_URL      # browser RPC (apps/web/.env)
-#    AGENT_REGISTRY_ADDRESS         # from contracts deployment (see table above)
-#    AGENT_PASSPORT_ADDRESS
+#    AGENT_REGISTRY_ADDRESS         # from the table above
 #    REPUTATION_ADDRESS
-#    DEMO_FX_POOL_ADDRESS
-#    AGENT_VAULT_ADDRESS
-#    DATA_SOURCE=envio              # optional; live indexer vs mock
+#    ENVIO_GRAPHQL_URL              # optional; defaults to local :8080
 
 # 4. Run
-pnpm dev:web   # Next.js (:3000, fallback :3001)
 pnpm dev:api   # Express (:4000)
 ```
 
 ## Workspace commands
 
-| Workspace | Install | Dev | Build | Test | Lint |
-|-----------|---------|-----|-------|------|------|
-| Root | `pnpm install` | `pnpm dev:web` + `pnpm dev:api` | `pnpm build:web` + `pnpm build:api` | — | `pnpm typecheck` |
-| contracts | Foundry | — | `forge build` | `forge test` | — |
-| apps/api | pnpm | `pnpm dev` | `pnpm build` | `pnpm test` | — |
-| apps/web | pnpm | `pnpm dev` | `pnpm build` | `pnpm test` | `pnpm lint` |
-| packages/snap | pnpm | `pnpm serve` | — | `pnpm test` | — |
-| indexer | pnpm | `pnpm dev` | — | — | — |
+| Workspace | Install | Dev | Build | Test |
+|-----------|---------|-------|-------|------|
+| contracts | Foundry | — | `forge build` | `forge test` |
+| apps/api | pnpm | `pnpm dev` | `pnpm build` | `pnpm test` |
+| indexer | pnpm | `pnpm dev` (Docker) | — | `pnpm test` |
+| apps/web | pnpm | frozen | — | — |
 
-Test counts (latest): contracts 90/90, API 86/86, web 36/36, snap 9/9.
-
-## Key env vars
-
-| Var | Where | Purpose |
-|-----|-------|---------|
-| `MONAD_TESTNET_RPC_URL` | root `.env` | Monad testnet RPC |
-| `MONAD_PRIVATE_KEY` | root `.env` | deployer key |
-| `NEXT_PUBLIC_MONAD_RPC_URL` | `apps/web/.env` | browser RPC |
-| `NEXT_PUBLIC_DEMO_FX_POOL_ADDRESS` | `apps/web/.env` | DemoFXPool address |
-| `AGENT_REGISTRY_ADDRESS` / `AGENT_PASSPORT_ADDRESS` / `REPUTATION_ADDRESS` | root `.env` | identity contracts |
-| `AGENT_VAULT_ADDRESS` | root `.env` + `apps/web/.env` | AgentVault deposit/withdraw |
-| `DATA_SOURCE` | root `.env` + `apps/web/.env` | `envio` = live indexer, else mock |
-| `ENVIO_GRAPHQL_URL` | root `.env` | Hasura GraphQL |
-| `OPENAI_API_KEY` / `CHAT_MODEL` / `CHAT_MODEL_FALLBACKS` | root `.env` | OpenRouter chat |
-
-## Architecture notes
-
-**2-wallet agent wallet** (`swap-demo-panel.tsx`):
-- **Agent wallet** — separate permanent key (`localStorage`, never regenerated → funds never lost). Auto-signs all swaps via `viem` `createWalletClient`; MetaMask is **never** prompted per trade.
-- **User wallet (MetaMask)** — funds the agent wallet (send MON to agent address) and can **withdraw** anytime (agent auto-sends MON back, keeping a gas reserve).
-- Funds live in the agent wallet directly; `DemoFXPool.sol` is swap-only (no pool credit/parking).
-
-**Lumen Score v1** (`apps/api/src/repositories/scoring.ts`):
-- `score = 100 × accuracy × trackRecord`, accuracy recency-weighted (30-day half-life), trackRecord = min(n, 50)/50.
-- Computed off-chain on read (lazy, zero gas until a new attestation lands). Gas proof: lazy 153,092 gas vs eager 2,720,429 (17.8×).
+Test counts (latest): contracts 53/53, API 18/18, indexer 4/4.
 
 ## Cold-start protocol (for agents / new contributors)
 
 Read, in order:
 1. Root `AGENTS.md` — hard rules + conventions
 2. `MEMORY.md` §Current state — what exists NOW (wins over docs on conflict)
-3. **One** layer doc from `docs/00`–`05` or `08`–`09`, depending on your task
+3. **One** layer doc for your task — map in `AGENTS.md`
 
 Never invent contract addresses, URLs, scores, or tx hashes — mark `TBD` instead. Docs + code change in the same commit.

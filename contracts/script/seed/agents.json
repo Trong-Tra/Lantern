@@ -1,5 +1,5 @@
 {
-  "disclaimer": "FICTIONAL DEMO IDENTITIES — quarantined per docs/06. URIs use the non-resolvable demo:// scheme; replace with real IPFS metadata before mainnet. Registered by a single operator wallet (MVP simplification, docs/02).",
+  "disclaimer": "FICTIONAL DEMO IDENTITIES. URIs use the non-resolvable demo:// scheme; replace with real metadata before mainnet. Registered by a single operator wallet (MVP simplification, docs/contracts.md).",
   "count": 15,
   "agents": [
     {

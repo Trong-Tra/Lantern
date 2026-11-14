@@ -3,7 +3,7 @@
  *
  * ESM evaluates imports in declaration order, and repositories read
  * process.env at module scope (`export const agentRepository =
- * createActiveRepository()`, docs/03). dotenv.config() calls in index.ts's
+ * createActiveRepository()`, docs/api.md). dotenv.config() calls in index.ts's
  * body run AFTER that evaluation, so a bare environment (no exported vars)
  * silently fell back to the mock source. Loading here guarantees the env
  * exists before any repository module evaluates. Tests import app.js

@@ -1,30 +1,107 @@
 /**
- * API integration tests: spins the app on port 0, fetches, asserts envelopes.
- * Run: pnpm --filter @lantern/api test
+ * API integration tests: spins the app on port 0 with a fake repository,
+ * fetches, asserts envelopes. Run: pnpm --filter @lantern/api test
  */
 import assert from "node:assert/strict";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { after, before, describe, it } from "node:test";
-import type {
-  AgentProfile,
-  AgentSummary,
-  Attestation,
-  ChatMessage,
-  PaginatedResponse,
-  RiskReport,
-} from "@lantern/types";
+import type { AgentProfile, AgentSummary, Attestation, PaginatedResponse } from "@lantern/types";
 import { createApp, type AppOptions } from "./app.js";
-import {
-  createOpenRouterChatService,
-  type ChatFetcher,
-} from "./services/openRouterChat.js";
+import type { AgentRepository } from "./repositories/agentRepository.js";
+
+const SUMMARIES: AgentSummary[] = [
+  {
+    agentId: 1,
+    name: "Route Runner",
+    owner: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    executions: 128,
+    failures: 4,
+    updatedAt: 1_790_856_000,
+  },
+  {
+    agentId: 2,
+    name: "Hop Surgeon",
+    owner: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    executions: 57,
+    failures: 12,
+    updatedAt: 1_790_812_800,
+  },
+  {
+    agentId: 3,
+    name: "Fresh Solver",
+    owner: "0xcccccccccccccccccccccccccccccccccccccccc",
+    executions: 0,
+    failures: 0,
+    updatedAt: 1_790_769_600,
+  },
+];
+
+const ATTESTATIONS: Attestation[] = [
+  {
+    tokenId: 3,
+    agentId: 1,
+    actionType: "SWAP",
+    result: "SUCCESS",
+    protocol: "demo://protocols/lantern-arena",
+    amount: "12500000000000000000",
+    uri: "demo://attestations/a1-3",
+    timestamp: 1_790_856_000,
+  },
+  {
+    tokenId: 2,
+    agentId: 1,
+    actionType: "SWAP",
+    result: "FAIL",
+    protocol: "demo://protocols/lantern-arena",
+    amount: "4200000000000000000",
+    uri: "demo://attestations/a1-2",
+    timestamp: 1_790_812_800,
+  },
+  {
+    tokenId: 1,
+    agentId: 1,
+    actionType: "SWAP",
+    result: "SUCCESS",
+    protocol: "demo://protocols/lantern-arena",
+    amount: "100000000000000000000",
+    uri: "demo://attestations/a1-1",
+    timestamp: 1_790_769_600,
+  },
+];
+
+/** In-memory fake — deterministic, zero network. */
+function createFakeRepository(): AgentRepository {
+  return {
+    async listAgents(page, limit) {
+      const start = (page - 1) * limit;
+      return { items: SUMMARIES.slice(start, start + limit), total: SUMMARIES.length };
+    },
+    async getAgent(agentId) {
+      const summary = SUMMARIES.find((s) => s.agentId === agentId);
+      if (!summary) return null;
+      const profile: AgentProfile = {
+        ...summary,
+        identityUri: `demo://lantern/agent-${agentId}`,
+        attestations: ATTESTATIONS.filter((a) => a.agentId === agentId),
+      };
+      return profile;
+    },
+    async getAttestations(agentId, page, limit) {
+      const summary = SUMMARIES.find((s) => s.agentId === agentId);
+      if (!summary) return null;
+      const all = ATTESTATIONS.filter((a) => a.agentId === agentId);
+      const start = (page - 1) * limit;
+      return { items: all.slice(start, start + limit), total: all.length };
+    },
+  };
+}
 
 async function startApp(options: AppOptions = {}): Promise<{
   base: string;
   close: () => void;
 }> {
-  const server: Server = createApp(options).listen(0);
+  const server: Server = createApp({ repository: createFakeRepository(), ...options }).listen(0);
   await new Promise<void>((resolve) => server.once("listening", resolve));
   const { port } = server.address() as AddressInfo;
   return { base: `http://127.0.0.1:${port}`, close: () => server.close() };
@@ -78,14 +155,6 @@ describe("api", () => {
       assert.ok(typeof summary.name === "string");
       assert.equal("identityUri" in summary, false);
       assert.equal("attestations" in summary, false);
-      // v0 score = 100 × success_rate × min(execs, 50)/50 (scoring.ts).
-      // Mock data: #1 124/128 → 97, #2 45/57 → 79, #3 no executions → N/A.
-      const expectedScores: Record<number, number | undefined> = {
-        1: 97,
-        2: 79,
-        3: undefined,
-      };
-      assert.equal(summary.score, expectedScores[summary.agentId]);
     }
   });
 
@@ -109,21 +178,11 @@ describe("api", () => {
 
     assert.equal(body.success, true);
     assert.equal(body.data.agentId, 1);
-    assert.equal(body.data.identityUri, "ipfs://mock-agent-1");
-    assert.equal(body.data.passportTokenId, 1);
+    assert.equal(body.data.identityUri, "demo://lantern/agent-1");
+    assert.equal(body.data.executions, 128);
+    assert.equal(body.data.failures, 4);
     assert.ok(Array.isArray(body.data.attestations));
     assert.ok(body.data.attestations.length > 0);
-  });
-
-  it("GET /api/agents/:id works for an agent without a passport", async () => {
-    const res = await fetch(`${base}/api/agents/3`);
-    assert.equal(res.status, 200);
-    const body = (await res.json()) as { success: boolean; data: AgentProfile };
-
-    assert.equal(body.data.agentId, 3);
-    assert.equal(body.data.passportTokenId, undefined);
-    assert.equal(body.data.passportUri, undefined);
-    assert.equal(body.data.risk, "UNKNOWN");
   });
 
   it("GET /api/agents/:id → 404 for unknown agent", async () => {
@@ -188,207 +247,11 @@ describe("api", () => {
     assert.equal(body.code, "NOT_FOUND");
   });
 
-  it("GET /api/agents/:id/risk returns a risk report", async () => {
-    const res = await fetch(`${base}/api/agents/1/risk`);
-    assert.equal(res.status, 200);
-    const body = (await res.json()) as { success: boolean; data: RiskReport };
-
-    assert.equal(body.success, true);
-    assert.equal(body.data.agentId, 1);
-    assert.equal(body.data.risk, "LOW");
-    assert.ok(Array.isArray(body.data.reasons));
-    assert.ok(body.data.reasons.length > 0);
-    // Score formula TBD — never invented by the API.
-    assert.equal(body.data.score, undefined);
-  });
-
-  it("GET /api/agents/:id/risk → 404 for unknown agent", async () => {
-    const res = await fetch(`${base}/api/agents/999/risk`);
-    assert.equal(res.status, 404);
-    const body = await res.json();
-    assert.equal(body.success, false);
-    assert.equal(body.code, "NOT_FOUND");
-  });
-
   it("unknown route → 404 envelope", async () => {
     const res = await fetch(`${base}/api/definitely-not-a-route`);
     assert.equal(res.status, 404);
     const body = await res.json();
     assert.equal(body.success, false);
     assert.equal(body.code, "NOT_FOUND");
-  });
-});
-
-describe("lookup endpoint", () => {
-  let base: string;
-  let close: () => void;
-
-  before(async () => {
-    ({ base, close } = await startApp());
-  });
-
-  after(() => {
-    delete process.env.AGENT_VAULT_ADDRESS;
-    delete process.env.AGENT_VAULT_AGENT_ID;
-    close();
-  });
-
-  it("GET /api/agents/lookup/:address matches an agent owner (case-insensitive)", async () => {
-    const res = await fetch(`${base}/api/agents/lookup/0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`);
-    assert.equal(res.status, 200);
-    const body = await res.json();
-    assert.equal(body.success, true);
-    assert.equal(body.data.agentId, 1);
-    assert.equal(body.data.owner, "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-  });
-
-  it("GET /api/agents/lookup/:address returns null for an unknown address", async () => {
-    const res = await fetch(`${base}/api/agents/lookup/0x1111111111111111111111111111111111111111`);
-    assert.equal(res.status, 200);
-    const body = await res.json();
-    assert.equal(body.success, true);
-    assert.equal(body.data, null);
-  });
-
-  it("GET /api/agents/lookup/:address → 400 for malformed address", async () => {
-    const res = await fetch(`${base}/api/agents/lookup/not-an-address`);
-    assert.equal(res.status, 400);
-    const body = await res.json();
-    assert.equal(body.success, false);
-    assert.equal(body.code, "INVALID_ADDRESS");
-  });
-
-  it("GET /api/agents/lookup/:address resolves the demo vault via env mapping", async () => {
-    process.env.AGENT_VAULT_ADDRESS = "0x9999999999999999999999999999999999999999";
-    const res = await fetch(`${base}/api/agents/lookup/0x9999999999999999999999999999999999999999`);
-    assert.equal(res.status, 200);
-    const body = await res.json();
-    assert.equal(body.success, true);
-    assert.equal(body.data.agentId, 1);
-
-    process.env.AGENT_VAULT_AGENT_ID = "2";
-    const res2 = await fetch(`${base}/api/agents/lookup/0x9999999999999999999999999999999999999999`);
-    const body2 = await res2.json();
-    assert.equal(body2.data.agentId, 2);
-    delete process.env.AGENT_VAULT_AGENT_ID;
-  });
-});
-
-describe("chat endpoint", () => {
-  it("POST /api/agents/:id/chat returns the persona reply via the injected service", async () => {
-    const seen: { agentId?: number; message?: string; history?: ChatMessage[] } = {};
-    const { base, close } = await startApp({
-      chatService: {
-        async complete(profile, message, history) {
-          seen.agentId = profile.agentId;
-          seen.message = message;
-          seen.history = history;
-          return "gm, keeper here";
-        },
-      },
-    });
-
-    try {
-      const res = await fetch(`${base}/api/agents/1/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: "  how is your streak?  ",
-          history: [{ role: "user", content: "hi" }, { role: "assistant", content: "hey" }],
-        }),
-      });
-      assert.equal(res.status, 200);
-      const body = (await res.json()) as { success: boolean; data: { reply: string } };
-      assert.equal(body.success, true);
-      assert.equal(body.data.reply, "gm, keeper here");
-
-      assert.equal(seen.agentId, 1);
-      assert.equal(seen.message, "how is your streak?");
-      assert.equal(seen.history?.length, 2);
-    } finally {
-      close();
-    }
-  });
-
-  it("POST /api/agents/:id/chat → 400 for malformed id / empty / oversized message", async () => {
-    const { base, close } = await startApp({ chatService: { complete: async () => "never" } });
-    const post = (path: string, payload: unknown) =>
-      fetch(`${base}${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-    try {
-      const badId = await post("/api/agents/abc/chat", { message: "hi" });
-      assert.equal(badId.status, 400);
-      assert.equal(((await badId.json()) as { code: string }).code, "INVALID_AGENT_ID");
-
-      const empty = await post("/api/agents/1/chat", { message: "   " });
-      assert.equal(empty.status, 400);
-      assert.equal(((await empty.json()) as { code: string }).code, "INVALID_MESSAGE");
-
-      const oversized = await post("/api/agents/1/chat", { message: "x".repeat(2001) });
-      assert.equal(oversized.status, 400);
-      assert.equal(((await oversized.json()) as { code: string }).code, "INVALID_MESSAGE");
-    } finally {
-      close();
-    }
-  });
-
-  it("POST /api/agents/:id/chat → 404 for unknown agent", async () => {
-    const { base, close } = await startApp({ chatService: { complete: async () => "never" } });
-    try {
-      const res = await fetch(`${base}/api/agents/999/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: "hi" }),
-      });
-      assert.equal(res.status, 404);
-      assert.equal(((await res.json()) as { code: string }).code, "NOT_FOUND");
-    } finally {
-      close();
-    }
-  });
-
-  it("POST /api/agents/:id/chat → 503 when OpenRouter is not configured", async () => {
-    const { base, close } = await startApp({
-      chatService: createOpenRouterChatService({ apiKey: "" }),
-    });
-    try {
-      const res = await fetch(`${base}/api/agents/1/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: "hi" }),
-      });
-      assert.equal(res.status, 503);
-      const body = (await res.json()) as { code: string; message: string };
-      assert.equal(body.code, "OPENROUTER_NOT_CONFIGURED");
-      assert.match(body.message, /OPENROUTER_API_KEY/);
-    } finally {
-      close();
-    }
-  });
-
-  it("POST /api/agents/:id/chat → 502 when the provider fails", async () => {
-    const failingFetcher: ChatFetcher = async () => ({
-      ok: false,
-      status: 429,
-      json: async () => ({}),
-    });
-    const { base, close } = await startApp({
-      chatService: createOpenRouterChatService({ apiKey: "test-key", fetcher: failingFetcher }),
-    });
-    try {
-      const res = await fetch(`${base}/api/agents/1/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: "hi" }),
-      });
-      assert.equal(res.status, 502);
-      assert.equal(((await res.json()) as { code: string }).code, "CHAT_UPSTREAM_ERROR");
-    } finally {
-      close();
-    }
   });
 });
