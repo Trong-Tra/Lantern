@@ -3,9 +3,9 @@
 > **Cold start: read THIS file + `MEMORY.md` §Current state + the ONE doc for your task. Budget ~3k tokens.**
 > Rule: **MEMORY §Current state is the only source of truth for what exists NOW.** Docs describe target design. On conflict, MEMORY wins — fix the doc in the same commit.
 
-* Product: **competitive multihop swap routing arena on Monad.** We build/serve the pool graph (assets = nodes, pools = edges); off-chain solver agents with ERC-8004 identities compete per swap intent — routes **plus split allocations** — and the winning solution earns the fee. Track record = soulbound ERC-5192 attestations of real outcomes (earned, never claimed).
+* Product: **Lantern Graph + Market on Avalanche** (Fuji testnet first). Lantern Graph = the x402-paid live pool-graph feed (assets = nodes, pools = edges) that solver agents buy instead of running their own indexing. Lantern Market = the streaming-quote market: solver agents (ERC-8004 identities) answer each swap intent with signed route+split-allocation quotes that arrive one by one; the user picks one, only the picked quote settles on-chain, the fee goes to its solver. Track record = soulbound ERC-5192 attestations of real settlements (earned, never claimed).
 * Stack: pnpm monorepo — `apps/api` (Express 5), `apps/web` (Next.js 16, **FROZEN — do not touch**), `packages/{config,types,utils}`, `contracts/` (Foundry: AgentRegistry + Reputation only), `indexer/` (Envio).
-* The arena itself (pool graph, arena contracts, solver protocol, quote API) is **not built yet** — see MEMORY §TBD. Old-concept code (agent personas, chat, scores, DemoFX corridor, vault, passport, Snap) was deleted 2026-11-14; git history has it if truly needed.
+* The market itself (pool graph, market contracts, quote protocol, Go service) is **not built yet** — build plan in `docs/market.md`, open parameters in MEMORY §TBD. Old-concept code (agent personas, chat, scores, DemoFX corridor, vault, passport, Snap) was deleted 2026-11-14; git history has it if truly needed.
 
 ## Doc map (read ONE, on demand)
 
@@ -13,6 +13,7 @@
 | --- | --- |
 | Any task | `MEMORY.md` §Current state |
 | Architecture / repo layout | `docs/architecture.md` |
+| **Graph + Market build plan (Go backend + contracts)** | `docs/market.md` |
 | Contracts | `docs/contracts.md` |
 | API / backend | `docs/api.md` |
 | Envio indexer | `docs/indexer.md` |

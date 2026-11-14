@@ -2,7 +2,7 @@
 
 Source navigation, setup, and how to run every part of the monorepo.
 
-> **Pivot state (2026-11-14):** the backend (contracts, API, indexer, packages) is pruned to the identity stack and ready for the arena build. `apps/web` is **frozen** — it still references removed APIs/types and is not expected to typecheck or fully work until the frontend rebuild. Commands for it are omitted on purpose.
+> **Pivot state (2026-11-14):** the backend (contracts, API, indexer, packages) is pruned to the identity stack and ready for the market build (`docs/market.md`). `apps/web` is **frozen** — it still references removed APIs/types and is not expected to typecheck or fully work until the frontend rebuild. Commands for it are omitted on purpose.
 
 ## Repo layout
 

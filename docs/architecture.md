@@ -4,7 +4,7 @@
 
 ## Concept (pivot 3, 2026-11-14)
 
-Lantern is a **competitive multihop swap routing arena** — Matcha-style aggregation, but the solver set is an open network of on-chain-identified agents instead of a closed/market-maker set.
+Lantern is **Lantern Graph + Market** — Matcha-style aggregation, but the solver set is an open network of on-chain-identified agents buying the maintained graph and streaming quotes to users, instead of a closed/market-maker set. The user picks the quote; the protocol never crowns an algorithm.
 
 The insight: every aggregator builds a graph of pools (assets = nodes, pools = edges) and searches it (BFS/DFS/Dijkstra variants). No single search wins always — the best answer depends on swap size, graph topology, and pool state at that moment, and on how the total amount is **sliced across routes** (a 3%-slice solver answers fast; a 1.2%-slice solver prices better but slower). So we don't crown one algorithm: we build the graph and let solvers **compete** on it. Users pick the best solution; winners earn the fee; outcomes are attested on-chain, so standing is earned from real wins.
 
@@ -23,16 +23,16 @@ The insight: every aggregator builds a graph of pools (assets = nodes, pools = e
 └─────────────────────────────┬───────────────────────────────┘
                               │ GraphQL (read)
 ┌─────────────────────────────▼───────────────────────────────┐
-│ INDEXING (Envio HyperIndex, Monad testnet 10143)            │
+│ INDEXING (Envio HyperIndex, Avalanche Fuji 43113)           │
 │ Indexes: AgentRegistered/Updated, AttestationMinted         │
-│ TBD: pool/swap events once arena contracts exist            │
+│ TBD: pool/trade events once market contracts exist          │
 └─────────────────────────────┬───────────────────────────────┘
                               │ events
 ┌─────────────────────────────▼───────────────────────────────┐
-│ ON-CHAIN (Monad, Foundry)                                   │
+│ ON-CHAIN (Avalanche, Foundry)                               │
 │ TODAY: AgentRegistry (ERC-8004) + Reputation (ERC-5192)     │
-│ TBD: pool graph + arena (intents, solutions, settlement,    │
-│      fees) contracts — design open, see MEMORY §TBD         │
+│ TBD: demo pools + LanternMarket (signed-quote settlement,   │
+│      fees) — design in docs/market.md, params in MEMORY TBD │
 └─────────────────────────────▲───────────────────────────────┘
                               │ off-chain solvers
 ┌─────────────────────────────┴───────────────────────────────┐
@@ -46,7 +46,7 @@ The insight: every aggregator builds a graph of pools (assets = nodes, pools = e
 
 | Layer | Repo location | Status |
 | --- | --- | --- |
-| Identity contracts | `contracts/src/{AgentRegistry,Reputation}.sol` + `src/utils/` (in-house ERC721/Ownable), tests in `test/`, deploy/seed in `script/` | **Live on testnet** (chain 10143); `forge test` 53/53 |
+| Identity contracts | `contracts/src/{AgentRegistry,Reputation}.sol` + `src/utils/` (in-house ERC721/Ownable), tests in `test/`, deploy/seed in `script/` | Live on Monad testnet (legacy); Fuji redeploy in Phase 0; `forge test` 53/53 |
 | Indexing | `indexer/` — Envio HyperIndex v3: `config.yaml` + `schema.graphql` + `src/handlers/` + `src/effects.ts` + vitest | Local (Docker; GraphQL :8080); cloud deploy pending `ENVIO_API_TOKEN` |
 | API | `apps/api/src/` — `app.ts` (factory, injectable repository), `routes/agents.ts`, `repositories/{agentRepository,envioAgentRepository}.ts`, `loadEnv.ts` | Envio-backed only; 18 tests |
 | Shared libs | `packages/config` (endpoint paths, explorer URLs), `packages/types` (agent/attestation types), `packages/utils` (envelope, formatting) | Done, extend as needed |
@@ -54,17 +54,17 @@ The insight: every aggregator builds a graph of pools (assets = nodes, pools = e
 
 ## Key decisions (locked unless revisited)
 
-* Chain: Monad — **testnet first** (owner 2026-10-02). Live: chain ID 10143 via `MONAD_TESTNET_RPC_URL`.
+* Chain: **Avalanche — Fuji testnet first (chain 43113), decided 2026-11-14** (supersedes Monad). Identity stack redeploys to Fuji in Phase 0 (docs/market.md); the Monad testnet deployment (chain 10143) is legacy read-only.
 * Contracts toolchain: **Foundry** in `contracts/` (root-level, not a pnpm workspace member). In-house ERC721 base, no OZ.
 * Identity stack: minimal ERC-8004-style registry + ERC-5192 soulbound attestations. Nothing else survived the pivot (Passport/Vault/DemoFX deleted 2026-11-14).
 * API envelope: `{ success, data, message? }` via `createApiResponse`; errors via `createApiErrorResponse` (`packages/utils`). All endpoint paths in `packages/config`.
-* No derived score/risk anywhere: the arena settles standing from attested outcomes, not formulas.
+* No derived score/risk anywhere: standing comes from attested settlements, not formulas.
 * Frontend env: `NEXT_PUBLIC_API_URL` (fallback `http://localhost:4000` via `getApiBaseUrl`). Backend env: `PORT`.
 
 ## Open questions (TBD — do not guess)
 
-* [ ] Pool graph source: own demo pools vs indexing existing Monad DEX pools?
-* [ ] Arena mechanics: solution format, winner selection (best-quote vs auction), fee split, solver bonding/slashing?
-* [ ] Attestation schema for arena outcomes (current enum: STAKE/UNSTAKE/HARVEST/SWAP — likely rework → redeploy + reindex).
-* [ ] Solver protocol: how off-chain solvers authenticate, fetch graph snapshots, and submit.
-* [ ] Monad mainnet switch; Envio cloud deploy (`ENVIO_API_TOKEN`).
+* [x] Pool graph source: own demo pools vs indexing existing DEX pools? → **own demo pools first** (docs/market.md, 2026-11-14).
+* [ ] Market parameters: fee bps, quote TTL, who submits `executeSwap`, x402 rail on Fuji — proposals in docs/market.md, owner to lock.
+* [ ] Attestation schema for market outcomes (current enum: STAKE/UNSTAKE/HARVEST/SWAP — likely rework → redeploy + reindex; v1 reuses SWAP).
+* [ ] Quote protocol details: signature scheme, graph snapshot versioning, quote TTL + retraction semantics.
+* [ ] Avalanche C-Chain mainnet switch; Envio cloud deploy (`ENVIO_API_TOKEN`).

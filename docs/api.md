@@ -22,7 +22,7 @@ Attestation { tokenId, agentId, actionType (STAKE/UNSTAKE/HARVEST/SWAP), result 
 
 Decisions:
 
-* **No derived score/risk anywhere.** Summaries carry raw attestation counts only. In the arena, standing comes from attested execution outcomes, not a formula. (The old Lumen score/risk v0 were deleted with the pivot.)
+* **No derived score/risk anywhere.** Summaries carry raw attestation counts only. In the market, standing comes from attested settlements, not a formula. (The old Lumen score/risk v0 were deleted with the pivot.)
 * `amount` is a **decimal string** (uint256 precision); `timestamp`/`updatedAt` are **unix seconds**.
 
 ## Endpoints (live)
@@ -44,7 +44,7 @@ Errors: `{ success:false, message, code? }` with `code = INVALID_AGENT_ID | NOT_
 * Mapping notes: display names derive from the on-chain URI slug (`demo://lantern/route-runner` → "Route Runner") until off-chain metadata lands; `Attestation.txHash` comes from the indexer.
 * Never commit `.env`. Provide `.env.example` updates with each new var.
 
-## Next (arena — TBD, not built)
+## Next (Lantern Market — TBD, not built)
 
 * Pool-graph serving (assets/pools snapshots), quote-intent intake, solution submission endpoints, solver auth. Design open — see `docs/architecture.md` and MEMORY §TBD.
 

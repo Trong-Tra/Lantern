@@ -1,4 +1,6 @@
-# 02 — Identity Contracts (Monad)
+# 02 — Identity Contracts
+
+> Chain: **Avalanche Fuji (43113) going forward** — decided 2026-11-14. The deployment below is the legacy Monad testnet one; Phase 0 of `docs/market.md` redeploys the same contracts to Fuji.
 
 > **Surviving identity stack after the 2026-11-14 pivot.** Old demo protocols (AgentPassport, AgentVault, DemoSwap, DemoFXPool + mocks) were deleted — see git history. Deployed old instances remain on testnet but are unsupported.
 
@@ -9,7 +11,7 @@ Every solver agent = 1 × ERC-8004 identity : N × ERC-5192 attestations.
 | Token | Standard | Transferable | Purpose |
 | --- | --- | --- | --- |
 | Identity | ERC-8004-style registry (minimal) | registry entry | Canonical verifiable ID, operator binding, agent URI |
-| Reputation | ERC-5192 (Minimal Soulbound) | No (`locked()` = true) | Append-only track record. One mint per arena outcome — wins and failures both mint |
+| Reputation | ERC-5192 (Minimal Soulbound) | No (`locked()` = true) | Append-only track record. One mint per settled trade |
 
 ## ERC-8004 — AgentRegistry
 
@@ -24,12 +26,12 @@ Every solver agent = 1 × ERC-8004 identity : N × ERC-5192 attestations.
 ## ERC-5192 — Reputation
 
 * Locked soulbound history (`contracts/src/Reputation.sol`, name `Lantern Agent Reputation`, symbol `LREP`): `locked(tokenId)` = true; transfers revert (`Reputation: soulbound`).
-* **Minters**: the agent's owner + executors — `setExecutor(address, bool)` is contract-owner-only. Arena contracts will be authorized executors once they exist.
+* **Minters**: the agent's owner + executors — `setExecutor(address, bool)` is contract-owner-only. The market contract will be an authorized executor once it exists.
 * Attestation struct:
   ```
   Attestation { agentId, actionType (STAKE/UNSTAKE/HARVEST/SWAP), result (SUCCESS/FAIL), amount, protocol, uri }
   ```
-  The `ActionType` enum predates the arena — likely reworked for arena outcomes (TBD, MEMORY §TBD; a change means redeploy + reindex).
+  The `ActionType` enum predates the market design — likely reworked for settlement outcomes (TBD, MEMORY §TBD; a change means redeploy + reindex).
 * Events: `AttestationMinted(agentId, tokenId, actionType, result)` + `Locked(tokenId)`.
 * The contract is append-only — no scores on-chain. Standing is derived from the attestation feed.
 
@@ -49,4 +51,4 @@ Every solver agent = 1 × ERC-8004 identity : N × ERC-5192 attestations.
   * Deployer: `0x7EA634e331CF7b503df2e224f77a7C589462F1F2`
 * `script/Deploy.s.sol` deploys Registry → Reputation; key from `MONAD_PRIVATE_KEY` env (never CLI args). Chain ID read from RPC at run time.
 * `script/SeedAgents.s.sol` / `script/SeedAttestations.s.sol` seed fictional demo identities + histories from `script/seed/*.json` (all `demo://` URIs, `MAX_AGENTS`/`MAX_ATTESTATIONS` guards; the `*FromJson()` loops are unit-tested in-memory).
-* Seeded data from the old demo (15 agents, 120 attestations) remains on-chain and indexed — usable as arena test data until the arena redeploys.
+* Seeded data from the old demo (15 agents, 120 attestations) remains on-chain and indexed — usable as market test data until the Fuji redeploy.

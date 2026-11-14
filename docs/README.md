@@ -8,7 +8,8 @@ Files:
 | File | Scope |
 | --- | --- |
 | `00-vision.md` | Product vision — owner-only changes |
-| `architecture.md` | Layers, repo mapping, arena data flow |
+| `architecture.md` | Layers, repo mapping, data flow |
+| `market.md` | **Lantern Graph + Market build plan** (Go backend + contracts) |
 | `contracts.md` | ERC-8004 registry + ERC-5192 reputation contracts |
 | `api.md` | API endpoints, repository layer, Envio consumption |
 | `indexer.md` | Envio HyperIndex |
