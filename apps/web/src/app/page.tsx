@@ -1,5 +1,2 @@
-import { LatternExperience } from "@/containers/lattern";
-
-export default function Home() {
-  return <LatternExperience />;
-}
+import { MythLanding } from "@/containers/lattern/myth";
+export default function Home() { return <MythLanding />; }

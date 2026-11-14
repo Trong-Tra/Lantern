@@ -170,7 +170,7 @@ export function LatternExperience() {
               {scene.id === "darkness" && (
                 <button className="begin-journey" onClick={() => jump(0.118)}>
                   <span className="scroll-stroke" />
-                  Scroll to find your light <span>↓</span>
+                  Begin the journey <span>↓</span>
                 </button>
               )}
               {scene.id === "finale" && (
@@ -261,9 +261,9 @@ export function LatternExperience() {
             )}
             {scene.id === "darkness" && (
               <div className="opening-coordinate" aria-hidden="true">
-                <span>SIGNAL_001</span>
+                <span>THE FIRST LIGHT</span>
                 <i />
-                <span>THE UNKNOWN</span>
+                <span>A STORY OF CONNECTION</span>
               </div>
             )}
           </section>

@@ -37,13 +37,6 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${syne.variable} ${jetbrainsMono.variable} no-js dark h-full antialiased`}
     >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: "document.documentElement.classList.remove('no-js');",
-          }}
-        />
-      </head>
       <body>
         <Providers>{children}</Providers>
       </body>

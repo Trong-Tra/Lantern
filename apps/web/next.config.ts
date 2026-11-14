@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ['127.0.0.1'],
   transpilePackages: ["@lantern/types", "@lantern/utils", "@lantern/config"],
   async redirects() {
     return [

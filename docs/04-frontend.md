@@ -6,13 +6,13 @@
 
 ## Today (verified)
 
-* `@lantern/web` — `next@16.3.5` + `react@19`, Tailwind v4, `three + R3F + drei`, `gsap + Lenis`, Radix dialog/dropdown/popover, Heroicons. Port 3000.
-* Routes: `/` → `LatternExperience` (cinematic, untouched) · **`/network` → Agent Network (landed 2026-10-07)** · **`/agent/[id]` → Agent Profile + chat (landed 2026-10-07)** · `/dashboard` still missing.
+* `@lantern/web` — `next@16.4.1` + `react@19`, Tailwind v4, `three + R3F + drei`, `gsap + Lenis`, Radix dialog/dropdown/popover, Heroicons. Port 3000.
+* Routes: `/` → `MythLanding` (twelve-chapter cinematic journey) · **`/network` → Agent Network (landed 2026-10-07)** · **`/agent/[id]` → Agent Profile + chat (landed 2026-10-07)** · `/dashboard` still missing.
 * Explorer data layer: `src/libs/explorer/{api,present}.ts` — pure, package-free helpers (envelope parsing, query building, risk tone, UTC timestamps, id/page parsing) loaded by `tests/explorer.test.mjs`.
 * **Live-data mode (2026-10-10)**: `DemoBanner` takes a `live` prop (server pages read `DATA_SOURCE`); emerald "Live testnet data" vs amber mock copy. Attestation rows link to `testnet.monadscan.com/tx/<hash>` via `buildExplorerTxUrl` (`packages/config`, env-overridable) when `txHash` is present.
 * UI pieces: `src/components/molecules/explorer.tsx` (`DemoBanner` = honest-data guard, `RiskBadge`, `NoticeCard`) + `agent-chat-panel.tsx` (client, posts to `POST /api/agents/:id/chat` — key stays server-side).
 * First live fetches exist: pages call `getApiBaseUrl()` + `buildApiUrl(API_ENDPOINTS.* , fetch)` with graceful error/not-found cards. `DemoBanner` reflects `DATA_SOURCE` (live envio vs quarantined mock) — never mix `DEMO_AGENTS` into live views.
-* Landing unchanged: 11 scroll scenes (`src/constants/lattern-scenes.ts`), playhead in `src/libs/cinematic/runtime.ts`, styling in `src/styles/lattern.css` (1207 lines).
+* Landing: twelve content chapters, `src/containers/lattern/myth.tsx` + `myth.css`, Three.js journey in `src/components/organisms/lantern-journey`, and worker-prepared paths in `src/libs/cinematic`. Reading mode, reduced motion and WebGL failure show the conventional document. Release checks: `apps/web/docs/frontend-release.md`.
 * Connect Wallet = **real wagmi injected flow** (LANDED 2026-10-13: connect → switch-to-Monad-testnet → disconnect; RPC-missing shows an honest notice). `DEMO_AGENTS` in `lattern-preview` remains **fictional** (6 agents, `resolveIntent()`, `discoverAgents()`) — quarantined to the landing preview.
 * Tests: `tests/{cinematic,explorer}.test.mjs` (`node --test`, shared loader `tests/helpers/load-source.mjs`), pure logic only — 34 green. No Vitest/Jest/Playwright.
 * Dead code — ignore: `containers/home/`, `components/experience/`, `components/lantern/`, `styles/globals.scss`, empty `store/` + `actions/`.
