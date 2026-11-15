@@ -28,6 +28,8 @@
 * [2026-11-14] **x402 = the paywall rail** for Lantern Graph access (facilitator/support on Fuji TBD — verify before Phase 3).
 * [2026-11-14] **Backend = Go** (`services/market/`, separate Go module). Envio stays the indexing layer (Hasura GraphQL subscriptions = realtime feed). Solver transport = raw WebSocket; GraphQL (gqlgen) is frontend-facing only.
 * [2026-11-14] Frontend is frozen until its own rebuild session — backend work must not touch `apps/web`.
+* [2026-11-15] **8004scan visibility = dual-registration (option 1):** solvers also register on the canonical ERC-8004 Fuji singleton (`IdentityRegistry 0x8004A818BFB912233c491871b3d84c89A494BD9e`, verified live v2.0.0); frontend button links to `8004scan.io/agents/{chain}/{agentId}`. Our own AgentRegistry stays the market's ownership source. Fuji indexing on 8004scan unconfirmed — Sepolia/Base Sepolia confirmed; registration chain is independent of operation chain per spec.
+* [2026-11-15] **`apps/api` is slated for absorption into the Go gqlgen API** (docs/market.md §3) at the Phase 4 frontend rebuild — identity reads move there; do not extend apps/api with new features. Until then it stays (only verified read layer, 18/18).
 
 ## TBD / blocked (owner to answer when ready)
 

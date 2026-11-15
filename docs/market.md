@@ -68,7 +68,7 @@ services/market/
 │   ├── protocol/            # quote WS: intent broadcast, signed quotes, retract, pick
 │   ├── paywall/             # x402 middleware (402 challenge, payment verify, access grants)
 │   ├── chain/               # abigen bindings, quote verification helpers, tx submission
-│   └── api/                 # gqlgen GraphQL (web-facing queries)
+│   └── api/                 # gqlgen GraphQL (web-facing queries; absorbs apps/api identity reads at Phase 4 — do not extend apps/api)
 └── README.md
 ```
 
