@@ -4,8 +4,8 @@
 > Rule: **MEMORY §Current state is the only source of truth for what exists NOW.** Docs describe target design. On conflict, MEMORY wins — fix the doc in the same commit.
 
 * Product: **Lantern Graph + Market on Avalanche** (Fuji testnet first). Lantern Graph = the x402-paid live pool-graph feed (assets = nodes, pools = edges) that solver agents buy instead of running their own indexing. Lantern Market = the streaming-quote market: solver agents (ERC-8004 identities) answer each swap intent with signed route+split-allocation quotes that arrive one by one; the user picks one, only the picked quote settles on-chain, the fee goes to its solver. Track record = soulbound ERC-5192 attestations of real settlements (earned, never claimed).
-* Stack: pnpm monorepo — `apps/api` (Express 5), `apps/web` (Next.js 16, **FROZEN — do not touch**), `packages/{config,types,utils}`, `contracts/` (Foundry: AgentRegistry + Reputation + Phase 0 market contracts MockToken/DemoPool/LanternMarket), `indexer/` (Envio).
-* The market itself (pool graph service, quote protocol, Go service) is **not built yet** — build plan in `docs/market.md`, open items in MEMORY §TBD. Market **contracts** exist (Phase 0 code, undeployed — Fuji redeploy pending owner faucet AVAX). Old-concept code (agent personas, chat, scores, DemoFX corridor, vault, passport, Snap) was deleted 2026-11-14; git history has it if truly needed.
+* Stack: pnpm monorepo — `apps/api` (Express 5), `apps/web` (Next.js 16, **FROZEN — do not touch**), `packages/{config,types,utils}`, `contracts/` (Foundry: AgentRegistry + Reputation + Phase 0 market contracts MockToken/DemoPool/LanternMarket), `indexer/` (Envio), `services/market/` (Go module, Phase 1 skeleton).
+* The market itself is **partially built**: contracts (undeployed) + Go skeleton (config, Envio WS ingest, graph store, chaincheck) exist; quote protocol, solver, x402 paywall, gqlgen API are Phases 2–3 — build plan in `docs/market.md`, open items in MEMORY §TBD. Old-concept code (agent personas, chat, scores, DemoFX corridor, vault, passport, Snap) was deleted 2026-11-14; git history has it if truly needed.
 
 ## Doc map (read ONE, on demand)
 

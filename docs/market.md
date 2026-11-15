@@ -97,7 +97,7 @@ Key choices:
 | Phase | Deliverable | Verify |
 | --- | --- | --- |
 | 0 — chain move + contracts | Redeploy identity stack (AgentRegistry + Reputation) on **Fuji (43113)**; `MockToken`, `DemoPool`, `LanternMarket` + tests, deploy scripts, seeded pools; indexer re-pointed at Fuji and extended. **Code done 2026-11-14 (93/93 forge, indexer 7/7); on-chain redeploy pending owner faucet AVAX** | `forge test`; entities visible in Hasura (after redeploy) |
-| 1 — Go skeleton | module, config, Envio subscription ingest, in-memory graph store that tracks reserves live | `go test ./...`; log line per block showing graph consistency vs on-chain reserves |
+| 1 — Go skeleton | module, config, Envio subscription ingest, in-memory graph store that tracks reserves live. **Done 2026-11-15** (`go test ./...` green; live-feed verification still needs the Fuji redeploy + `ENVIO_API_TOKEN`) | `go test ./...`; log line per block showing graph consistency vs on-chain reserves |
 | 2 — quote flow e2e | intent → reference solver quotes → pick → `executeSwap` settles → attestation minted | scripted demo flow; attestation visible via API/indexer |
 | 3 — x402 + protocol hardening | graph feed paywalled; quote signatures/deadlines/retraction enforced; bad-signature + stale-quote rejection tests | integration tests |
 | 4 — frontend rebuild | swap UI on the quote stream (separate session — frontend frozen until then) | — |

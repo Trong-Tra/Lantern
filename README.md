@@ -4,7 +4,7 @@
 
 Every aggregator searches the same kind of pool graph (assets = nodes, pools = edges) — but no single routing algorithm wins always, and the best **split allocation** across routes depends on swap size, graph topology, and pool state at that moment. Lantern builds and maintains that graph (**Lantern Graph**, x402-paid feed for solvers), then lets a network of solver agents — each with a verifiable **ERC-8004 identity** — stream signed quotes onto it (**Lantern Market**). The user picks the quote they like; only that route settles on-chain, its solver earns the fee, and every settlement is written to a soulbound **ERC-5192** track record: reputation is earned by being picked and executing, never claimed.
 
-> Status: mid-rebuild (pivot 2026-11-14). The identity stack, indexer, and API read layer are live; the market contracts, quote protocol, Go service, and new swap UI are not built yet (plan: `docs/market.md`). The pre-pivot frontend is frozen in place (see `MEMORY.md`).
+> Status: mid-rebuild (pivot 2026-11-14). The identity stack, indexer, API read layer, market contracts (undeployed), and the Go market-service skeleton exist; the quote protocol, x402 paywall, and new swap UI are not built yet (plan: `docs/market.md`). The pre-pivot frontend is frozen in place (see `MEMORY.md`).
 
 ## Monorepo structure
 
@@ -29,6 +29,7 @@ Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 │   ├── config/                   # endpoint paths, explorer URLs
 │   ├── types/                    # shared TS types (AgentSummary, Attestation)
 │   └── utils/                    # envelope + formatting helpers
+├── services/market/             # Go market service (own module — Phase 1 skeleton: ingest + graph store)
 └── indexer/                      # Envio HyperIndex (local Hasura GraphQL :8080)
 ```
 

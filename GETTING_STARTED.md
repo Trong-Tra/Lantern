@@ -33,6 +33,7 @@ Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 │   ├── config/                   # endpoint paths, explorer URLs
 │   ├── types/                    # shared TS types (AgentSummary, Attestation)
 │   └── utils/                    # envelope + formatting helpers
+├── services/market/             # Go market service (own module — Phase 1 skeleton: ingest + graph store)
 └── indexer/                      # Envio HyperIndex (local Hasura GraphQL :8080)
 ```
 
@@ -40,6 +41,7 @@ Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 
 - **Node.js** (v20+), **pnpm@12.4.2** (root packageManager)
 - **Foundry** (`forge`, `cast`) — for contracts
+- **Go** (1.23+) — for `services/market`
 - **Docker / OrbStack** — only for the Envio indexer (Hasura on :8080)
 - An **Avalanche Fuji RPC** (`AVAX_FUJI_RPC_URL`) — required for anything that touches chain
 
@@ -110,6 +112,7 @@ Blocked from cloud deploy until `ENVIO_API_TOKEN` is set.
 | Contracts | `forge test` | `contracts/` |
 | API | `pnpm test` | `apps/api/` |
 | Indexer | `pnpm test` | `indexer/` |
+| Market service | `go test ./...` | `services/market/` |
 | Backend typecheck | `pnpm --filter @lantern/api exec tsc --noEmit` etc. | per workspace |
 
 ## Key env vars
