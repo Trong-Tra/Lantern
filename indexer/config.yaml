@@ -29,15 +29,22 @@ chains:
   - id: 43113 # Avalanche Fuji — native HyperSync
     start_block: 0 # auto-fast-forwards to the first relevant block
     contracts:
-      # TBD — all addresses come from the Fuji redeploy (Phase 0, pending owner
-      # faucet AVAX). Zero-address placeholders index nothing until filled in.
+      # Deployed to Fuji 2026-11-15 (broadcast/…/43113/run-latest.json).
       - name: AgentRegistry
-        address: "0x0000000000000000000000000000000000000000"
+        address: "0x62cd4e0C5B0D4587861a21710ed15ba1823a6341"
       - name: Reputation
-        address: "0x0000000000000000000000000000000000000000"
+        address: "0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8"
+      # One DemoPool entry, all 9 seeded pools (script/seed/market.json).
       - name: DemoPool
-        # One entry per seeded pool (9 in script/seed/market.json) — add the
-        # addresses logged by DeployMarket.s.sol after the redeploy.
-        address: "0x0000000000000000000000000000000000000000"
+        address:
+          - "0xFB9D4e5d3F4f8b089739B9D2f03e21d37f87e536"
+          - "0x49BF5bc89639b46CFe5B2eFA716BB187f253a47E"
+          - "0x27E4967EB9e09efaD6809914874159C771b51cAc"
+          - "0x2300Ae9042ADaF68C4C8B80FAB6e19A9249d5ca0"
+          - "0xC82B5A7Fbc0535346C994Dd8D6d47983690B7360"
+          - "0x4B581d01AFF9D688384F507208e56f70f71B1838"
+          - "0x8937E9037A7Ad5d323236C7E11AE9dB0d065D982"
+          - "0x3997d6a7B3b31EbDF39433a20a4D4eFc86c68Ca5"
+          - "0x82DbcDa614D0b3475c64e65088cA7b73228b09e0"
       - name: LanternMarket
-        address: "0x0000000000000000000000000000000000000000"
+        address: "0xE77719De4D0921110DDcFb3497415Efd6F29f70B"

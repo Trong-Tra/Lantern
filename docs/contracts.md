@@ -35,7 +35,7 @@ Every solver agent = 1 × ERC-8004 identity : N × ERC-5192 attestations.
 * Events: `AttestationMinted(agentId, tokenId, actionType, result)` + `Locked(tokenId)`.
 * The contract is append-only — no scores on-chain. Standing is derived from the attestation feed.
 
-## Market contracts (Phase 0, 2026-11-14 — Fuji deploy pending)
+## Market contracts (Phase 0, code 2026-11-14 — Fuji deployed 2026-11-15)
 
 * `MockToken.sol` — minimal mintable ERC-20 (open mint; demo liquidity only, never a value token).
 * `DemoPool.sol` — constant-product pair pool: `seed()` (owner-only; adopts current token balances as reserves — seeding = mint to the pool, then `seed()`), `swap(tokenIn, amountIn)` (pulls input from caller, pushes output back), `getReserves()`, `getAmountOut(tokenIn, amountIn)`. Pool fee 30 bps. Events: `Swap(sender, tokenIn, amountIn, amountOut)` then `Sync(reserve0, reserve1)` after every swap and seed.
@@ -54,13 +54,20 @@ Every solver agent = 1 × ERC-8004 identity : N × ERC-5192 attestations.
 * Tests required per contract. Run: `forge test` in `contracts/` (currently 93 green).
 * Every contract change updates this file + the Envio schema in the same commit.
 
-## Deploy + seed (Fuji redeploy PENDING — legacy: Monad testnet, chain 10143)
+## Deploy + seed (Fuji — DEPLOYED 2026-11-15; legacy: Monad testnet, chain 10143)
 
-* **Legacy Monad addresses (read-only, no new development):**
+* **Fuji addresses (chain 43113, deployer `0x7EA634e331CF7b503df2e224f77a7C589462F1F2`):**
   * `AgentRegistry` → `0x62cd4e0C5B0D4587861a21710ed15ba1823a6341`
+  * `Reputation` → `0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8`
+  * `LanternMarket` → `0xE77719De4D0921110DDcFb3497415Efd6F29f70B`
+  * MockTokens (5): mUSDC `0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8`, mUSDT `0x173C86c27Ea43BB541b84E72076B8CA7Ff5b1e41`, mWAVAX `0x6Eb204b09A36547fE21833744c8C9cC802C19B04`, mWETH `0x1e38cf69DA98506F14D43C82a3ca8Aa825ac8aF7`, mWBTC `0x1638ac963dA5d466d928289852c047A9d2ad7047`
+  * DemoPools (9): `0xFB9D4e5d3F4f8b089739B9D2f03e21d37f87e536`, `0x49BF5bc89639b46CFe5B2eFA716BB187f253a47E`, `0x27E4967EB9e09efaD6809914874159C771b51cAc`, `0x2300Ae9042ADaF68C4C8B80FAB6e19A9249d5ca0`, `0xC82B5A7Fbc0535346C994Dd8D6d47983690B7360`, `0x4B581d01AFF9D688384F507208e56f70f71B1838`, `0x8937E9037A7Ad5d323236C7E11AE9dB0d065D982`, `0x3997d6a7B3b31EbDF39433a20a4D4eFc86c68Ca5`, `0x82DbcDa614D0b3475c64e65088cA7b73228b09e0`
+  * SeedAgents ran: 15 agents (ids 1–15, owner = deployer). Same addresses in `.env` (gitignored) + `indexer/config.yaml` + README table. Broadcast artifacts: `contracts/broadcast/*/43113/run-latest.json`.
+* **Legacy Monad addresses (read-only, no new development):**
+  * `AgentRegistry` → `0x62cd4e0C5B0D4587861a21710ed15ba1823a6341` (identical to Fuji — same deployer nonce; different chain!)
   * `Reputation` → `0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8`
   * Deployer: `0x7EA634e331CF7b503df2e224f77a7C589462F1F2`
-* Fuji redeploy (Phase 0): owner needs faucet AVAX, then `Deploy.s.sol` (identity) → `DeployMarket.s.sol` (tokens + pools + market; reads `AGENT_REGISTRY_ADDRESS`/`REPUTATION_ADDRESS`, seeds 5 tokens / 9 pools from `script/seed/market.json`) → optional `SeedAgents`/`SeedAttestations`.
+* Deployment order: `Deploy.s.sol` (identity) → `DeployMarket.s.sol` (tokens + pools + market; reads `AGENT_REGISTRY_ADDRESS`/`REPUTATION_ADDRESS`, seeds 5 tokens / 9 pools from `script/seed/market.json`) → `SeedAgents`/`SeedAttestations` (optional).
 * All scripts take the key from `DEPLOYER_PRIVATE_KEY` env (never CLI args), RPC from `AVAX_FUJI_RPC_URL`. Chain ID read from RPC at run time.
 * `script/SeedAgents.s.sol` / `script/SeedAttestations.s.sol` seed fictional demo identities + histories from `script/seed/*.json` (all `demo://` URIs, `MAX_AGENTS`/`MAX_ATTESTATIONS` guards; the `*FromJson()` loops are unit-tested in-memory — `deployFromJson` too, incl. an end-to-end split-swap on the seeded topology).
 * Seeded Monad data (15 agents, 120 attestations) stays on the legacy chain only — it does not carry to Fuji.

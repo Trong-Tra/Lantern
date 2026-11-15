@@ -10,9 +10,8 @@ import "../src/handlers/LanternMarket.js";
 
 // Chain key must be the literal 43113 (Avalanche Fuji) for the test indexer.
 const OWNER: Address = "0x7EA634e331CF7b503df2e224f77a7C589462F1F2";
-// Must match the DemoPool address in config.yaml — the zero-address placeholder
-// until the Fuji redeploy fills in real pool addresses.
-const POOL: Address = "0x0000000000000000000000000000000000000000";
+// Must match a DemoPool address in config.yaml (pool 0, deployed 2026-11-15).
+const POOL: Address = "0xFB9D4e5d3F4f8b089739B9D2f03e21d37f87e536";
 const TOKEN_A: Address = "0x2000000000000000000000000000000000000001";
 const TOKEN_B: Address = "0x2000000000000000000000000000000000000002";
 
