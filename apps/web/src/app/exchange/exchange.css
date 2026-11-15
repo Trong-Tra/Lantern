@@ -1,0 +1,1913 @@
+.exchange-mock-balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.exchange-mock-balance button {
+  border: 1px solid #c9a66c33;
+  background: #c9a66c0a;
+  color: #c9ab79;
+  border-radius: 5px;
+  min-height: 32px;
+  padding: 0 8px;
+  margin-left: 5px;
+  font-size: 11px;
+}
+.exchange-mock-action {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #c9a66c55;
+  border-radius: 8px;
+  background: #c9a66c22;
+  color: #e8cd9e;
+}
+.exchange-amount-row .exchange-output {
+  font-size: clamp(22px, 2.4vw, 34px);
+  overflow-wrap: anywhere;
+}
+.exchange-page {
+  min-height: 100svh;
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 48% 0%, #30251b55, transparent 55%), #090a0e;
+  color: #f3f6fc;
+}
+.exchange-particles,
+.exchange-matte {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.exchange-particles {
+  z-index: 0;
+}
+.exchange-matte {
+  z-index: 1;
+  background: rgb(0 0 0 / 32%);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.exchange-header,
+.exchange-main {
+  position: relative;
+  z-index: 2;
+}
+.exchange-header {
+  max-width: 1500px;
+  margin: auto;
+  padding: 24px 40px;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  border-bottom: 1px solid #c9a66c18;
+}
+.exchange-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #e6c896;
+  letter-spacing: 0.2em;
+  font-size: 16px;
+}
+.exchange-brand svg {
+  width: 28px;
+  height: 34px;
+}
+.exchange-header nav {
+  display: flex;
+  gap: 30px;
+  margin-left: auto;
+}
+.exchange-header nav a {
+  padding: 12px 0;
+  color: #a6a399;
+  text-decoration: none;
+  font-size: 14px;
+}
+.exchange-header nav a:hover,
+.exchange-header nav a[aria-current] {
+  color: #e7cb99;
+}
+.exchange-page .wallet-connect {
+  min-height: 44px;
+  border: 1px solid #c9a66c66;
+  border-radius: 8px;
+  background: #c9a66c12;
+  color: #e8cd9e;
+  padding: 0 18px;
+}
+.exchange-main {
+  max-width: 1560px;
+  width: 100%;
+  padding: 44px 28px 24px;
+  margin: auto;
+}
+.exchange-intro {
+  text-align: center;
+  margin-bottom: 38px;
+}
+.exchange-intro > p {
+  color: #b99a69;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  margin: 0 0 15px;
+}
+.exchange-intro h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(32px, 3.5vw, 48px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  margin: 0 0 12px;
+}
+.exchange-intro em {
+  color: #c9ab79;
+  font-weight: 400;
+}
+.exchange-headline {
+  display: grid;
+}
+.exchange-headline > span {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 700ms ease-in-out, transform 700ms ease-in-out;
+  pointer-events: none;
+}
+.exchange-headline > span[data-active="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .exchange-headline > span {
+    transition: none;
+    transform: none;
+    opacity: 0;
+  }
+  .exchange-headline > span:first-child {
+    opacity: 1;
+  }
+  .exchange-headline > span[data-active="true"]:not(:first-child) {
+    opacity: 0;
+  }
+}
+.exchange-intro > span {
+  color: #98958e;
+  font-size: 14px;
+}
+.exchange-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(350px, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.exchange-chart,
+.exchange-swap {
+  border: 1px solid #c9a66c2b;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #19191e, #101116);
+  box-shadow: 0 18px 70px #0003;
+  overflow: hidden;
+}
+.exchange-chart {
+  padding: 26px 26px 18px;
+}
+.exchange-chart-heading,
+.exchange-asset,
+.exchange-chart-footer,
+.exchange-swap-top,
+.exchange-field-label,
+.exchange-amount-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.exchange-asset {
+  justify-content: start;
+}
+.token-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-family: Georgia, serif;
+  font-size: 21px;
+  border: 1px solid #ffffff26;
+}
+.token-mark.violet {
+  background: #7363a838;
+  color: #c6b4f0;
+}
+.token-mark.blue {
+  background: #416b9a40;
+  color: #99bfe6;
+}
+.token-mark.silver {
+  background: #8e99b130;
+  color: #d0d8eb;
+}
+.exchange-asset > .token-mark {
+  width: 46px;
+  height: 46px;
+  font-size: 32px;
+}
+.exchange-asset h2 {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 4px;
+}
+.exchange-asset div > span {
+  font-size: 11px;
+  color: #9c99a2;
+}
+.exchange-dot {
+  padding: 0 6px;
+  color: #c9a66c;
+}
+.exchange-preview {
+  color: #c4aa7e;
+  border: 1px solid #c9a66c33;
+  border-radius: 4px;
+  font-size: 10px;
+  padding: 6px 8px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.exchange-price {
+  margin: 26px 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.exchange-price strong {
+  font-weight: 400;
+  font-size: 36px;
+}
+.exchange-price span {
+  font-size: 12px;
+  color: #8e8b86;
+}
+.exchange-plot {
+  position: relative;
+  height: 246px;
+  margin-top: 28px;
+}
+.exchange-plot svg {
+  position: absolute;
+  inset: 15px 0 0;
+  width: 100%;
+  height: 210px;
+  opacity: 0.8;
+}
+.exchange-grid {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to top,
+    #c9a66c12 0px,
+    #c9a66c12 1px,
+    transparent 1px,
+    transparent 55px
+  );
+}
+.exchange-chart-caption {
+  position: absolute;
+  bottom: 0;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: #8d806b;
+}
+.exchange-chart-footer {
+  border-top: 1px solid #ffffff09;
+  padding-top: 18px;
+  margin-top: 20px;
+  color: #8e8b86;
+  font-size: 11px;
+}
+.exchange-chart-footer button {
+  border: 0;
+  color: #9e9ba4;
+  background: transparent;
+  min-width: 32px;
+  min-height: 36px;
+  border-radius: 5px;
+  font-size: 11px;
+}
+.exchange-chart-footer button[aria-pressed="true"] {
+  background: #c9a66c20;
+  color: #e2c58e;
+}
+.exchange-swap-top {
+  padding: 15px 20px;
+  border-bottom: 1px solid #c9a66c21;
+}
+.exchange-modes {
+  display: flex;
+  gap: 22px;
+}
+.exchange-modes button {
+  background: transparent;
+  border: 0;
+  padding: 12px 0;
+  color: #8e8b96;
+  font-size: 13px;
+}
+.exchange-modes button[aria-pressed="true"] {
+  color: #e5c38d;
+}
+.exchange-icon-button {
+  border: 0;
+  background: transparent;
+  color: #aaa294;
+  padding: 10px;
+}
+.exchange-icon-button svg {
+  width: 18px;
+  height: 18px;
+}
+.exchange-trade-field {
+  padding: 24px 22px;
+}
+.exchange-field-label {
+  font-size: 12px;
+  color: #bdb8ac;
+}
+.exchange-field-label > span:last-child {
+  color: #8e8997;
+  font-size: 10px;
+}
+.exchange-amount-row {
+  margin: 20px 0 15px;
+}
+.exchange-amount-row input,
+.exchange-output {
+  min-width: 0;
+  width: 100%;
+  font-size: 34px;
+  background: transparent;
+  color: #f3f6fc;
+  border: 0;
+  outline-offset: 2px;
+}
+.exchange-amount-row input::placeholder,
+.exchange-output {
+  color: #68656f;
+}
+.exchange-amount-row button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff06;
+  color: #f3f6fc;
+  border: 1px solid #ffffff12;
+  border-radius: 30px;
+  padding: 6px 10px 6px 6px;
+  font-size: 13px;
+}
+.exchange-muted {
+  font-size: 11px;
+  color: #817d87;
+}
+.exchange-direction {
+  position: relative;
+  height: 0;
+  border-top: 1px solid #c9a66c16;
+  display: flex;
+  justify-content: center;
+}
+.exchange-direction button {
+  position: absolute;
+  top: -16px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: #cdb184;
+  background: #1d1c21;
+  border: 1px solid #c9a66c30;
+  border-radius: 50%;
+}
+.exchange-direction svg {
+  width: 15px;
+  height: 15px;
+}
+.exchange-swap-bottom {
+  padding: 5px 22px 20px;
+}
+.exchange-swap-bottom .wallet-connect {
+  width: 100%;
+  background: linear-gradient(110deg, #d1b27e, #b48d57);
+  color: #17130e;
+  border: 0;
+  min-height: 48px;
+}
+.exchange-swap-bottom p {
+  font-size: 10px;
+  text-align: center;
+  color: #999289;
+  margin: 14px 0 0;
+  line-height: 1.6;
+}
+.exchange-principles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+  padding: 38px 10px 32px;
+}
+.exchange-principles > div {
+  position: relative;
+  padding-left: 30px;
+}
+.exchange-principles > div > span {
+  position: absolute;
+  left: 0;
+  top: 3px;
+  font:
+    13px Georgia,
+    serif;
+  color: #b8955e;
+}
+.exchange-principles h2 {
+  font:
+    19px Georgia,
+    serif;
+  margin: 0 0 9px;
+  color: #dcd1be;
+}
+.exchange-principles p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #8b8783;
+  margin: 0;
+}
+.exchange-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid #c9a66c1c;
+  padding-top: 24px;
+  font-size: 10px;
+  color: #817d76;
+}
+.exchange-footer > span > span {
+  padding: 0 8px;
+}
+.exchange-footer a {
+  display: flex;
+  gap: 6px;
+  color: #bba17a;
+  text-decoration: none;
+}
+.exchange-footer svg {
+  width: 12px;
+  height: 12px;
+}
+.exchange-settings,
+.exchange-limit,
+.exchange-advanced {
+  margin: 16px 22px;
+  padding: 14px;
+  border: 1px solid #c9a66c2b;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #bbb2a0;
+}
+.exchange-settings label,
+.exchange-advanced span {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.exchange-settings > span {
+  display: block;
+  font-size: 10px;
+  margin-top: 10px;
+  color: #999;
+}
+.exchange-settings select,
+.exchange-limit input {
+  background: #141419;
+  color: #e5c38d;
+  border: 1px solid #c9a66c33;
+  border-radius: 4px;
+  padding: 8px;
+}
+.exchange-limit {
+  display: grid;
+  gap: 10px;
+}
+.exchange-advanced {
+  display: grid;
+  gap: 12px;
+}
+.exchange-advanced b {
+  font-weight: 400;
+}
+.exchange-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000a;
+  backdrop-filter: blur(8px);
+}
+.exchange-picker {
+  z-index: 101;
+  width: min(320px, calc(100vw - 32px));
+  max-height: calc(100svh - 32px);
+  overflow-y: auto;
+  border: 1px solid #c9a66c55;
+  background: #17171d;
+  color: #f3f6fc;
+  padding: 24px;
+  border-radius: 16px;
+}
+.exchange-picker > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.exchange-picker h2 {
+  font:
+    24px Georgia,
+    serif;
+  margin: 0;
+}
+.exchange-picker button {
+  color: inherit;
+  border: 0;
+  background: transparent;
+  min-height: 44px;
+}
+.exchange-picker label {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+  border: 1px solid #c9a66c33;
+  padding: 12px;
+  border-radius: 6px;
+}
+.exchange-picker label svg {
+  width: 20px;
+}
+.exchange-picker input {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  width: 100%;
+  min-width: 0;
+}
+.exchange-token-option {
+  width: 100%;
+  display: flex;
+  text-align: left;
+  gap: 16px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+}
+.exchange-token-option:hover {
+  background: #c9a66c15;
+}
+.exchange-token-option small {
+  display: block;
+  color: #aaa;
+  font-size: 11px;
+  margin-top: 4px;
+}
+.exchange-page button,
+.exchange-page a {
+  transition:
+    color 0.2s,
+    background 0.2s;
+}
+.exchange-page button:hover {
+  filter: brightness(1.13);
+}
+@media (max-width: 1000px) {
+  .exchange-header {
+    padding: 20px 24px;
+    gap: 24px;
+  }
+  .exchange-header nav {
+    gap: 20px;
+  }
+  .exchange-main {
+    padding: 36px 24px 24px;
+  }
+  .exchange-workspace {
+    grid-template-columns: minmax(0, 1.3fr) minmax(330px, 1fr);
+  }
+  .exchange-chart {
+    padding: 22px 18px;
+  }
+  .exchange-chart-footer {
+    align-items: start;
+    flex-direction: column;
+  }
+  .exchange-preview {
+    font-size: 9px;
+  }
+}
+@media (max-width: 760px) {
+  .exchange-header {
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 18px 20px;
+  }
+  .exchange-brand {
+    font-size: 14px;
+  }
+  .exchange-header > .wallet-connect {
+    margin-left: auto;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+  .exchange-header nav {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .exchange-main {
+    padding: 28px 16px 24px;
+  }
+  .exchange-intro {
+    margin-bottom: 28px;
+  }
+  .exchange-intro > span {
+    font-size: 12px;
+  }
+  .exchange-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .exchange-chart,
+  .exchange-swap {
+    width: 100%;
+  }
+  .exchange-swap {
+    order: -1;
+  }
+  .exchange-chart-footer {
+    flex-direction: row;
+    align-items: center;
+  }
+  .exchange-principles {
+    grid-template-columns: 1fr;
+    gap: 26px;
+    padding: 32px 8px;
+  }
+  .exchange-footer {
+    flex-direction: column;
+  }
+  .exchange-plot {
+    height: 210px;
+  }
+  .exchange-plot svg {
+    height: 175px;
+  }
+}
+/* Warm ink, ivory and brass; signed text and arrows convey direction. */
+.exchange-chart {
+  background: linear-gradient(145deg, #211d17, #11100e);
+  border-color: #63543b;
+}
+.exchange-swap {
+  background: linear-gradient(145deg, #231f19, #12110f);
+  border-color: #63543b;
+}
+.exchange-field-label {
+  color: #f3f6fc;
+}
+.exchange-field-label > span:last-child,
+.exchange-muted {
+  color: #c3cedb;
+}
+.exchange-trade-field:focus-within {
+  background: #e2c18b0e;
+}
+.exchange-amount-row input::placeholder {
+  color: #c3cedb;
+}
+.exchange-amount-row button {
+  background: #302a21;
+  border-color: #766244;
+}
+.exchange-amount-row .exchange-output {
+  color: #edcf94;
+}
+.exchange-modes button {
+  color: #c3cedb;
+}
+.exchange-modes button[aria-pressed="true"] {
+  color: #ffe1a0;
+  box-shadow: 0 2px 0 #e7be72;
+}
+.exchange-swap-bottom p {
+  color: #c3cedb;
+}
+.exchange-mock-action {
+  background: #d9bd8526;
+  color: #f6dca8;
+  border-color: #aa8e59;
+}
+.exchange-chart-footer {
+  flex-wrap: wrap;
+}
+.exchange-chart-footer > span {
+  color: #c3cedb;
+  font-size: 10px;
+}
+.exchange-chart-footer button {
+  min-width: 36px;
+  min-height: 44px;
+  color: #c3cedb;
+}
+.exchange-chart-footer button[aria-pressed="true"] {
+  background: #e5c180;
+  color: #181510;
+  font-weight: 600;
+  box-shadow: 0 2px 12px #e5c18020;
+}
+.market-chart {
+  --market-trend: #72d5a3;
+}
+.market-chart[data-direction="down"] {
+  --market-trend: #f08b88;
+}
+.market-value {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 25px 0 18px;
+}
+.market-value > strong {
+  font-size: clamp(28px, 3.5vw, 40px);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  color: #f3f6fc;
+}
+.market-change {
+  color: var(--market-trend);
+  font-size: 15px;
+  font-weight: 600;
+}
+.market-change small {
+  display: block;
+  margin-top: 5px;
+  color: #c3cedb;
+  font-weight: 400;
+  font-size: 11px;
+}
+.market-inspect {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 38px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #100e0b;
+  border: 1px solid #5e5039;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.market-inspect > span:first-child {
+  color: #c3cedb;
+}
+.market-inspect strong {
+  color: #f3f6fc;
+  font-weight: 500;
+}
+.market-positive {
+  color: #e4c087;
+}
+.market-negative {
+  color: #c3cedb;
+}
+.market-plot {
+  position: relative;
+  height: 270px;
+  margin-top: 16px;
+  color: var(--market-trend);
+}
+.market-axis {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 80px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-variant-numeric: tabular-nums lining-nums;
+  text-align: right;
+  pointer-events: none;
+  font-size: 10px;
+  color: #c3cedb;
+}
+.market-axis span {
+  position: absolute;
+  left: 4px;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+.market-time-labels {
+  position: absolute;
+  bottom: 0;
+  left: calc((100% - 80px) / 32);
+  right: calc(80px + (100% - 80px) / 32);
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  font-size: 10px;
+  color: #c3cedb;
+}
+.market-plot svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+.market-grid line {
+  stroke: #c8ad7d25;
+  stroke-width: 1;
+}
+.market-grid text,
+.market-time text {
+  fill: #c3b69d;
+  font-size: 11px;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+.market-baseline {
+  stroke: #d1c3a4;
+  stroke-width: 1;
+  stroke-dasharray: 4 5;
+  opacity: 0.65;
+}
+.market-crosshair {
+  stroke: #efe3ca;
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: 0.65;
+}
+.market-point-halo {
+  fill: currentColor;
+  opacity: 0.15;
+}
+.market-area {
+  animation: exchange-fade 0.5s ease both;
+}
+.market-scrubber {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #c3cedb;
+  font-size: 10px;
+  margin: 5px 0 16px;
+}
+.market-scrubber input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  accent-color: #e7c387;
+  cursor: ew-resize;
+}
+.market-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid #c8ad7d2b;
+}
+.market-stats span {
+  display: block;
+  color: #c3cedb;
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+.market-stats strong {
+  color: #f3f6fc;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.market-empty {
+  padding: 110px 0;
+  text-align: center;
+  color: #c3cedb;
+}
+@media (max-width: 760px) {
+  .market-plot {
+    height: 230px;
+  }
+  .market-inspect {
+    gap: 8px;
+  }
+  .market-stats {
+    gap: 8px;
+  }
+  .market-stats strong {
+    font-size: 11px;
+  }
+  .market-chart .exchange-chart-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .market-chart .exchange-chart-footer > div {
+    display: flex;
+    justify-content: space-between;
+  }
+}
+/* Keep the trading workspace centered below the fixed shared header. */
+.exchange-page .exchange-main {
+  padding: 0 40px;
+}
+.exchange-focus {
+  position: relative;
+  min-height: calc(100svh - 88px - env(safe-area-inset-top));
+  display: grid;
+  grid-template-rows: minmax(24px, 1fr) auto minmax(24px, 1fr) auto minmax(24px, 1fr);
+}
+.exchange-focus .exchange-intro {
+  grid-row: 2;
+  margin: 0;
+}
+.exchange-focus .exchange-intro > p,
+.exchange-focus .exchange-intro > span {
+  display: none;
+}
+.exchange-focus .exchange-intro h1 {
+  font-size: 28px;
+  margin: 0;
+}
+.exchange-focus .exchange-workspace {
+  grid-row: 4;
+  align-items: stretch;
+}
+.exchange-focus .exchange-chart,
+.exchange-focus .exchange-swap {
+  display: flex;
+  flex-direction: column;
+  min-height: 490px;
+}
+.exchange-focus .exchange-chart {
+  padding: 20px 24px 16px;
+}
+.exchange-focus .market-value {
+  margin: 18px 0 12px;
+}
+.exchange-focus .market-value > strong {
+  font-size: 32px;
+}
+.exchange-focus .market-plot {
+  flex: 1;
+  height: 180px;
+  min-height: 150px;
+  margin-top: 10px;
+}
+.exchange-focus .market-scrubber {
+  margin-bottom: 8px;
+}
+.exchange-focus .market-stats {
+  padding-top: 10px;
+}
+.exchange-focus .exchange-chart-footer {
+  margin-top: 10px;
+  padding-top: 8px;
+}
+.exchange-focus .exchange-swap-bottom {
+  margin-top: auto;
+  padding-top: 20px;
+}
+.exchange-focus .exchange-trade-field {
+  flex: 1;
+}
+@media (min-width: 761px) and (min-height: 760px) {
+  .exchange-focus .exchange-chart,
+  .exchange-focus .exchange-swap {
+    min-height: clamp(500px, 62svh, 640px);
+  }
+}
+@media (max-width: 1000px) {
+  .exchange-page .exchange-main {
+    padding-right: 24px;
+    padding-left: 24px;
+  }
+}
+@media (max-width: 760px) {
+  .exchange-page .exchange-main {
+    padding: 0 16px;
+  }
+  .exchange-focus {
+    min-height: calc(100svh - 88px - env(safe-area-inset-top));
+  }
+  .exchange-focus .exchange-intro h1 {
+    font-size: 25px;
+  }
+  .exchange-focus .exchange-chart,
+  .exchange-focus .exchange-swap {
+    min-height: 510px;
+  }
+  .exchange-focus .market-plot {
+    height: 180px;
+  }
+}
+@media (max-width: 600px) {
+  .exchange-focus {
+    min-height: calc(100svh - 132px - env(safe-area-inset-top));
+  }
+}
+@media (min-width: 761px) {
+  .exchange-focus .exchange-workspace {
+  grid-row: 4;
+    min-height: clamp(510px, calc(100svh - 200px), 640px);
+  }
+  .exchange-focus .exchange-chart,
+  .exchange-focus .exchange-swap {
+    min-height: 0;
+    height: 100%;
+  }
+  .exchange-focus .market-plot {
+    flex: 1 1 0;
+    min-height: 90px;
+    height: auto;
+  }
+  .exchange-focus .market-plot svg {
+    min-height: 0;
+  }
+  .exchange-focus .exchange-trade-field {
+    padding: 16px 22px;
+    min-height: 0;
+  }
+  .exchange-focus .exchange-amount-row {
+    margin: 14px 0 12px;
+  }
+  .exchange-focus .exchange-trade-field p {
+    margin: 6px 0 0;
+  }
+  .exchange-focus .exchange-swap-bottom {
+    flex-shrink: 0;
+    padding-top: 12px;
+  }
+}
+/* Reference chart: compact metadata and controls, full-width plot, volume. */
+.exchange-focus .matcha-chart {
+  padding: 20px 22px 16px;
+  gap: 0;
+}
+.matcha-market-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.matcha-token {
+  display: grid;
+  gap: 8px;
+}
+.matcha-token > .exchange-preview {
+  justify-self: start;
+  padding: 3px 7px;
+  font-size: 9px;
+}
+.matcha-token .exchange-asset h2 {
+  font-size: 17px;
+}
+.matcha-token .exchange-asset > .token-mark {
+  width: 40px;
+  height: 40px;
+  font-size: 27px;
+}
+.matcha-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  flex: 0 0 auto;
+  margin-left: auto;
+  border: 1px solid #c9a66c26;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.matcha-metrics > div {
+  padding: 7px 10px;
+  border-right: 1px solid #c9a66c1a;
+  white-space: nowrap;
+}
+.matcha-metrics > div:last-child {
+  border: 0;
+}
+.matcha-metrics > div > span {
+  display: block;
+  color: #c3cedb;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+.matcha-metrics strong {
+  min-height: 1.4em;
+  display: block;
+  color: #f3f6fc;
+  font-size: 14px;
+  font-weight: 500;
+}
+.matcha-price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0 8px;
+}
+.exchange-focus .matcha-price-row .market-value {
+  margin: 0;
+  gap: 10px;
+}
+.exchange-focus .matcha-price-row .market-value > strong {
+  font-size: 31px;
+}
+.matcha-price-row .market-change {
+  font-size: 18px;
+}
+.market-change-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  vertical-align: -3px;
+  stroke-width: 2;
+  margin-right: 4px;
+}
+.matcha-price-row .market-change small {
+  font-size: 9px;
+}
+.matcha-chart-tools {
+  display: flex;
+  margin-left: auto;
+  gap: 8px;
+}
+.matcha-segment {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 1px solid #c9a66c33;
+  border-radius: 24px;
+  background: #0c0b0933;
+}
+.matcha-segment button {
+  border: 0;
+  background: transparent;
+  color: #c3cedb;
+  border-radius: 24px;
+  padding: 0 13px;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 12px;
+}
+.matcha-segment button[aria-pressed="true"] {
+  background: #c9a66c26;
+  color: #f2d59e;
+  box-shadow: inset 0 0 0 1px #e5c38719;
+}
+.matcha-segment svg {
+  width: 20px;
+  height: 20px;
+}
+.matcha-plot {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 190px;
+  margin: 6px 0 0 -12px;
+  color: var(--market-trend);
+}
+.matcha-plot svg {
+  display: block;
+  width: calc(100% - 80px);
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+.matcha-grid {
+  stroke: #c9a66c0a;
+  stroke-width: 1;
+}
+.matcha-volume rect {
+  fill: #cbb88e;
+  opacity: 0.28;
+}
+.matcha-candles {
+  animation: exchange-fade 0.35s ease both;
+}
+.matcha-candles line {
+  stroke: currentColor;
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+.candle-up {
+  color: #72d5a3;
+}
+.candle-down {
+  color: #f08b88;
+}
+.candle-up rect {
+  fill: currentColor;
+  stroke: currentColor;
+}
+.candle-down rect {
+  fill: #15120e;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+.matcha-axis {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 80px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-variant-numeric: tabular-nums lining-nums;
+  text-align: right;
+  pointer-events: none;
+  color: #c3cedb;
+  font-size: 10px;
+}
+.matcha-axis > span {
+  width: calc(100% - 12px);
+  position: absolute;
+  right: 12px;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+.matcha-time-labels {
+  display: flex;
+  justify-content: space-between;
+  position: absolute;
+  bottom: 0;
+  left: 2.8%;
+  right: 80px;
+  font-size: 12px;
+  color: #c3cedb;
+  pointer-events: none;
+}
+.matcha-chart-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+.matcha-switch {
+  border: 0;
+  border-radius: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #c9a66c15;
+  color: #f3f6fc;
+  padding: 0 10px;
+  min-height: 40px;
+  font-size: 11px;
+}
+.matcha-switch svg {
+  width: 14px;
+  height: 14px;
+  color: #e4c087;
+}
+.matcha-periods {
+  margin-left: auto;
+  padding: 0;
+  border-radius: 24px;
+}
+.matcha-periods button {
+  position: relative;
+  isolation: isolate;
+  flex: 1;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  border-radius: 24px;
+}
+.matcha-periods button[aria-pressed="true"] {
+  background: transparent;
+  box-shadow: none;
+}
+.matcha-periods button[aria-pressed="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 7px 0;
+  z-index: -1;
+  border-radius: 999px;
+  background: #c9a66c26;
+  box-shadow: inset 0 0 0 1px #e5c38719;
+}
+@media (max-width: 1000px) {
+  .matcha-market-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .matcha-metrics {
+    flex: 0 0 auto;
+  }
+  .matcha-metrics > div {
+    padding: 7px 10px;
+  }
+  .matcha-plot {
+    min-height: 160px;
+  }
+}
+@media (max-width: 760px) {
+  .exchange-focus .matcha-chart {
+    min-height: 510px;
+    padding: 18px 16px 14px;
+  }
+  .matcha-market-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .matcha-metrics {
+    grid-template-columns: repeat(4, auto);
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  .matcha-metrics > div {
+    padding: 7px 8px;
+  }
+  .matcha-metrics > div:last-child {
+    border-right: 0;
+  }
+  .matcha-metrics strong {
+    font-size: 14px;
+  }
+  .matcha-price-row {
+    gap: 10px;
+  }
+  .exchange-focus .matcha-price-row .market-value > strong {
+    font-size: 27px;
+  }
+  .matcha-chart-tools {
+    margin-left: auto;
+  }
+  .matcha-chart-footer {
+    flex-wrap: wrap;
+  }
+  .matcha-periods {
+    flex: 1;
+    justify-content: space-between;
+  }
+  .matcha-axis {
+    font-size: 9px;
+  }
+  .matcha-time-labels span:nth-child(2),
+  .matcha-time-labels span:nth-child(4) {
+    display: none;
+  }
+}
+/* One entrance timeline, with different gestures for each visual layer. */
+@keyframes exchange-rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  62% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+  80% {
+    transform: translateY(1px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes exchange-header-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes exchange-chart-in {
+  from {
+    opacity: 0;
+    transform: translateX(-24px) scale(0.98);
+  }
+  62% {
+    opacity: 1;
+    transform: translateX(4px) scale(1.003);
+  }
+  80% {
+    transform: translateX(-1px) scale(0.999);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+@keyframes exchange-trade-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px) scale(0.98);
+  }
+  62% {
+    opacity: 1;
+    transform: translateX(-4px) scale(1.003);
+  }
+  80% {
+    transform: translateX(1px) scale(0.999);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+@keyframes exchange-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes exchange-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes exchange-dialog-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 18px)) scale(0.96);
+  }
+  62% {
+    opacity: 1;
+    transform: translate(-50%, calc(-50% - 3px)) scale(1.012);
+  }
+  80% {
+    transform: translate(-50%, calc(-50% + 1px)) scale(0.997);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes exchange-dialog-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 8px)) scale(0.98);
+  }
+}
+.exchange-page {
+  overflow-x: clip;
+  --exchange-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --exchange-spring: cubic-bezier(0.34, 1.65, 0.38, 1);
+}
+.exchange-header {
+  animation: exchange-header-in 0.65s var(--exchange-ease) both;
+}
+.exchange-intro > p {
+  animation: exchange-rise 0.65s var(--exchange-ease) 0.08s both;
+}
+.exchange-intro h1 {
+  animation: exchange-rise 0.85s var(--exchange-ease) 0.16s both;
+}
+.exchange-intro > span {
+  display: inline-block;
+  animation: exchange-rise 0.8s var(--exchange-ease) 0.25s both;
+}
+.exchange-chart {
+  animation: exchange-chart-in 0.9s var(--exchange-ease) 0.3s both;
+}
+.exchange-swap {
+  animation: exchange-trade-in 0.9s var(--exchange-ease) 0.4s both;
+}
+.exchange-chart-heading {
+  animation: exchange-fade 0.8s ease 0.55s both;
+}
+.exchange-plot svg {
+  animation: exchange-fade 0.65s ease both;
+}
+.exchange-chart-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: exchange-draw 1.5s var(--exchange-ease) 0.25s both;
+}
+.exchange-principles > div {
+  animation: exchange-rise 0.8s var(--exchange-ease) 0.6s both;
+}
+.exchange-principles > div:nth-child(2) {
+  animation-delay: 0.7s;
+}
+.exchange-principles > div:nth-child(3) {
+  animation-delay: 0.8s;
+}
+.exchange-footer {
+  animation: exchange-fade 1s ease 0.9s both;
+}
+.exchange-page button,
+.exchange-page a {
+  transition:
+    color 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.3s ease,
+    transform 0.5s var(--exchange-spring),
+    filter 0.2s ease;
+}
+.exchange-page button:active {
+  transform: scale(0.96);
+  transition-duration: 0.12s;
+  transition-timing-function: ease-out;
+}
+.exchange-header nav a {
+  position: relative;
+}
+.exchange-header nav a::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #c9a66c;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--exchange-ease);
+}
+.exchange-header nav a:hover::after,
+.exchange-header nav a:focus-visible::after,
+.exchange-header nav a[aria-current]::after {
+  transform: scaleX(1);
+}
+.exchange-chart,
+.exchange-swap {
+  transition:
+    border-color 0.4s,
+    box-shadow 0.4s;
+}
+.exchange-chart:hover,
+.exchange-swap:focus-within {
+  border-color: #c9a66c55;
+  box-shadow:
+    0 18px 70px #0003,
+    0 0 32px #c9a66c08;
+}
+.exchange-trade-field {
+  transition: background 0.3s;
+}
+.exchange-trade-field:focus-within {
+  background: #c9a66c07;
+}
+.exchange-amount-row button:hover {
+  transform: translateY(-2px);
+  border-color: #c9a66c55;
+}
+.exchange-direction button svg {
+  transition: transform 0.65s var(--exchange-spring);
+}
+.exchange-direction button:hover svg {
+  transform: rotate(180deg);
+}
+.exchange-icon-button svg {
+  transition: transform 0.6s var(--exchange-spring);
+}
+.exchange-icon-button[aria-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+.exchange-modes button,
+.exchange-chart-footer button {
+  transition:
+    color 0.3s,
+    background 0.3s,
+    box-shadow 0.3s;
+}
+.exchange-modes button[aria-pressed="true"] {
+  box-shadow: 0 1px 0 #c9a66c;
+}
+.exchange-swap-bottom .wallet-connect:hover {
+  box-shadow: 0 5px 28px #c9a66c30;
+  transform: translateY(-2px);
+}
+.exchange-settings,
+.exchange-limit,
+.exchange-advanced {
+  animation: exchange-rise 0.35s var(--exchange-ease) both;
+}
+.exchange-principles > div {
+  transition: color 0.3s;
+}
+.exchange-principles h2,
+.exchange-principles > div > span {
+  transition:
+    color 0.3s,
+    transform 0.55s var(--exchange-spring);
+}
+.exchange-principles > div:hover h2 {
+  color: #e8c997;
+  transform: translateX(4px);
+}
+.exchange-principles > div:hover > span {
+  transform: translateY(-3px);
+  color: #e8c997;
+}
+.exchange-footer a svg {
+  transition: transform 0.5s var(--exchange-spring);
+}
+.exchange-footer a:hover svg {
+  transform: translate(2px, -2px);
+}
+.exchange-picker-backdrop[data-state="open"] {
+  animation: exchange-fade 0.25s ease both;
+}
+.exchange-picker-backdrop[data-state="closed"] {
+  animation: exchange-fade 0.2s ease reverse both;
+}
+.exchange-picker[data-state="open"] {
+  animation: exchange-rise .25s ease both;
+}
+.exchange-picker[data-state="closed"] {
+  animation: exchange-fade .15s ease reverse both;
+}
+.exchange-token-option {
+  transition:
+    transform 0.5s cubic-bezier(0.34, 1.65, 0.38, 1),
+    background 0.25s ease;
+  animation: exchange-rise 0.55s ease backwards;
+}
+.exchange-token-option:nth-of-type(2) {
+  animation-delay: 0.04s;
+}
+.exchange-token-option:nth-of-type(3) {
+  animation-delay: 0.08s;
+}
+.exchange-token-option:hover {
+  transform: translateX(4px);
+}
+@media (max-width: 760px) {
+  .exchange-swap {
+    animation-name: exchange-rise;
+    animation-delay: 0.3s;
+  }
+  .exchange-chart {
+    animation-name: exchange-rise;
+    animation-delay: 0.4s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .exchange-page *,
+  .exchange-page *::before,
+  .exchange-page *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+  .exchange-picker,
+  .exchange-picker *,
+  .exchange-picker-backdrop {
+    animation: none !important;
+    transition: none !important;
+  }
+  .exchange-page button:hover,
+  .exchange-page button:active,
+  .exchange-page a:hover svg,
+  .exchange-page button:hover svg,
+  .exchange-page button[aria-expanded="true"] svg,
+  .exchange-principles > div:hover h2,
+  .exchange-principles > div:hover > span,
+  .exchange-token-option:hover {
+    transform: none;
+  }
+}
+
+/* Keep selector arrows centered and independent of token-label width. */
+.exchange-amount-row button .exchange-token-chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-left: auto;
+  transform: none;
+}
+/* Compact heading spacing; remaining viewport space sits beneath the panels. */
+.exchange-focus {
+  grid-template-rows: 16px auto 16px auto minmax(16px, 1fr);
+}
+
+/* Grow with order details instead of creating nested panel scrollbars. */
+.exchange-focus .exchange-chart,
+.exchange-focus .exchange-swap {
+  box-sizing: border-box;
+  height: auto;
+  min-height: clamp(510px, calc(100svh - 200px), 640px);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+/* Keep chart dimensions independent of the order form's content height. */
+.exchange-focus .exchange-chart {
+  align-self: start;
+  height: clamp(510px, calc(100svh - 200px), 640px);
+}
+.exchange-focus .exchange-swap > * {
+  flex-shrink: 0;
+}
+.exchange-focus .exchange-trade-field {
+  flex: 1 0 auto;
+}
+
+/* Currency updates animate artwork and digits, never the panel or controls. */
+.matcha-chart .exchange-chart-line,
+.matcha-chart .market-area,
+.matcha-chart .matcha-candles { animation: none; }
+.matcha-chart .exchange-chart-line {
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+}
+.rolling-value { font-variant-numeric: tabular-nums; }
+.rolling-digit { display: inline-block; height: 1em; overflow: hidden; vertical-align: -0.08em; line-height: 1; }
+.rolling-reel { display: inline-flex; flex-direction: column; transition: transform 0.85s ease-in-out; }
+.rolling-reel > span { display: block; height: 1em; line-height: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .rolling-reel { transition: none; }
+}
+
+:is(.matcha-axis, .matcha-metrics) .rolling-value {
+  --rolling-step: 1.4em;
+  display: inline-block;
+  white-space: pre;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+:is(.matcha-axis, .matcha-metrics) .rolling-value > span { display: inline-flex; align-items: center; }
+:is(.matcha-axis, .matcha-metrics) .rolling-digit {
+  width: 1ch;
+  height: var(--rolling-step);
+  line-height: 1.4;
+  vertical-align: middle;
+}
+:is(.matcha-axis, .matcha-metrics) .rolling-reel { display: flex; transition-duration: 0.18s; }
+:is(.matcha-axis, .matcha-metrics) .rolling-reel > span {
+  flex: 0 0 var(--rolling-step);
+  height: var(--rolling-step);
+  line-height: 1.4;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.matcha-axis, .matcha-metrics) .rolling-reel { transition: none; }
+}
+
+/* Reserve equal letter slots so deleting a name cannot shift nearby controls. */
+.rolling-name { --rolling-step: 24px; display: inline-block; font-family: Arial, Helvetica, sans-serif; white-space: pre; line-height: 24px; }
+.rolling-name > span { display: inline-flex; align-items: center; }
+.rolling-name .rolling-letter { flex: 0 0 1em; width: 1em; height: var(--rolling-step); line-height: 24px; vertical-align: middle; text-align: center; }
+.rolling-name .rolling-reel { display: flex; width: 100%; transition-duration: 0.18s; }
+.rolling-name .rolling-reel > span { flex: 0 0 var(--rolling-step); height: var(--rolling-step); line-height: 24px; }
+.rolling-name > span > span:not(.rolling-letter) { flex: 0 0 1em; width: 1em; text-align: center; }
+@media (prefers-reduced-motion: reduce) {
+  .rolling-name .rolling-reel { transition: none; }
+}
+
+/* Whole-pixel steps keep axis reels aligned. */
+.matcha-axis .rolling-value { --rolling-step: 16px; line-height: 16px; }
+.matcha-axis .rolling-digit { flex: 0 0 1ch; line-height: 16px; }
+.matcha-axis .rolling-reel > span { line-height: 16px; }
+
+
+
+
+/* Size each animated letter from its actual glyph instead of a fixed slot. */
+.rolling-name .rolling-letter {
+  position: relative;
+  flex: 0 0 auto;
+  width: auto;
+  text-align: left;
+}
+.rolling-name .rolling-letter::before {
+  content: attr(data-character);
+  visibility: hidden;
+}
+.rolling-name .rolling-letter .rolling-reel {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.rolling-name > span > span:not(.rolling-letter) {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+
+
+/* Matcha reference trade card; scoped so chart and shared navigation retain their theme. */
+.exchange-focus .matcha-swap {
+  background: linear-gradient(145deg, #231f19, #12110f);
+  border: 1px solid #63543b;
+  border-radius: 24px;
+  box-shadow: none;
+  color: #f3f6fc;
+  font-family: Arial, Helvetica, sans-serif;
+  min-height: 0;
+  align-self: start;
+  overflow: visible;
+}
+.exchange-focus .matcha-swap[data-mode="Swap"] {
+  min-height: clamp(510px, calc(100svh - 200px), 640px);
+}
+.matcha-swap .exchange-swap-top {
+  height: 60px;
+  padding: 0 12px 0 16px;
+  gap: 4px;
+  border-bottom: 1px solid #63543b;
+}
+.matcha-swap .exchange-modes {
+  gap: 4px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  min-width: 0;
+}
+.matcha-swap .exchange-modes button {
+  min-height: 36px;
+  padding: 0 8px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #c3cedb;
+  border-radius: 24px;
+  white-space: nowrap;
+}
+.matcha-swap .exchange-modes button[aria-pressed="true"] {
+  background: #e8c997;
+  color: #21190e;
+  box-shadow: none;
+}
+.exchange-panel-tools { display: flex; flex-shrink: 0; }
+.matcha-swap .exchange-icon-button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #d6bd94;
+}
+.matcha-swap .exchange-icon-button:disabled { color: #786e5e; cursor: not-allowed; }
+.matcha-swap .exchange-icon-button svg { width: 16px; height: 16px; }
+.matcha-swap .exchange-trade-field { padding: 16px 24px 24px; min-height: 166px; }
+.matcha-swap .exchange-trade-field:focus-within { background: transparent; }
+.matcha-swap .exchange-field-label { justify-content: flex-start; gap: 6px; color: #f3f6fc; font-size: 13px; margin-bottom: 12px; }
+.matcha-swap .exchange-field-label .exchange-chain { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: #c3cedb; }
+.matcha-swap .exchange-chain .token-mark { width: 12px; height: 12px; border-radius: 4px; }
+.matcha-swap .exchange-chain svg { width: 10px; height: 10px; }
+.exchange-token-row, .exchange-token-controls, .exchange-quick-amounts { display: flex; align-items: center; gap: 10px; }
+.exchange-token-row { justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+.exchange-token-controls > button {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 36px; padding: 0 12px 0 6px;
+  background: #302a21; border: 1px solid #766244;
+  border-radius: 18px; color: #f3f6fc; font-size: 14px; font-weight: 500;
+  box-shadow: inset 0 -1px 0 #ffffff0d;
+}
+.exchange-token-controls .token-mark { width: 24px; height: 24px; }
+.exchange-quick-amounts { gap: 4px; }
+.exchange-quick-amounts button { min-width: 48px; height: 36px; padding: 0 10px; border: 0; border-radius: 18px; color: #c3cedb; background: #302a21; font-size: 14px; }
+.matcha-swap .exchange-amount-row { margin: 16px 0 0; gap: 12px; min-height: 42px; }
+.matcha-swap .exchange-amount-row input, .matcha-swap .exchange-amount-row .exchange-output { font-size: 30px; line-height: 42px; color: #f3f6fc; font-weight: 400; font-variant-numeric: tabular-nums; }
+.matcha-swap .exchange-amount-row input::placeholder { color: #a7b6c8; }
+.matcha-swap .exchange-fiat { flex-shrink: 0; color: #c3cedb; font-size: 14px; white-space: nowrap; }
+.matcha-swap .exchange-direction { border-color: #63543b; }
+.matcha-swap .exchange-direction button { top: -16px; width: 32px; height: 32px; border-radius: 50%; background: #191610; border: 1px solid #63543b; box-shadow: none; color: #f3f6fc; z-index: 1; }
+.matcha-swap .exchange-swap-bottom { margin-top: 0; padding: 24px; border-top: 1px solid #63543b; }
+.matcha-swap .exchange-swap-bottom .wallet-connect { width: 100%; min-height: 50px; border-radius: 28px; border: 0; background: linear-gradient(115deg, #efd5a5, #c5a16a 58%, #b68a50); color: #21190e; box-shadow: none; font: 500 16px Arial, Helvetica, sans-serif; }
+.matcha-swap .wallet-connect__content { justify-content: center; }
+.matcha-swap .wallet-connect__icon, .matcha-swap .wallet-connect__shine { display: none; }
+.matcha-swap .exchange-swap-bottom p { color: #c3cedb; font-size: 11px; margin: 12px 0 0; }
+.matcha-swap button:focus-visible { outline: 2px solid #f0d4a2; outline-offset: 3px; }
+.matcha-swap .exchange-settings, .matcha-swap .exchange-advanced, .matcha-swap .exchange-limit { color: #f3f6fc; }
+@media (max-width: 380px) {
+  .exchange-focus .matcha-swap[data-mode="Swap"] {
+  min-height: clamp(510px, calc(100svh - 200px), 640px);
+}
+.matcha-swap .exchange-swap-top { padding-left: 10px; padding-right: 6px; }
+  .matcha-swap .exchange-modes { gap: 0; }
+  .matcha-swap .exchange-modes button { padding: 0 5px; font-size: 14px; }
+  .matcha-swap .exchange-icon-button { min-width: 30px; width: 30px; padding: 7px; }
+  .matcha-swap .exchange-trade-field, .matcha-swap .exchange-swap-bottom { padding-left: 20px; padding-right: 20px; }
+}

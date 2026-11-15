@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getMonadExplorerUrl } from "@lantern/config";
-import { SiteHeader } from "@/components/organisms/site-header";
 import { Atmosphere } from "@/components/molecules/atmosphere";
 import { LatternMark } from "@/components/icons/lattern-mark";
 
@@ -81,7 +80,7 @@ const FAQS = [
 export default function DocsPage() {
   return (
     <main className="relative mx-auto w-full max-w-3xl overflow-x-clip px-6 pt-36 pb-16">
-      <SiteHeader active="docs" />
+
       <Atmosphere />
 
       <div
@@ -426,3 +425,4 @@ function FactorBar({ label, display, value }: { label: string; display: string; 
     </div>
   );
 }
+

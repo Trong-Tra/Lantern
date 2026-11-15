@@ -2,6 +2,10 @@
 
 Updated 2026-10-30 in the local Lantern working copy. Code is authoritative. This supersedes the previous landing specification; `docs/cinematic-experience.md` describes the older implementation.
 
+## Required placement workflow
+
+Before designing or implementing any content or button placement, follow `docs/04-frontend.md` §Placement research and stable controls. Research mobile/desktop scrolling, comfortable reading areas and natural thumb/cursor reach; document the evidence and assumptions. Keep shared controls anchored consistently across routes, and reserve independent space for page-specific options so existing buttons never shift when an option appears. Validate responsive reading, reach and spatial stability before completing the design. This rule governs future work; it is not a claim that the current layout has already been validated.
+
 ## Direction
 
 A western lantern guides isolated intelligences toward identity, trust, and a shared network. Dark, mythic atmosphere: aged metal, ivory typography, amber light, and spatial depth. The lantern stays the principal object. No raster scenic background.
@@ -503,3 +507,89 @@ Supersedes connected shape morphing: chapters 5–11 render independent, complet
 
 ## Softer background fighters — 2026-11-07
 Doubled the Greek statue combat artwork blur radius from 12 to 24 source pixels for all three background tableaux.
+
+## Black hole navigation - 2026-11-14
+A fixed gold-rimmed black hole sits at the top right with a 28px desktop / 16px mobile edge gap. Story, Demo, Network and Docs eject right-to-left into a horizontal row. Closing staggers the options back into the hole with rotation and blur while the lens shakes, grows and settles, adapting the supplied circle-menu reference without adding dependencies. Escape returns focus to the trigger; outside click and link activation close the disclosure. Hidden links are inert, reduced motion removes animation, and the no-JavaScript story remains available.
+
+
+## Celestial navigation refinement - 2026-11-14
+Supersedes the black-hole menu styling above. The top-right trigger is now a finely engraved astrolabe with antique-brass concentric rings, laurel branches, an eclipse/star center and an inclined orbit. Horizontal links use Georgia serif labels, Roman indices and small diamond stars along a fading hairline route, without pill outlines. Opening glides outward without overshoot; closing draws links inward with a restrained lens rotation and pulse. Existing destinations, edge spacing, keyboard support and reduced-motion behavior remain.
+
+
+## Static celestial navigation - 2026-11-14
+All four links now remain visible in their horizontal positions. Removed disclosure state, open/close choreography and hidden-link handling. Astrolabe hover turns its rings; pressing it gives a restrained scale/rotation response and returns to the story. Links brighten on hover and press; reduced-motion support remains.
+
+
+## Simple navigation bar - 2026-11-14
+Supersedes the celestial menu treatments above. A compact, fixed top-right navigation bar uses four Georgia text links (Story, Demo, Network, Docs), one small gold star and a soft ink gradient for contrast. Removed astrolabe, Roman indices, connecting lines and absolute option positioning. Links remain visible on desktop and mobile; hover/focus reveals a fine gold underline, press shifts by one pixel, and reduced motion removes movement. Active component: landing-navigation.tsx.
+
+
+## Floating framed navigation - 2026-11-14
+Replaces the top-right text navigation with a centered floating ink bar, a thin antique-brass rectangular frame and small diamond details at both ends. Uppercase, tracked sans-serif links gain a quiet gold panel on hover/focus and compress slightly on press. All four links remain visible; compact phone spacing and reduced-motion support remain.
+
+
+## Minimal text navigation - 2026-11-14
+Supersedes the framed navigation above. Four sentence-case sans-serif links sit at the top right with generous spacing and no container, border, ornaments or panel backgrounds. Muted ivory brightens on hover with a fine gold underline; press moves one pixel. Keyboard focus, 44px hit targets, compact mobile spacing and reduced-motion support remain.
+
+Navigation labels: Home, App, Exchange, Profile. Destinations are /, /app, /exchange and /profile respectively. All destinations now exist: /app reuses the agent network, with Exchange and Profile UI previews at their named routes. Landing uses native anchors for full-page navigation out of the cinematic runtime.
+
+## Exchange - 2026-11-14
+
+### Matcha chart reference refresh - 2026-11-15
+Inspected https://matcha.xyz/ in browser: token identity at upper left, four compact market metrics upper right, large price/change below, chart-style and Price/MCap segmented controls, expanded line/area chart with bottom volume bars, price axis right, time labels below, switch-token button lower left and timeframe group lower right. Reproduced that composition in warm ink/ivory/brass, retaining existing elastic entrances, chart draw and reduced motion. No social links or token scores fabricated. Market metadata, market caps, candles and volumes are explicitly development fixtures; production shows unavailable states. Line/candle and Price/MCap controls update the visualization, switch-token reverses the current pair, and timeframe controls retain distinct histories. Removed previous open/high/low summary rows rather than adding competing content.
+
+Placement: existing NN/G scrolling and W3C color-cue research above informed keeping the chart within the centered equal-height workspace. Desktop controls stay near the price/plot and fixed shared navigation is untouched; at <=760px metrics wrap into a 2x2 group and footer controls wrap without overlap. Assumptions remain 88px desktop / 132px phone header, no project gaze/scroll analytics. Browser checked desktop composition/mode changes and 390x844 phone chart/timeframe reach. Geometry is rounded before SVG rendering to avoid server/browser floating-point hydration differences.
+
+### Chart readability and focus placement - 2026-11-15
+MarketChart replaces generic paths with deterministic fictional token/timeframe history consistent with displayed opening/closing prices and signed change. Gold gains/ivory losses also carry arrows and signed text; dashed opening reference, dollar/time labels and high/low/open values explain scale. Axis is labeled auto-scaled. Pointer/tap inspection and a 44px-high keyboard/touch range control share a fixed value readout. Production shows an unavailable-data state. Warm ink/charcoal chart and trade surfaces, brighter ivory secondary text, gold receive values and solid gold selected timeframes strengthen contrast while retaining the theme.
+
+Placement research: https://www.nngroup.com/articles/scrolling-and-attention/ supports prioritizing core tasks in the initial viewport; https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html supports textual/shape cues alongside color. No project gaze/scroll analytics available. Assumed desktop width above 760px and fixed 88px header; phone header is 132px at 600px and below. A compact heading precedes a centered workspace with equal-height panels, clamped to available desktop height. Opening settings/limit details may grow both panels with normal scrolling rather than clipping controls. Phone panels stay stacked, trading first. Shared navigation coordinates remain unchanged; no scroll interception. Removed the requested development-disclaimer and fee/slippage footer lines; mock badges remain. Browser verified desktop initial viewport fit, equal panel edges, visible action, timeframe direction change and 390x844 phone trading-first placement. Reduced-motion overrides remain.
+
+Exchange particle backdrop (2026-11-15): fixed decorative canvas renders small gold/lavender lights along tilted elliptical accelerator tracks with fading trails and sparse, soft local blooms. A separate 32%-black matte sits above particles and below all UI. Both layers ignore pointers and accessibility navigation; existing content positions, shared navigation, scroll and touch reach are unchanged. Device assumptions: 18 lights below 760px, 36 desktop, 30fps drawing and DPR capped at 1.5. W3C animation/reduced-motion guidance reviewed for the prior motion pass also applies here: reduced motion renders a static particle frame, hidden tabs pause it and teardown removes listeners. No gaze/scroll analytics available; browser visual QA remains pending.
+
+Development-only data: the server enables mock mode for NODE_ENV=development. Fictional MON/USDC/ETH prices and balances seed the page; local quotes apply a 0.3% fee, selected slippage and optional target limit price. Mock labels remain visible, no wallet is required for quoting, and production retains unavailable states. No simulated or real trade execution.
+`/exchange` follows Matcha's broad chart / narrow trade panel composition in ink, ivory and antique brass, with Georgia display type and restrained celestial lighting. Mobile puts trading first. Searchable token selection, pair reversal, order modes, timeframes and settings work locally. Existing wallet connection is reused. The chart is explicitly illustrative; live market data, quotes and execution are not connected.
+
+Exchange motion: staggered header, headline, opposing chart/trade arrivals, rising feature copy and fading footer; chart line draws on arrival and token/timeframe changes. Hover adds navigation underlines, token lift, reversal rotation, wallet glow and arrow travel. Settings/order details rise into view; token dialogs scale/fade on open and close with staggered options. Mobile entrance follows trading-first order. Reduced motion removes animation, transitions and hover travel, including portaled dialogs. CSS-only motion adds no animation runtime.
+
+## Shared site navigation - 2026-11-15
+
+Exchange elasticity (2026-11-15): entrances use a small overshoot and counter-settle; token dialog scale rebounds by 1.2%, with spring easing on token hover, icons and press release. Shared navigation coordinates and all layout dimensions stay fixed. Mobile retains trading-first order, with 3px vertical rebound; no scrolling interception. Motion assumptions: existing 760px breakpoint and desktop layout, no project gaze/scroll analytics available. Reviewed W3C animation guidance (https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html); retained reduced-motion overrides for page and portaled dialog. Responsive visual verification remains pending browser availability.
+The root layout mounts SiteNavigation once for all routes, using styles/site-navigation.css. Home, App, Exchange and Profile retain identical fixed top-right position, typography, spacing and native links everywhere. Page-specific headers keep brand, search and wallet controls below the shared navigation; duplicate main navigation rows are removed.
+
+## Navigation elasticity - 2026-11-15
+Shared navigation keeps its existing top-right anchor, spacing, 44px target height and route order. Assumptions: 390px phone and 1440px desktop; no project scroll or reach analytics available. Only inner labels and decorative underlines transform, so hit areas and neighboring controls stay fixed and no additional scrolling or pointer travel is introduced. Fine-pointer hover lifts text 2px, press compresses it, and release/underlines use restrained overshoot easing. Touch gets press feedback without sticky hover lift; native navigation is immediate. Reviewed W3C animation guidance (https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html); reduced motion removes transforms and transitions. Responsive visual verification remains pending.
+
+## Unified header - 2026-11-15
+Supersedes earlier text-only navigation. Root SiteNavigation owns the logo, Home/App/Exchange/Profile links, searchable supported tokens, Exchange's real ConnectWalletButton and a Radix navigation menu on every route. Removed duplicate Exchange/Profile/explorer headers. Token results open /exchange?token= with a validated initial buy asset; this catalog is limited to MON, USDC and ETH, with no invented prices. Profile retains a separate wallet-asset filter.
+Placement research: reviewed W3C consistent navigation (https://www.w3.org/WAI/WCAG22/Understanding/consistent-navigation.html) and target sizing (https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html). No project gaze/scroll/reach analytics available. Assumed 390px phone and 1440px desktop. Fixed header keeps actions discoverable without scrolling; reserved wallet/menu slots avoid movement when connection labels change. Desktop links collapse into the same menu below 1100px. Phones use a second search row to retain 44px controls and avoid crowding; page content reserves header space. This does not assume a universal thumb position. Menu uses built-in keyboard, Escape, outside-dismiss and focus handling. Logo spins on hover/focus; label/underline spring retained with reduced-motion overrides. Browser visual/route-coordinate verification remains pending.
+
+Exchange matte refinement (2026-11-15): the 32%-black particle matte now applies a 6px backdrop blur (including WebKit prefix). Only the background is softened; foreground UI and control placement stay unchanged.
+
+Logo axis correction (2026-11-15): shared logo turns around its own vertical Y axis with perspective on hover/focus. Centered SVG transform origin keeps the logo anchor and all controls stable; reduced motion disables the turn. Existing placement research applies; no layout changes.
+
+
+Volumetric logo (2026-11-15): hover/focus crossfades the flat mark into four intersecting gold lantern rib planes and a luminous central core in CSS 3D space. The tilted object continuously rotates on its vertical axis only while hovered/focused; fixed 28x34 slot preserves placement. Reduced motion keeps the original static mark. Existing placement research applies. No WebGL context or dependencies added; browser visual QA pending.
+
+
+## Global gliding scroll and scrollbar - 2026-11-15
+All non-landing routes now reuse the existing 650ms Lenis hook via root SmoothPageScroll; landing retains its own welcome/reading/fallback lifecycle, so instances never overlap. Reduced motion keeps native scrolling; touch and nested scroll regions retain native behavior. Anchors glide and Radix/wallet body scroll locks stop momentum. Shared menu is nonmodal and no longer removes the page scrollbar when opened; its overflow remains native and uses the global thin brass-on-ink scrollbar, like all pages and nested panels. No control placement or content order changes; existing placement research applies. Reviewed installed Lenis types and official setup/nested-scroll guidance (https://github.com/darkroomengineering/lenis). Browser wheel/touch/menu verification pending.
+
+Exchange chart cleanup (2026-11-15): removed the percent-through-period/price/change readout and Inspect price history range control at user request. Pointer crosshair, chart summary and timeframe controls remain. Freed space expands the chart within the existing centered, equal-height desktop panels; shared navigation is unchanged.
+
+Exchange palette correction (2026-11-15): use the shared ink, ivory and antique-gold palette throughout chart and swap. Gold highlights prices/received amounts and upward trends; muted ivory distinguishes downward trends alongside arrows and signed percentages. Token-brand icons retain identity colors. Existing researched layout, centered panels, stable controls and reduced-motion behavior are unchanged.
+
+Loading (2026-11-15): shared header now uses prefetched client navigation. Route skeletons reserve content areas with subtle brass shimmer; reduced motion keeps them static. Existing landing welcome/WebGL loading and fallback remain; no artificial page delay. Placement research and implementation details: docs/04-frontend.md, Smooth loading and navigation.
+
+## Landing header clearance - 2026-11-15
+Reserved 88px desktop / 132px phone header plus 24px breathing room and safe-area inset in story panels, including reading mode. Short viewport copy scrolls inside the remaining space; shared controls and cinematic scroll stage remain stable. Removed the first chapter's Scroll to find your light button.
+Placement review: W3C Focus Not Obscured guidance (https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html), existing scrolling/reach notes and the user's overlap observation. Assumptions: 390px phone / 1440px desktop, no project analytics. Browser visual QA pending.
+
+Exchange trend update (2026-11-15): line, gradient and signed percentage use green for nonnegative selected-period change and red for negative change, replacing gold/ivory trend colors. Layout unchanged.
+
+## Landing content fit - 2026-11-15
+
+Landing content fit (2026-11-15): chapter copy and expanded references have intrinsic height and visible overflow; ResizeObserver scales complete chapters to the space below the fixed header, anchored at the bottom on phones. Reading mode keeps natural size. Placement review: user-reported nested scrolling and W3C Reflow (https://www.w3.org/WAI/WCAG22/Understanding/reflow.html); assumes 390px mobile / 1440px desktop, no project analytics. Navigation coordinates unchanged; very short screens reduce text size. Browser visual QA pending.
+
+## Section arrow pacing (2026-11-15)
+The next-section arrow uses a 3.2-second Lenis chapter jump with sine ease-in/out for gentle acceleration and deceleration. Reduced-motion reading mode remains. Timing-only; existing placement research applies and control positions, content visibility and touch/pointer reach remain unchanged on mobile and desktop.

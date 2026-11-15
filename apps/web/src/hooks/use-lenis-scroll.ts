@@ -25,11 +25,21 @@ export function useLenisScroll(disabled = false) {
       gestureOrientation: "vertical",
       smoothWheel: true,
       allowNestedScroll: true,
+      anchors: true,
       wheelMultiplier: 1.0,
       touchMultiplier: 1.5,
     });
 
     lenisRef.current = lenis;
+
+    // Respect Radix/wallet modal scroll locks, including in-flight momentum.
+    const syncScrollLock = () => {
+      if (getComputedStyle(document.body).overflow === "hidden") lenis.stop();
+      else lenis.start();
+    };
+    const scrollLockObserver = new MutationObserver(syncScrollLock);
+    scrollLockObserver.observe(document.body, { attributes: true, attributeFilter: ["style", "data-scroll-locked"] });
+    syncScrollLock();
 
     // Synchronize Lenis scroll position with GSAP ScrollTrigger
     lenis.on("scroll", ScrollTrigger.update);
@@ -43,6 +53,7 @@ export function useLenisScroll(disabled = false) {
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      scrollLockObserver.disconnect();
       gsap.ticker.remove(updateRaf);
       lenis.destroy();
       lenisRef.current = null;

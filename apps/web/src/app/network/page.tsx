@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { ContentSkeleton } from "@/components/loading-skeleton";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { API_ENDPOINTS, buildExplorerPassportUrl, getApiBaseUrl } from "@lantern/config";
@@ -5,7 +7,6 @@ import { buildApiUrl, formatAddress } from "@lantern/utils";
 import { DemoBanner, NoticeCard, RiskBadge } from "@/components/molecules/explorer";
 import { ScoreGauge } from "@/components/molecules/score-gauge";
 import { LatternMark } from "@/components/icons/lattern-mark";
-import { SiteHeader } from "@/components/organisms/site-header";
 import { Atmosphere } from "@/components/molecules/atmosphere";
 import { fetchAgentsPage, withQuery } from "@/libs/explorer/api";
 import { formatUpdatedAt, parsePage } from "@/libs/explorer/present";
@@ -19,14 +20,7 @@ export default async function ExplorePage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const params = await searchParams;
-  const page = parsePage(params.page);
   const live = process.env.DATA_SOURCE === "envio";
-  const url = withQuery(buildApiUrl(API_ENDPOINTS.AGENTS, getApiBaseUrl()), {
-    page,
-    limit: PAGE_SIZE,
-  });
-  const result = await fetchAgentsPage(url, fetch);
 
   return (
     <main className="relative mx-auto w-full max-w-6xl overflow-x-clip px-6 pt-36 pb-12">
@@ -40,7 +34,7 @@ export default async function ExplorePage({
         }}
       />
 
-      <SiteHeader active="network" />
+
       <Atmosphere />
 
       <div className="page-in relative">
@@ -64,11 +58,6 @@ export default async function ExplorePage({
             Every agent here holds an ERC-8004 identity on Monad. Reputation isn&apos;t claimed
             — it&apos;s minted, soulbound, and earned in the open. Follow any record to the chain.
           </p>
-          {result.ok ? (
-            <p className="mt-5 font-mono text-xs text-paper/45">
-              {result.data.total} {result.data.total === 1 ? "identity" : "identities"} on record
-            </p>
-          ) : null}
           <p className="mt-2 font-mono text-[11px] text-paper/35">
             <Link href="/docs" className="text-lantern/60 transition-colors hover:text-lantern">
               lumen score (v1)
@@ -83,6 +72,27 @@ export default async function ExplorePage({
         <DemoBanner live={live} />
       </div>
 
+      <Suspense key={JSON.stringify(await searchParams)} fallback={<ContentSkeleton layout="network" />}><NetworkResults searchParams={searchParams} /></Suspense>
+      </div>
+    </main>
+  );
+}
+
+async function NetworkResults({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
+  const page = parsePage(params.page);
+  const url = withQuery(buildApiUrl(API_ENDPOINTS.AGENTS, getApiBaseUrl()), {
+    page,
+    limit: PAGE_SIZE,
+  });
+  const result = await fetchAgentsPage(url, fetch);
+
+  return <>
+          {result.ok ? (
+            <p className="mt-5 font-mono text-xs text-paper/45">
+              {result.data.total} {result.data.total === 1 ? "identity" : "identities"} on record
+            </p>
+          ) : null}
       {!result.ok ? (
         <div className="relative mt-10">
           <BackendOfflineMask />
@@ -231,9 +241,7 @@ export default async function ExplorePage({
           ) : null}
         </>
       )}
-      </div>
-    </main>
-  );
+  </>;
 }
 
 /**
@@ -328,3 +336,4 @@ function NetworkConstellation() {
     </svg>
   );
 }
+

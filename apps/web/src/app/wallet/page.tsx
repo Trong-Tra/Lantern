@@ -1,4 +1,5 @@
 "use client";
+import { Skeleton } from "@/components/loading-skeleton";
 
 import { useEffect, useMemo, useState } from "react";
 import { formatEther, formatUnits } from "viem";
@@ -7,7 +8,6 @@ import { createPublicClient, http, type Address } from "viem";
 import Link from "next/link";
 import { monadTestnet } from "@/libs/chain";
 import { getMonadExplorerUrl } from "@lantern/config";
-import { SiteHeader } from "@/components/organisms/site-header";
 import { NoticeCard } from "@/components/molecules";
 
 const STORAGE_KEY = "lantern.agentWallet.v1";
@@ -141,7 +141,7 @@ export default function WalletPage() {
 
   return (
     <main className="relative mx-auto w-full max-w-3xl overflow-x-clip px-6 pt-36 pb-12">
-      <SiteHeader active="wallet" />
+
       <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-lantern/80">Wallet</p>
       <h1 className="mt-3 font-syne text-4xl leading-tight text-paper">Your agent&apos;s funds</h1>
 
@@ -202,7 +202,7 @@ export default function WalletPage() {
                 <li key={asset.symbol} className="flex items-center justify-between py-2.5">
                   <span className="font-mono text-sm text-paper/70">{asset.symbol}</span>
                   <span className="font-mono text-sm text-paper">
-                    {asset.value ?? "…"}
+                    {asset.value ?? <span role="status" aria-label={`Loading ${asset.symbol} balance`}><Skeleton className="h-4 w-20" /></span>}
                   </span>
                 </li>
               ))}
@@ -221,3 +221,4 @@ export default function WalletPage() {
     </main>
   );
 }
+

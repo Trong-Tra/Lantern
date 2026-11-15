@@ -68,3 +68,4 @@ export function storyLink(chapter:number,index:number,seconds:number,lamp:LightP
   if(chapter===10){a=nodes[index];b=nodes[(index+1)%6];energy=.25*(index<2?1:smooth((p-(index-1)*.13)*20));}
   return [...a,...b,energy];
 }
+

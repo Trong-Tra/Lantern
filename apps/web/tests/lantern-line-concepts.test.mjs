@@ -48,3 +48,4 @@ test("every celestial sculpture has continuous idle motion while its signal rout
   for(let strand=0;strand<6;strand++)assert.deepEqual(conceptLine(chapter,strand,0,3),conceptLine(chapter,strand,0,4));
  }
 });
+

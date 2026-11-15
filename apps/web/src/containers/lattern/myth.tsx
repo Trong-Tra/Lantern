@@ -127,6 +127,27 @@ export function MythLanding() {
   const [unavailable, setUnavailable] = useState(false);
   const reduced = useReducedMotion();
   const staticMode = reading || reduced || unavailable;
+  useEffect(() => {
+    if (staticMode) return;
+    const fit = () => {
+      for (const panel of panels.current) {
+        const copy = panel?.querySelector<HTMLElement>(".story-copy");
+        if (!panel || !copy) continue;
+        const style = getComputedStyle(panel);
+        const available = panel.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+        copy.style.setProperty("--copy-scale", String(Math.min(1, Math.max(0, available) / Math.max(1, copy.offsetHeight))));
+      }
+    };
+    const observer = new ResizeObserver(fit);
+    for (const panel of panels.current) {
+      if (!panel) continue;
+      observer.observe(panel);
+      const copy = panel.querySelector(".story-copy");
+      if (copy) observer.observe(copy);
+    }
+    fit();
+    return () => observer.disconnect();
+  }, [staticMode]);
   const smoothScroll = useLenisScroll(staticMode || !introDone);
   const onReady = useCallback(() => setReady(true), []);
   const onError = useCallback(() => setUnavailable(true), []);
@@ -322,7 +343,12 @@ export function MythLanding() {
         journey.current.offsetTop +
         (journey.current.offsetHeight - innerHeight) *
           ((index + 0.1) / STORY_END);
-      if (smoothScroll.current) smoothScroll.current.scrollTo(top);
+      if (smoothScroll.current) {
+        smoothScroll.current.scrollTo(top, {
+          duration: 3.2,
+          easing: (t) => (1 - Math.cos(Math.PI * t)) / 2,
+        });
+      }
       else window.scrollTo({ top, behavior: reduced ? "instant" : "smooth" });
     }
   };
@@ -430,11 +456,6 @@ export function MythLanding() {
                   </p>
                   <p className="chapter-context">{scene.kicker}</p>
                   <ReferenceDetails index={index} />
-                  {index === 0 && (
-                    <button className="myth-button" onClick={() => jump(1)}>
-                      Scroll to find your light ↓
-                    </button>
-                  )}
                   {index === 11 && (
                     <div className="hero-actions">
                       <a className="myth-button" href="#demo">

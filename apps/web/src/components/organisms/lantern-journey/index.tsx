@@ -433,7 +433,7 @@ function GuidedAgents({ lantern }: { lantern: RefObject<Group | null> }) {
     const mobile = gl.domElement.clientWidth < 760;
     const space = mobile ? 0.55 : 1;
     if (
-      networkClockRuns(chapters) &&
+      networkClockRuns(chapters, journeyState.transition, journeyState.portal) &&
       !reducedMotion
     )
       networkTime.current += Math.min(delta, 0.05);

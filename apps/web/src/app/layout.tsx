@@ -1,4 +1,8 @@
 import "@/styles/lattern.css";
+import "@/styles/site-navigation.css";
+import "@/styles/loading.css";
+import { SiteNavigation } from "@/components/organisms/site-navigation";
+import { SmoothPageScroll } from "@/components/smooth-page-scroll";
 import type { Metadata } from "next";
 import { Geist, JetBrains_Mono, Syne } from "next/font/google";
 import { Providers } from "@/components/providers";
@@ -38,7 +42,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${syne.variable} ${jetbrainsMono.variable} no-js dark h-full antialiased`}
     >
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <SmoothPageScroll />
+          <SiteNavigation />
+          {children}
+        </Providers>
       </body>
     </html>
   );

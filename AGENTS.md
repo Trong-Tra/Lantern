@@ -30,6 +30,7 @@ Full index: `docs/README.md`. Vision: `docs/00-vision.md` (owner-only changes).
 
 ## Hard rules
 
+* Before any UI design or layout implementation, research content visibility, scrolling and touch/pointer reach for mobile and desktop. Follow `docs/04-frontend.md` §Placement research and stable controls; keep shared navigation positions stable across routes.
 * `TBD` > invented values — never fabricate addresses, URLs, scores, tx hashes.
 * Never commit `.env` values; `.env.example` keys only. No `node_modules`/`dist`/`.next`.
 * Never build on dead code: `apps/web/src/containers/home|experience|lantern`, `styles/globals.scss`.

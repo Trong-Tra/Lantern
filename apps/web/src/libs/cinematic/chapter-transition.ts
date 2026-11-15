@@ -152,7 +152,9 @@ export function sectionTwoPath(
 
 /** Both visible assemblies keep moving throughout their handoff. */
 export function networkClockRuns(
-  chapters: number[]
+  chapters: number[],
+  _transition: number,
+  _portal: number
 ) {
   return chapters[1] > 0 || chapters[2] > 0;
 }
