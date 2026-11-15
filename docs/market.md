@@ -68,7 +68,7 @@ services/market/
 │   ├── protocol/            # quote WS (ws.go): intent broadcast, signed quotes, retract, pick; hub.go = lifecycle
 │   ├── paywall/             # x402 middleware (402 challenge, payment verify, access grants)
 │   ├── chain/               # abigen bindings, quote verification helpers, tx submission
-│   └── api/                 # gqlgen GraphQL (web-facing queries; absorbs apps/api identity reads at Phase 4 — do not extend apps/api)
+│   └── api/                 # gqlgen GraphQL (web-facing queries incl. identity reads; apps/api removed 2026-11-15 — FE targets this, not Express)
 └── README.md
 ```
 
@@ -105,5 +105,5 @@ Key choices:
 ## Conventions
 
 * Go: standard layout, `gofmt` + `go vet` clean, table-driven tests; no framework beyond what's listed.
-* Env keys: documented in `.env.example` as keys only; Go service reads the repo-root `.env` like `apps/api` does.
+* Env keys: documented in `.env.example` as keys only; Go service reads the repo-root `.env`.
 * Same repo rules: TBD > invented values, docs + code in the same commit, `forge test`/`go test` green per touched area.

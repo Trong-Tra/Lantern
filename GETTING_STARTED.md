@@ -2,7 +2,7 @@
 
 Source navigation, setup, and how to run every part of the monorepo.
 
-> **Pivot state (2026-11-14):** the backend (contracts, API, indexer, packages) is pruned to the identity stack and ready for the market build (`docs/market.md`). `apps/web` is **frozen** — it still references removed APIs/types and is not expected to typecheck or fully work until the frontend rebuild. Commands for it are omitted on purpose.
+> **Pivot state:** the backend (contracts, indexer, packages, `services/market`) is pruned to the identity stack + market build (`docs/market.md`); the old Express `apps/api` was **removed 2026-11-15** — the only backend is the Go service. `apps/web` is **frozen** — it still references removed APIs/types and is not expected to typecheck or fully work until the frontend rebuild. Commands for it are omitted on purpose.
 
 ## Repo layout
 
@@ -20,20 +20,12 @@ Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 │   ├── script/                   # Deploy + seed scripts, seed JSON
 │   ├── foundry.toml
 │   └── README.md
-├── apps/api/                     # Express 5 backend (port 4000)
-│   ├── src/
-│   │   ├── index.ts              # app entry; loads .env FIRST via loadEnv.ts
-│   │   ├── app.ts                # Express app factory (repository injectable)
-│   │   ├── routes/               # agent endpoints
-│   │   └── repositories/         # AgentRepository interface + Envio implementation
-│   ├── src/**/*.test.ts          # API tests (run with tsx)
-│   └── package.json
 ├── apps/web/                     # Next.js 16 — FROZEN pre-pivot, do not touch
 ├── packages/                     # shared workspace libs
 │   ├── config/                   # endpoint paths, explorer URLs
 │   ├── types/                    # shared TS types (AgentSummary, Attestation)
 │   └── utils/                    # envelope + formatting helpers
-├── services/market/             # Go market service (own module — Phase 1 skeleton: ingest + graph store)
+├── services/market/             # Go market service (the only backend — Phases 1–2 done)
 └── indexer/                      # Envio HyperIndex (local Hasura GraphQL :8080)
 ```
 
@@ -65,8 +57,6 @@ cp .env.example .env
 ### Root (convenience scripts)
 
 ```bash
-pnpm dev:api      # Express API (tsx watch)
-pnpm build:api    # tsc
 pnpm typecheck    # tsc --noEmit across workspaces (apps/web excluded while frozen — it will fail)
 ```
 
@@ -81,19 +71,14 @@ cast <...>              # on-chain interaction (see script/*.s.sol)
 
 Deployed addresses live in root `.env` and `docs/contracts.md`.
 
-### API (Express, port 4000)
+### Market service (Go — the only backend)
 
 ```bash
-cd apps/api
-pnpm dev        # tsx watch src/index.ts  (hot reload)
-pnpm start      # node dist/index.js      (after pnpm build)
-pnpm test       # node --import tsx --test "src/**/*.test.ts"  (18 tests)
-pnpm build      # tsc
+cd services/market
+go test ./...        # all package tests
+go run ./cmd/market  # ingest + consistency + quote WS (:8081) + reference solver
+go run ./cmd/e2e     # scripted live-Fuji e2e (intent → quote → settle → attestation)
 ```
-
-The API reads the Envio indexer GraphQL (`ENVIO_GRAPHQL_URL`, default local Hasura
-`http://localhost:8080/v1/graphql`). It must load `.env` before module-scope repository
-creation — see `apps/api/src/loadEnv.ts` (imported first in `index.ts`).
 
 ### Envio indexer
 
@@ -110,10 +95,9 @@ Blocked from cloud deploy until `ENVIO_API_TOKEN` is set.
 | Area | Command | Where |
 |------|---------|-------|
 | Contracts | `forge test` | `contracts/` |
-| API | `pnpm test` | `apps/api/` |
-| Indexer | `pnpm test` | `indexer/` |
 | Market service | `go test ./...` | `services/market/` |
-| Backend typecheck | `pnpm --filter @lantern/api exec tsc --noEmit` etc. | per workspace |
+| Indexer | `pnpm test` | `indexer/` |
+| Backend typecheck | `pnpm typecheck` (web fails while frozen — expected) | root |
 
 ## Key env vars
 

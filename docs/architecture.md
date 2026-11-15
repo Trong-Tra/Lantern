@@ -15,30 +15,30 @@ The insight: every aggregator builds a graph of pools (assets = nodes, pools = e
 │ WEB APP (browser) — FROZEN pre-pivot, rebuild pending       │
 │ Cinematic landing (stays) · swap UI (TBD — not built)       │
 └─────────────────────────────┬───────────────────────────────┘
-                              │ REST (envelope via packages/utils)
+                              │ GraphQL (gqlgen — not built yet)
 ┌─────────────────────────────▼───────────────────────────────┐
-│ API (apps/api, Express 5)                                   │
-│ TODAY: identity read layer (agents + attestations)          │
-│ TBD: pool-graph serving, quote intents, solution submission │
+│ BACKEND (services/market, Go — the only backend)            │
+│ TODAY: quote-protocol WS + reference solver + settlement    │
+│ TBD: gqlgen API (identity reads + market queries), x402     │
+│ REMOVED: apps/api (Express) — deleted 2026-11-15            │
 └─────────────────────────────┬───────────────────────────────┘
                               │ GraphQL (read)
 ┌─────────────────────────────▼───────────────────────────────┐
 │ INDEXING (Envio HyperIndex, Avalanche Fuji 43113)           │
-│ Indexes: AgentRegistered/Updated, AttestationMinted         │
-│ TBD: pool/trade events once market contracts exist          │
+│ Indexes: AgentRegistered/Updated, AttestationMinted,        │
+│ DemoPool.Sync, LanternMarket.TradeSettled                   │
 └─────────────────────────────┬───────────────────────────────┘
                               │ events
 ┌─────────────────────────────▼───────────────────────────────┐
-│ ON-CHAIN (Avalanche, Foundry)                               │
-│ TODAY: AgentRegistry (ERC-8004) + Reputation (ERC-5192)     │
-│ TBD: demo pools + LanternMarket (signed-quote settlement,   │
-│      fees) — design in docs/market.md, params in MEMORY TBD │
+│ ON-CHAIN (Avalanche Fuji, Foundry)                          │
+│ AgentRegistry (ERC-8004) + Reputation (ERC-5192)            │
+│ + MockToken / DemoPool / LanternMarket — DEPLOYED 2026-11-15│
 └─────────────────────────────▲───────────────────────────────┘
                               │ off-chain solvers
 ┌─────────────────────────────┴───────────────────────────────┐
-│ SOLVERS (off-chain agents, TBD — not built)                 │
+│ SOLVERS (off-chain agents; reference solver built)          │
 │ Read the pool graph, compute routes + split allocations,    │
-│ submit solutions. ERC-8004 identity binds payout + record.  │
+│ stream signed quotes. ERC-8004 identity binds payout+record.│
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -46,20 +46,22 @@ The insight: every aggregator builds a graph of pools (assets = nodes, pools = e
 
 | Layer | Repo location | Status |
 | --- | --- | --- |
-| Identity + market contracts | `contracts/src/{AgentRegistry,Reputation,MockToken,DemoPool,LanternMarket}.sol` + `src/utils/` (in-house ERC721/Ownable), tests in `test/`, deploy/seed in `script/` | Phase 0 code done 2026-11-14; Fuji deploy pending owner faucet AVAX; Monad deployment legacy; `forge test` 93/93 |
-| Indexing | `indexer/` — Envio HyperIndex v3: `config.yaml` + `schema.graphql` + `src/handlers/` + `src/effects.ts` + vitest | Local (Docker; GraphQL :8080); cloud deploy pending `ENVIO_API_TOKEN` |
-| API | `apps/api/src/` — `app.ts` (factory, injectable repository), `routes/agents.ts`, `repositories/{agentRepository,envioAgentRepository}.ts`, `loadEnv.ts` | Envio-backed only; 18 tests |
-| Shared libs | `packages/config` (endpoint paths, explorer URLs), `packages/types` (agent/attestation types), `packages/utils` (envelope, formatting) | Done, extend as needed |
+| Identity + market contracts | `contracts/src/{AgentRegistry,Reputation,MockToken,DemoPool,LanternMarket}.sol` + `src/utils/` (in-house ERC721/Ownable), tests in `test/`, deploy/seed in `script/` | Deployed on Fuji 43113 (2026-11-15); Monad deployment legacy; `forge test` 93/93 |
+| Indexing | `indexer/` — Envio HyperIndex v3: `config.yaml` + `schema.graphql` + `src/handlers/` + `src/effects.ts` + vitest | Configured with live Fuji addresses; local (Docker; GraphQL :8080); cloud deploy pending `ENVIO_API_TOKEN` |
+| Backend | `services/market/` — Go: quote-protocol WS, reference solver, chain bindings, ingest + graph store | Phases 1–2 done (settlement e2e passing on Fuji); gqlgen web API TBD (Phase 3/4) |
+| Shared libs | `packages/config` (endpoint paths — **stale: old `/api/*` paths, do not use until the Go API lands**), `packages/types` (agent/attestation types), `packages/utils` (envelope, formatting) | Done, extend as needed |
 | Web | `apps/web/` — cinematic landing + pre-pivot explorer pages | **Frozen — do not touch; known-broken until rebuild** |
+
+Removed: `apps/api` (Express read layer) — deleted 2026-11-15 so the concurrent frontend rebuild targets the Go API, not the old routes (git history has it).
 
 ## Key decisions (locked unless revisited)
 
 * Chain: **Avalanche — Fuji testnet first (chain 43113), decided 2026-11-14** (supersedes Monad). Identity stack redeploys to Fuji in Phase 0 (docs/market.md); the Monad testnet deployment (chain 10143) is legacy read-only.
 * Contracts toolchain: **Foundry** in `contracts/` (root-level, not a pnpm workspace member). In-house ERC721 base, no OZ.
 * Identity stack: minimal ERC-8004-style registry + ERC-5192 soulbound attestations. Nothing else survived the pivot (Passport/Vault/DemoFX deleted 2026-11-14).
-* API envelope: `{ success, data, message? }` via `createApiResponse`; errors via `createApiErrorResponse` (`packages/utils`). All endpoint paths in `packages/config`.
+* API envelope: `{ success, data, message? }` via `createApiResponse`; errors via `createApiErrorResponse` (`packages/utils`). The Go gqlgen API mirrors this shape; paths land in `packages/config` when it ships.
 * No derived score/risk anywhere: standing comes from attested settlements, not formulas.
-* Frontend env: `NEXT_PUBLIC_API_URL` (fallback `http://localhost:4000` via `getApiBaseUrl`). Backend env: `PORT`.
+* Frontend env: `NEXT_PUBLIC_API_URL` — base URL of the **Go API** (TBD until Phase 3 ships it; the old `localhost:4000` Express app is gone).
 
 ## Open questions (TBD — do not guess)
 

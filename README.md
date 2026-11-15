@@ -4,7 +4,7 @@
 
 Every aggregator searches the same kind of pool graph (assets = nodes, pools = edges) — but no single routing algorithm wins always, and the best **split allocation** across routes depends on swap size, graph topology, and pool state at that moment. Lantern builds and maintains that graph (**Lantern Graph**, x402-paid feed for solvers), then lets a network of solver agents — each with a verifiable **ERC-8004 identity** — stream signed quotes onto it (**Lantern Market**). The user picks the quote they like; only that route settles on-chain, its solver earns the fee, and every settlement is written to a soulbound **ERC-5192** track record: reputation is earned by being picked and executing, never claimed.
 
-> Status: mid-rebuild (pivot 2026-11-14). The identity stack, indexer, API read layer, market contracts (undeployed), and the Go market-service skeleton exist; the quote protocol, x402 paywall, and new swap UI are not built yet (plan: `docs/market.md`). The pre-pivot frontend is frozen in place (see `MEMORY.md`).
+> Status: mid-rebuild (pivot 2026-11-14). The identity stack + market contracts are deployed on Fuji, the indexer points at them, and the Go market service (quote protocol + reference solver + settlement e2e) is through Phase 2; the x402 paywall, protocol hardening, gqlgen API, and new swap UI are not built yet (plan: `docs/market.md`). The pre-pivot frontend is frozen in place (see `MEMORY.md`). The old Express API (`apps/api`) was removed 2026-11-15 — the backend is `services/market/` (Go).
 
 ## Monorepo structure
 
@@ -22,14 +22,12 @@ Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 │   ├── test/                     # Forge tests (53 tests)
 │   ├── script/                   # Deploy + SeedAgents + SeedAttestations
 │   └── README.md
-├── apps/api/                     # Express 5 backend (port 4000)
-│   └── src/                      # app.ts, routes/, repositories/ (Envio-backed)
 ├── apps/web/                     # Next.js 16 — FROZEN pre-pivot (do not touch; rebuild pending)
 ├── packages/                     # shared workspace libs
 │   ├── config/                   # endpoint paths, explorer URLs
 │   ├── types/                    # shared TS types (AgentSummary, Attestation)
 │   └── utils/                    # envelope + formatting helpers
-├── services/market/             # Go market service (own module — Phase 1 skeleton: ingest + graph store)
+├── services/market/             # Go market service (the only backend — Phases 1–2 done)
 └── indexer/                      # Envio HyperIndex (local Hasura GraphQL :8080)
 ```
 
@@ -60,12 +58,13 @@ cp .env.example .env
 
 # 3. Fill .env at minimum:
 #    AVAX_FUJI_RPC_URL              # Avalanche Fuji RPC
-#    AGENT_REGISTRY_ADDRESS         # from the Fuji redeploy (pending)
-#    REPUTATION_ADDRESS
+#    AGENT_REGISTRY_ADDRESS / REPUTATION_ADDRESS / LANTERN_MARKET_ADDRESS
+#                                   # deployed Fuji addresses (table above)
 #    ENVIO_GRAPHQL_URL              # optional; defaults to local :8080
 
 # 4. Run
-pnpm dev:api   # Express (:4000)
+cd services/market && go run ./cmd/market   # quote WS :8081 + solver
+cd indexer && pnpm dev                      # local Hasura :8080 (Docker)
 ```
 
 ## Workspace commands
@@ -73,11 +72,11 @@ pnpm dev:api   # Express (:4000)
 | Workspace | Install | Dev | Build | Test |
 |-----------|---------|-------|-------|------|
 | contracts | Foundry | — | `forge build` | `forge test` |
-| apps/api | pnpm | `pnpm dev` | `pnpm build` | `pnpm test` |
+| services/market | Go | `go run ./cmd/market` | `go build ./...` | `go test ./...` |
 | indexer | pnpm | `pnpm dev` (Docker) | — | `pnpm test` |
 | apps/web | pnpm | frozen | — | — |
 
-Test counts (latest): contracts 53/53, API 18/18, indexer 4/4.
+Test counts (latest): contracts 93/93, market service 8 packages green, indexer 7/7.
 
 ## Cold-start protocol (for agents / new contributors)
 
