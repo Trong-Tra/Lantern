@@ -1,21 +1,30 @@
 // cmd/market is the Lantern market service entrypoint. Phase 1: config,
 // Envio subscription ingest into the in-memory graph store, and a periodic
-// on-chain reserve consistency check. Solver/quote/paywall land in Phases 2-3.
+// on-chain reserve consistency check. Phase 2: quote-protocol WebSocket +
+// the in-process reference solver (enabled when its identity is configured).
 package main
 
 import (
 	"context"
 	"log"
+	"math/big"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"syscall"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+
+	"github.com/lantern/market/internal/chain"
 	"github.com/lantern/market/internal/chaincheck"
 	"github.com/lantern/market/internal/config"
 	"github.com/lantern/market/internal/graph"
 	"github.com/lantern/market/internal/ingest"
+	"github.com/lantern/market/internal/protocol"
+	"github.com/lantern/market/internal/solver"
 )
 
 const (
@@ -44,9 +53,71 @@ func main() {
 	go ingestLoop(ctx, cfg, store)
 	go consistencyLoop(ctx, checker, store)
 
+	// Phase 2: quote protocol + reference solver. The verifier needs the
+	// deployed registry, so the hub (and solver) come up only once the
+	// Fuji redeploy has filled the addresses in (MEMORY §TBD).
+	if cfg.MarketAddress != "" && cfg.RegistryAddress != "" {
+		startQuoteProtocol(ctx, cfg, store)
+	} else {
+		log.Print("quote protocol disabled: LANTERN_MARKET_ADDRESS / AGENT_REGISTRY_ADDRESS not set (Fuji redeploy pending)")
+	}
+
 	log.Printf("market service up — ingest=%s rpc=%s", cfg.EnvioWSURL, cfg.RPCURL)
 	<-ctx.Done()
 	log.Print("shutdown")
+}
+
+// startQuoteProtocol dials the contracts, serves the quote WS, and (when the
+// reference solver identity is configured) runs it against the live store.
+func startQuoteProtocol(ctx context.Context, cfg config.Config, store *graph.Store) {
+	client, err := chain.Dial(ctx, cfg.RPCURL,
+		common.HexToAddress(cfg.RegistryAddress), common.HexToAddress(cfg.MarketAddress))
+	if err != nil {
+		log.Printf("quote protocol disabled: %v", err)
+		return
+	}
+	hub := protocol.NewHub(client, solver.QuoteTTL)
+
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/quotes", protocol.Handler(hub))
+		srv := &http.Server{Addr: cfg.MarketWSAddr, Handler: mux}
+		go func() {
+			<-ctx.Done()
+			shutdown, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+			srv.Shutdown(shutdown)
+		}()
+		log.Printf("quote protocol listening on %s", cfg.MarketWSAddr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Printf("quote protocol: %v", err)
+		}
+	}()
+
+	if cfg.SolverKey == "" {
+		log.Print("reference solver disabled: REFERENCE_SOLVER_KEY / REFERENCE_SOLVER_AGENT_ID not set")
+		return
+	}
+	key, err := crypto.HexToECDSA(strip0x(cfg.SolverKey))
+	if err != nil {
+		log.Printf("reference solver disabled: bad REFERENCE_SOLVER_KEY: %v", err)
+		return
+	}
+	agentID, ok := new(big.Int).SetString(cfg.SolverAgentID, 10)
+	if !ok {
+		log.Printf("reference solver disabled: bad REFERENCE_SOLVER_AGENT_ID %q", cfg.SolverAgentID)
+		return
+	}
+	runner := solver.NewRunner(hub, store, client, key, agentID, cfg.SolverSlippageBps, solver.QuoteTTL)
+	go runner.Run(ctx)
+	log.Printf("reference solver up (agentId=%s slippage=%dbps)", agentID, cfg.SolverSlippageBps)
+}
+
+func strip0x(s string) string {
+	if len(s) >= 2 && (s[:2] == "0x" || s[:2] == "0X") {
+		return s[2:]
+	}
+	return s
 }
 
 // ingestLoop keeps the Envio subscription alive, applying every pool update

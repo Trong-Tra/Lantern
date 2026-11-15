@@ -64,8 +64,8 @@ services/market/
 │   ├── ingest/              # Envio WS subscriptions → domain events
 │   ├── graph/               # pool graph: token nodes, pool edges, reserve store
 │   ├── graphfeed/           # Lantern Graph: snapshot + per-block diffs, x402-gated
-│   ├── solver/              # reference solver: route search + split allocation
-│   ├── protocol/            # quote WS: intent broadcast, signed quotes, retract, pick
+│   ├── solver/              # reference solver: route search + split allocation + runner (intent → sign → submit)
+│   ├── protocol/            # quote WS (ws.go): intent broadcast, signed quotes, retract, pick; hub.go = lifecycle
 │   ├── paywall/             # x402 middleware (402 challenge, payment verify, access grants)
 │   ├── chain/               # abigen bindings, quote verification helpers, tx submission
 │   └── api/                 # gqlgen GraphQL (web-facing queries; absorbs apps/api identity reads at Phase 4 — do not extend apps/api)
@@ -96,9 +96,9 @@ Key choices:
 
 | Phase | Deliverable | Verify |
 | --- | --- | --- |
-| 0 — chain move + contracts | Redeploy identity stack (AgentRegistry + Reputation) on **Fuji (43113)**; `MockToken`, `DemoPool`, `LanternMarket` + tests, deploy scripts, seeded pools; indexer re-pointed at Fuji and extended. **Code done 2026-11-14 (93/93 forge, indexer 7/7); on-chain redeploy pending owner faucet AVAX** | `forge test`; entities visible in Hasura (after redeploy) |
-| 1 — Go skeleton | module, config, Envio subscription ingest, in-memory graph store that tracks reserves live. **Done 2026-11-15** (`go test ./...` green; live-feed verification still needs the Fuji redeploy + `ENVIO_API_TOKEN`) | `go test ./...`; log line per block showing graph consistency vs on-chain reserves |
-| 2 — quote flow e2e | intent → reference solver quotes → pick → `executeSwap` settles → attestation minted | scripted demo flow; attestation visible via API/indexer |
+| 0 — chain move + contracts | Redeploy identity stack (AgentRegistry + Reputation) on **Fuji (43113)**; `MockToken`, `DemoPool`, `LanternMarket` + tests, deploy scripts, seeded pools; indexer re-pointed at Fuji and extended. **Done 2026-11-15**: deployed + seeded (15 agents, attestations), addresses in `.env` / `indexer/config.yaml` / README; `forge test` 93/93, indexer 7/7 | `forge test`; entities visible in Hasura (after redeploy) |
+| 1 — Go skeleton | module, config, Envio subscription ingest, in-memory graph store that tracks reserves live. **Done 2026-11-15** (`go test ./...` green; live Hasura feed still needs `ENVIO_API_TOKEN` / local indexer run) | `go test ./...`; log line per block showing graph consistency vs on-chain reserves |
+| 2 — quote flow e2e | intent → reference solver quotes → pick → `executeSwap` settles → attestation minted. **Done 2026-11-15**: off-chain (quote protocol WS, reference solver, digest/sign/verify, `SettleSwap`) + **on-chain e2e passed on live Fuji** — `go run ./cmd/e2e` (from `services/market/`) drives intent → quote → pick → `executeSwap` → verifies `TradeSettled` + SWAP/SUCCESS attestation in the receipt; fee = 20 bps confirmed | `go test ./...`; `go run ./cmd/e2e` → `E2E PASS` |
 | 3 — x402 + protocol hardening | graph feed paywalled; quote signatures/deadlines/retraction enforced; bad-signature + stale-quote rejection tests | integration tests |
 | 4 — frontend rebuild | swap UI on the quote stream (separate session — frontend frozen until then) | — |
 

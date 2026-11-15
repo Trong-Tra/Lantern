@@ -106,3 +106,65 @@ func TestHTTPTOWS(t *testing.T) {
 		}
 	}
 }
+
+func TestLoad_Phase2Keys(t *testing.T) {
+	path := writeEnv(t, `AVAX_FUJI_RPC_URL=https://example.com/rpc
+LANTERN_MARKET_ADDRESS=0x4000000000000000000000000000000000000001
+AGENT_REGISTRY_ADDRESS=0x5000000000000000000000000000000000000001
+REFERENCE_SOLVER_KEY=abc123
+REFERENCE_SOLVER_AGENT_ID=7
+REFERENCE_SOLVER_SLIPPAGE_BPS=25
+MARKET_WS_ADDR=:9999
+`)
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.MarketAddress != "0x4000000000000000000000000000000000000001" {
+		t.Errorf("MarketAddress = %q", cfg.MarketAddress)
+	}
+	if cfg.SolverKey != "abc123" || cfg.SolverAgentID != "7" {
+		t.Errorf("solver identity = %q/%q", cfg.SolverKey, cfg.SolverAgentID)
+	}
+	if cfg.SolverSlippageBps != 25 {
+		t.Errorf("SolverSlippageBps = %d", cfg.SolverSlippageBps)
+	}
+	if cfg.MarketWSAddr != ":9999" {
+		t.Errorf("MarketWSAddr = %q", cfg.MarketWSAddr)
+	}
+}
+
+func TestLoad_Phase2Defaults(t *testing.T) {
+	path := writeEnv(t, "AVAX_FUJI_RPC_URL=https://example.com/rpc\n")
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.MarketWSAddr != defaultMarketWSAddr {
+		t.Errorf("MarketWSAddr = %q, want default", cfg.MarketWSAddr)
+	}
+	if cfg.SolverSlippageBps != defaultSolverSlippageBps {
+		t.Errorf("SolverSlippageBps = %d, want default", cfg.SolverSlippageBps)
+	}
+	if cfg.SolverKey != "" || cfg.SolverAgentID != "" {
+		t.Error("solver identity should default to empty (disabled)")
+	}
+}
+
+func TestLoad_SolverIdentityMustPair(t *testing.T) {
+	path := writeEnv(t, `AVAX_FUJI_RPC_URL=https://example.com/rpc
+REFERENCE_SOLVER_KEY=abc123
+`)
+	if _, err := Load(path); err == nil {
+		t.Fatal("expected error for key without agent id")
+	}
+}
+
+func TestLoad_BadSlippageRejected(t *testing.T) {
+	path := writeEnv(t, `AVAX_FUJI_RPC_URL=https://example.com/rpc
+REFERENCE_SOLVER_SLIPPAGE_BPS=not-a-number
+`)
+	if _, err := Load(path); err == nil {
+		t.Fatal("expected error for non-numeric slippage")
+	}
+}
