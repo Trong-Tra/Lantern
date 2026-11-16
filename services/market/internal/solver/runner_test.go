@@ -24,23 +24,23 @@ type ownerVerifier struct {
 	owners   map[uint64]common.Address
 }
 
-func (v ownerVerifier) VerifyQuote(_ context.Context, quote bindings.LanternMarketQuote, sig []byte) error {
+func (v ownerVerifier) VerifyQuote(_ context.Context, quote bindings.LanternMarketQuote, sig []byte) (common.Address, error) {
 	digest, err := v.digester.QuoteDigest(quote)
 	if err != nil {
-		return err
+		return common.Address{}, err
 	}
 	signer, err := chain.VerifyQuote(digest, sig)
 	if err != nil {
-		return err
+		return common.Address{}, err
 	}
 	owner, ok := v.owners[quote.AgentId.Uint64()]
 	if !ok {
-		return errUnknownAgent
+		return common.Address{}, errUnknownAgent
 	}
 	if signer != owner {
-		return errNotOwner
+		return common.Address{}, errNotOwner
 	}
-	return nil
+	return signer, nil
 }
 
 var (

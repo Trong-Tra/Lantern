@@ -2,6 +2,7 @@
 // Envio subscription ingest into the in-memory graph store, and a periodic
 // on-chain reserve consistency check. Phase 2: quote-protocol WebSocket +
 // the in-process reference solver (enabled when its identity is configured).
+// Phase 3: web-facing GraphQL API + the x402-paywalled graph snapshot feed.
 package main
 
 import (
@@ -18,11 +19,14 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
+	"github.com/lantern/market/internal/api"
 	"github.com/lantern/market/internal/chain"
 	"github.com/lantern/market/internal/chaincheck"
 	"github.com/lantern/market/internal/config"
 	"github.com/lantern/market/internal/graph"
+	"github.com/lantern/market/internal/graphfeed"
 	"github.com/lantern/market/internal/ingest"
+	"github.com/lantern/market/internal/paywall"
 	"github.com/lantern/market/internal/protocol"
 	"github.com/lantern/market/internal/solver"
 )
@@ -52,6 +56,7 @@ func main() {
 
 	go ingestLoop(ctx, cfg, store)
 	go consistencyLoop(ctx, checker, store)
+	startAPI(ctx, cfg, store)
 
 	// Phase 2: quote protocol + reference solver. The verifier needs the
 	// deployed registry, so the hub (and solver) come up only once the
@@ -80,7 +85,7 @@ func startQuoteProtocol(ctx context.Context, cfg config.Config, store *graph.Sto
 
 	go func() {
 		mux := http.NewServeMux()
-		mux.Handle("/quotes", protocol.Handler(hub))
+		mux.Handle("/quotes", protocol.Handler(hub, cfg.WSAllowedOrigins))
 		srv := &http.Server{Addr: cfg.MarketWSAddr, Handler: mux}
 		go func() {
 			<-ctx.Done()
@@ -118,6 +123,47 @@ func strip0x(s string) string {
 		return s[2:]
 	}
 	return s
+}
+
+// startAPI serves the web-facing GraphQL API (identity + market reads,
+// proxied from Hasura) and the graph snapshot feed behind the x402 paywall,
+// plus a health endpoint. It comes up regardless of chain wiring — queries
+// fail with an upstream error until the indexer is reachable, which is
+// honest (docs/market.md §3).
+func startAPI(ctx context.Context, cfg config.Config, store *graph.Store) {
+	mux := http.NewServeMux()
+	mux.Handle("/graphql", api.NewHandler(api.NewHasuraSource(cfg.EnvioHTTPURL, cfg.EnvioAdminSecret)))
+	pw := paywall.New(paywall.Config{
+		FacilitatorURL: cfg.X402FacilitatorURL,
+		Network:        cfg.X402Network,
+		Asset:          cfg.X402Asset,
+		PayTo:          cfg.X402PayTo,
+		Amount:         cfg.X402Amount,
+	})
+	mux.Handle("/graph/snapshot", pw.Wrap(graphfeed.Handler(store)))
+	if pw.Gated() {
+		log.Printf("graph feed: paywalled — %s base units of %s → %s via %s",
+			cfg.X402Amount, cfg.X402Asset, cfg.X402PayTo, cfg.X402FacilitatorURL)
+	} else {
+		log.Print("graph feed: open (X402_ASSET / X402_PAY_TO / X402_AMOUNT not set)")
+	}
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
+	srv := &http.Server{Addr: cfg.APIAddr, Handler: mux}
+	go func() {
+		<-ctx.Done()
+		shutdown, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		srv.Shutdown(shutdown)
+	}()
+	go func() {
+		log.Printf("web API listening on %s (graphql → %s)", cfg.APIAddr, cfg.EnvioHTTPURL)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Printf("web API: %v", err)
+		}
+	}()
 }
 
 // ingestLoop keeps the Envio subscription alive, applying every pool update

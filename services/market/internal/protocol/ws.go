@@ -18,24 +18,38 @@ import (
 // Frame roles (one connection may act as both user and solver):
 //
 //	user →   {"type":"intent",...}      open an intent (reply: intent_opened,
-//	         then quote/retract/picked/closed stream on the same connection)
+//	         then quote/retract/picked/closed stream on the same connection;
+//	         only the opening connection may pick that intent)
 //	user →   {"type":"pick",...}
 //	solver → {"type":"subscribe_intents"}  stream intent broadcasts
-//	solver → {"type":"quote",...}
-//	solver → {"type":"retract",...}
+//	solver → {"type":"quote",...}       signed with the agent-owner key
+//	solver → {"type":"retract",...}     signed with the same key (Phase 3)
+//
+// Auth is signatures, not accounts: quotes and retractions carry EIP-191
+// signatures the hub verifies against registry ownership. allowedOrigins
+// only gates browser Origin headers on the handshake.
 type wsServer struct {
-	hub *Hub
+	hub            *Hub
+	allowedOrigins []string
 }
 
 // Handler returns the HTTP handler for the quote-protocol endpoint.
-func Handler(hub *Hub) http.Handler {
-	return &wsServer{hub: hub}
+// allowedOrigins gates browser Origin headers (must match one of the
+// patterns); empty = any origin — non-browser clients send no Origin and
+// are always allowed (solver identity lives in the signatures).
+func Handler(hub *Hub, allowedOrigins []string) http.Handler {
+	return &wsServer{hub: hub, allowedOrigins: allowedOrigins}
 }
 
 func (s *wsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
-		InsecureSkipVerify: true, // v1: no origin policy — external auth is Phase 3
-	})
+	acceptOpts := &websocket.AcceptOptions{InsecureSkipVerify: true}
+	if len(s.allowedOrigins) > 0 {
+		// With patterns set, authenticateOrigin enforces them for any
+		// request that carries an Origin header (browsers).
+		acceptOpts.InsecureSkipVerify = false
+		acceptOpts.OriginPatterns = s.allowedOrigins
+	}
+	conn, err := websocket.Accept(w, r, acceptOpts)
 	if err != nil {
 		log.Printf("protocol: accept: %v", err)
 		return
@@ -43,10 +57,11 @@ func (s *wsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer conn.CloseNow()
 
 	c := &wsConn{
-		hub:  s.hub,
-		conn: conn,
-		out:  make(chan any, 64),
-		done: make(chan struct{}),
+		hub:        s.hub,
+		conn:       conn,
+		out:        make(chan any, 64),
+		done:       make(chan struct{}),
+		ownIntents: make(map[string]struct{}),
 	}
 	ctx := r.Context()
 	var wg sync.WaitGroup
@@ -61,11 +76,14 @@ func (s *wsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // wsConn is one client connection: reads frames in, serializes writes out.
+// ownIntents is connection-local (read/written only by readLoop): intents
+// opened here — only those may be picked from this connection.
 type wsConn struct {
-	hub  *Hub
-	conn *websocket.Conn
-	out  chan any
-	done chan struct{}
+	hub        *Hub
+	conn       *websocket.Conn
+	out        chan any
+	done       chan struct{}
+	ownIntents map[string]struct{}
 
 	writeMu sync.Mutex // serializes conn writes
 }
@@ -139,6 +157,7 @@ func (c *wsConn) dispatch(ctx context.Context, typ string, data []byte) error {
 		if err != nil {
 			return err
 		}
+		c.ownIntents[id] = struct{}{}
 		c.send(IntentOpenedMsg{Type: TypeIntentOpened, IntentID: id})
 		go c.pumpUser(ctx, userCh)
 		return nil
@@ -155,12 +174,17 @@ func (c *wsConn) dispatch(ctx context.Context, typ string, data []byte) error {
 		if err := json.Unmarshal(data, &msg); err != nil {
 			return errors.New("bad retract frame")
 		}
-		return c.hub.RetractQuote(msg.IntentID, msg.QuoteID)
+		return c.hub.RetractQuote(msg.IntentID, msg.QuoteID, msg.Signature)
 
 	case TypePick:
 		var msg PickMsg
 		if err := json.Unmarshal(data, &msg); err != nil {
 			return errors.New("bad pick frame")
+		}
+		// Only the connection that opened an intent may pick it — intent ids
+		// are guessable, and a foreign pick would close the opener's stream.
+		if _, ok := c.ownIntents[msg.IntentID]; !ok {
+			return fmt.Errorf("protocol: intent %s was not opened on this connection", msg.IntentID)
 		}
 		_, err := c.hub.Pick(msg.IntentID, msg.QuoteID) // replies stream via pumpUser
 		return err

@@ -13,9 +13,11 @@ import (
 )
 
 // Verifier checks that a quote's signature belongs to the owner of
-// quote.AgentId. Implemented by chain.Client; faked in tests.
+// quote.AgentId and returns the recovered signer (bound as the only key
+// allowed to retract that quote). Implemented by chain.Client; faked in
+// tests.
 type Verifier interface {
-	VerifyQuote(ctx context.Context, quote bindings.LanternMarketQuote, signature []byte) error
+	VerifyQuote(ctx context.Context, quote bindings.LanternMarketQuote, signature []byte) (common.Address, error)
 }
 
 // Hub owns the intent → quotes → retract → pick lifecycle.
@@ -33,6 +35,7 @@ type Hub struct {
 type quoteEntry struct {
 	quote     QuoteJSON
 	signature string
+	signer    common.Address // verified owner key — the only key that may retract
 	retracted bool
 }
 
@@ -145,7 +148,8 @@ func (h *Hub) SubmitQuote(ctx context.Context, intentID string, quote QuoteJSON,
 	h.mu.Unlock()
 
 	// Signature check hits the chain (registry ownership) — off the lock.
-	if err := h.verifier.VerifyQuote(ctx, contract, sigBytes); err != nil {
+	signer, err := h.verifier.VerifyQuote(ctx, contract, sigBytes)
+	if err != nil {
 		return fmt.Errorf("protocol: %w", err)
 	}
 
@@ -158,16 +162,27 @@ func (h *Hub) SubmitQuote(ctx context.Context, intentID string, quote QuoteJSON,
 	if _, dup := sess.quotes[quoteID]; dup {
 		return fmt.Errorf("protocol: duplicate quote %s", quoteID)
 	}
-	sess.quotes[quoteID] = &quoteEntry{quote: quote, signature: signature}
+	sess.quotes[quoteID] = &quoteEntry{quote: quote, signature: signature, signer: signer}
 	return send(sess.userCh, QuoteOfferMsg{
 		Type: TypeQuote, IntentID: intentID, QuoteID: quoteID, Quote: quote, Signature: signature,
 	})
 }
 
-// RetractQuote marks a quote retracted and notifies the user. v1 trusts the
-// solver connection for retraction identity — signed retractions are Phase 3
-// hardening (docs/market.md).
-func (h *Hub) RetractQuote(intentID, quoteID string) error {
+// RetractQuote marks a quote retracted and notifies the user. The
+// retraction must be signed over RetractDigest(intentID, quoteID) by the
+// same key that signed the quote (its verified agent-owner signer) — no
+// connection trust (Phase 3 hardening, docs/market.md §3).
+func (h *Hub) RetractQuote(intentID, quoteID, signature string) error {
+	sigBytes, err := decodeHexSig(signature)
+	if err != nil {
+		return fmt.Errorf("protocol: retract signature: %w", err)
+	}
+	// Pure recovery — off the lock.
+	signer, err := RecoverRetractSigner(intentID, quoteID, sigBytes)
+	if err != nil {
+		return fmt.Errorf("protocol: %w", err)
+	}
+
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	sess, ok := h.intents[intentID]
@@ -177,6 +192,12 @@ func (h *Hub) RetractQuote(intentID, quoteID string) error {
 	entry, ok := sess.quotes[quoteID]
 	if !ok {
 		return fmt.Errorf("protocol: unknown quote %s", quoteID)
+	}
+	if entry.signer != signer {
+		return fmt.Errorf("protocol: retract signed by %s, but quote %s belongs to %s", signer, quoteID, entry.signer)
+	}
+	if entry.retracted {
+		return fmt.Errorf("protocol: quote %s already retracted", quoteID)
 	}
 	entry.retracted = true
 	return send(sess.userCh, RetractMsg{Type: TypeRetract, IntentID: intentID, QuoteID: quoteID})

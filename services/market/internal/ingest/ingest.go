@@ -92,14 +92,23 @@ func (c *Client) run(ctx context.Context, out chan<- graph.Sync) error {
 		return err
 	}
 
-	// Expect connection_ack before starting the subscription.
-	msg, err := readMsg(ctx, conn)
-	if err != nil {
-		return err
+	// Expect connection_ack before starting the subscription. Some Hasura
+	// builds send keep-alive ("ka") frames first — tolerate those.
+	for {
+		msg, err := readMsg(ctx, conn)
+		if err != nil {
+			return err
+		}
+		switch msg.Type {
+		case "connection_ack":
+			goto acked
+		case "ka":
+			continue
+		default:
+			return fmt.Errorf("ingest: expected connection_ack, got %q", msg.Type)
+		}
 	}
-	if msg.Type != "connection_ack" {
-		return fmt.Errorf("ingest: expected connection_ack, got %q", msg.Type)
-	}
+acked:
 
 	subID := "pools-1"
 	startPayload, _ := json.Marshal(map[string]any{

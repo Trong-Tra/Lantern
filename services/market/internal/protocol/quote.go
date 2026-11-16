@@ -88,11 +88,15 @@ type (
 		Quote     QuoteJSON `json:"quote"`
 		Signature string    `json:"signature"`
 	}
-	// RetractMsg: solver → server; forwarded to the user as-is.
+	// RetractMsg: solver → server (Signature = EIP-191 sig over
+	// RetractDigest(intentId, quoteId), by the quote's signer); server →
+	// user (Signature omitted by the hub when forwarding — the user already
+	// holds the quote's own signature).
 	RetractMsg struct {
-		Type     string `json:"type"`
-		IntentID string `json:"intentId"`
-		QuoteID  string `json:"quoteId"`
+		Type      string `json:"type"`
+		IntentID  string `json:"intentId"`
+		QuoteID   string `json:"quoteId"`
+		Signature string `json:"signature,omitempty"`
 	}
 	// PickMsg is user → server.
 	PickMsg struct {

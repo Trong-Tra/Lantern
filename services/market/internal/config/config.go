@@ -5,6 +5,7 @@ package config
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"strconv"
@@ -36,6 +37,19 @@ type Config struct {
 	SolverSlippageBps int64
 	// MarketWSAddr is the listen address for the quote-protocol WebSocket.
 	MarketWSAddr string
+	// APIAddr is the listen address for the web-facing GraphQL API.
+	APIAddr string
+	// WSAllowedOrigins gates browser Origin headers on the quote WS
+	// (empty = any origin; machine clients send no Origin either way).
+	WSAllowedOrigins []string
+	// X402 facilitator + payment terms for the paywalled /graph/snapshot
+	// feed. Asset/PayTo/Amount are an all-or-nothing trio — all empty means
+	// the feed serves open.
+	X402FacilitatorURL string
+	X402Network        string
+	X402Asset          string
+	X402PayTo          string
+	X402Amount         string
 }
 
 const defaultEnvioURL = "http://localhost:8080/v1/graphql"
@@ -86,12 +100,16 @@ func Load(envPath string) (Config, error) {
 		SolverKey:        get("REFERENCE_SOLVER_KEY"),
 		SolverAgentID:    get("REFERENCE_SOLVER_AGENT_ID"),
 		MarketWSAddr:     get("MARKET_WS_ADDR"),
+		APIAddr:          get("API_ADDR"),
 	}
 	if cfg.RPCURL == "" {
 		return Config{}, fmt.Errorf("config: AVAX_FUJI_RPC_URL is required (root .env)")
 	}
 	if cfg.MarketWSAddr == "" {
 		cfg.MarketWSAddr = defaultMarketWSAddr
+	}
+	if cfg.APIAddr == "" {
+		cfg.APIAddr = defaultAPIAddr
 	}
 	cfg.SolverSlippageBps = defaultSolverSlippageBps
 	if v := get("REFERENCE_SOLVER_SLIPPAGE_BPS"); v != "" {
@@ -104,13 +122,76 @@ func Load(envPath string) (Config, error) {
 	if (cfg.SolverKey == "") != (cfg.SolverAgentID == "") {
 		return Config{}, fmt.Errorf("config: REFERENCE_SOLVER_KEY and REFERENCE_SOLVER_AGENT_ID must be set together")
 	}
+	if v := get("WS_ALLOWED_ORIGINS"); v != "" {
+		for _, o := range strings.Split(v, ",") {
+			if o = strings.TrimSpace(o); o != "" {
+				cfg.WSAllowedOrigins = append(cfg.WSAllowedOrigins, o)
+			}
+		}
+	}
+	cfg.X402FacilitatorURL = get("X402_FACILITATOR_URL")
+	if cfg.X402FacilitatorURL == "" {
+		cfg.X402FacilitatorURL = defaultX402FacilitatorURL
+	}
+	cfg.X402Network = get("X402_NETWORK")
+	if cfg.X402Network == "" {
+		cfg.X402Network = defaultX402Network
+	}
+	cfg.X402Asset = get("X402_ASSET")
+	cfg.X402PayTo = get("X402_PAY_TO")
+	cfg.X402Amount = get("X402_AMOUNT")
+	if err := validateX402(&cfg); err != nil {
+		return Config{}, err
+	}
 	return cfg, nil
+}
+
+// validateX402 enforces the all-or-nothing payment-terms trio. The
+// facilitator/network defaults already landed in cfg before this runs.
+func validateX402(cfg *Config) error {
+	set := 0
+	for _, v := range []string{cfg.X402Asset, cfg.X402PayTo, cfg.X402Amount} {
+		if v != "" {
+			set++
+		}
+	}
+	if set == 0 {
+		return nil // open feed
+	}
+	if set != 3 {
+		return fmt.Errorf("config: X402_ASSET, X402_PAY_TO and X402_AMOUNT must be set together (all empty = open feed)")
+	}
+	for _, pair := range []struct{ key, val string }{
+		{"X402_ASSET", cfg.X402Asset},
+		{"X402_PAY_TO", cfg.X402PayTo},
+	} {
+		if len(pair.val) != 42 || !strings.HasPrefix(pair.val, "0x") {
+			return fmt.Errorf("config: %s %q: want 0x-prefixed 20-byte address", pair.key, pair.val)
+		}
+		if _, err := hex.DecodeString(pair.val[2:]); err != nil {
+			return fmt.Errorf("config: %s %q: %v", pair.key, pair.val, err)
+		}
+	}
+	for _, r := range cfg.X402Amount {
+		if r < '0' || r > '9' {
+			return fmt.Errorf("config: X402_AMOUNT %q: want decimal base-units string", cfg.X402Amount)
+		}
+	}
+	if cfg.X402Amount == "0" {
+		return fmt.Errorf("config: X402_AMOUNT must be > 0")
+	}
+	return nil
 }
 
 const (
 	defaultMarketWSAddr      = ":8081"
-	defaultSolverSlippageBps = 50 // reference solver's minOut guard vs quotedOut
+	defaultAPIAddr           = ":8082" // web GraphQL API (Hasura stays internal)
+	defaultSolverSlippageBps = 50      // reference solver's minOut guard vs quotedOut
 	bpsBase                  = 10_000
+	// PayAI facilitator serves avalanche-fuji v1/v2 exact (verified via
+	// GET /supported 2026-11-16); network default is the v2 CAIP-2 id.
+	defaultX402FacilitatorURL = "https://facilitator.payai.network"
+	defaultX402Network        = "eip155:43113" // Avalanche Fuji
 )
 
 // httpToWS converts an http(s) URL to its ws(s) equivalent.

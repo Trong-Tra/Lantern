@@ -99,24 +99,25 @@ func (c *Client) SettleSwap(ctx context.Context, userKey *ecdsa.PrivateKey, quot
 
 // VerifyQuote implements protocol.Verifier: recover the signer of the quote
 // digest and require it to be the registered owner of quote.AgentId — the
-// same check LanternMarket.executeSwap performs before settling.
-func (c *Client) VerifyQuote(ctx context.Context, quote bindings.LanternMarketQuote, signature []byte) error {
+// same check LanternMarket.executeSwap performs before settling. Returns the
+// signer so the hub can bind it as the quote's retraction key.
+func (c *Client) VerifyQuote(ctx context.Context, quote bindings.LanternMarketQuote, signature []byte) (common.Address, error) {
 	digest, err := c.QuoteDigest(quote)
 	if err != nil {
-		return err
+		return common.Address{}, err
 	}
 	signer, err := VerifyQuote(digest, signature)
 	if err != nil {
-		return err
+		return common.Address{}, err
 	}
 	owner, err := c.AgentOwner(ctx, quote.AgentId)
 	if err != nil {
-		return err
+		return common.Address{}, err
 	}
 	if signer != owner {
-		return fmt.Errorf("chain: signer %s is not owner %s of agent %s", signer, owner, quote.AgentId)
+		return common.Address{}, fmt.Errorf("chain: signer %s is not owner %s of agent %s", signer, owner, quote.AgentId)
 	}
-	return nil
+	return signer, nil
 }
 
 // quoteABIEncode packs (chainId, marketAddress, quote) exactly like the

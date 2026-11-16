@@ -109,7 +109,7 @@ func main() {
 	runner := solver.NewRunner(hub, store, client, solverKey, agentID, cfg.SolverSlippageBps, solver.QuoteTTL)
 	go runner.Run(ctx)
 
-	srv := httptest.NewServer(protocol.Handler(hub))
+	srv := httptest.NewServer(protocol.Handler(hub, nil))
 	defer srv.Close()
 	wsURL := "ws" + strings.TrimPrefix(srv.URL, "http")
 	log.Printf("quote protocol on %s (user=%s agent=%s)", wsURL, userAddr, agentID)

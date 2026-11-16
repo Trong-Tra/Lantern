@@ -21,9 +21,9 @@ type fakeVerifier struct {
 	err   error // forced failure, if set
 }
 
-func (v fakeVerifier) VerifyQuote(_ context.Context, quote bindings.LanternMarketQuote, sig []byte) error {
+func (v fakeVerifier) VerifyQuote(_ context.Context, quote bindings.LanternMarketQuote, sig []byte) (common.Address, error) {
 	if v.err != nil {
-		return v.err
+		return common.Address{}, v.err
 	}
 	// Mirror the contract: ecrecover over a placeholder digest is not the
 	// point here — hub tests care about plumbing, so recover via a fixed
@@ -31,12 +31,12 @@ func (v fakeVerifier) VerifyQuote(_ context.Context, quote bindings.LanternMarke
 	digest := crypto.Keccak256Hash(bigToBytes32(quote.Nonce))
 	signer, err := recoverSigner(digest, sig)
 	if err != nil {
-		return err
+		return common.Address{}, err
 	}
 	if signer != v.owner {
-		return errors.New("not agent owner")
+		return common.Address{}, errors.New("not agent owner")
 	}
-	return nil
+	return signer, nil
 }
 
 func bigToBytes32(n *big.Int) []byte {
@@ -68,6 +68,20 @@ func signNonce(t *testing.T, keyHex string, nonce *big.Int) string {
 		t.Fatal(err)
 	}
 	return "0x" + hex.EncodeToString(sig)
+}
+
+// signRetract signs the Phase 3 retract digest with the given key.
+func signRetract(t *testing.T, keyHex, intentID, quoteID string) string {
+	t.Helper()
+	key, err := crypto.HexToECDSA(keyHex)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sig, err := SignRetract(intentID, quoteID, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return sig
 }
 
 func testKey(t *testing.T) (string, common.Address) {
@@ -200,7 +214,7 @@ func TestHub_RetractThenPickFails(t *testing.T) {
 	}
 	<-ch // offer
 
-	if err := h.RetractQuote(id, QuoteID(q)); err != nil {
+	if err := h.RetractQuote(id, QuoteID(q), signRetract(t, keyHex, id, QuoteID(q))); err != nil {
 		t.Fatalf("RetractQuote: %v", err)
 	}
 	if msg := <-ch; msg.(RetractMsg).Type != TypeRetract {
@@ -208,6 +222,62 @@ func TestHub_RetractThenPickFails(t *testing.T) {
 	}
 	if _, err := h.Pick(id, QuoteID(q)); err == nil {
 		t.Fatal("expected pick-of-retracted rejection")
+	}
+}
+
+// TestHub_RetractRequiresQuoteSigner: retractions must be signed by the
+// quote's own signer — a wrong key (or no signature) never retracts.
+func TestHub_RetractRequiresQuoteSigner(t *testing.T) {
+	keyHex, owner := testKey(t)
+	otherKey, _ := testKey(t)
+	h := NewHub(fakeVerifier{owner: owner}, time.Minute)
+	id, ch := openIntent(t, h)
+
+	q := validQuote(t, 7)
+	q.Deadline = strconv.FormatInt(time.Now().Add(45*time.Second).Unix(), 10)
+	sig := signNonce(t, keyHex, big.NewInt(7))
+	if err := h.SubmitQuote(context.Background(), id, q, sig); err != nil {
+		t.Fatal(err)
+	}
+	<-ch // offer
+
+	if err := h.RetractQuote(id, QuoteID(q), ""); err == nil {
+		t.Fatal("expected missing-signature rejection")
+	}
+	if err := h.RetractQuote(id, QuoteID(q), signRetract(t, otherKey, id, QuoteID(q))); err == nil {
+		t.Fatal("expected wrong-signer rejection")
+	}
+	// Quote still live: a valid pick goes through.
+	if _, err := h.Pick(id, QuoteID(q)); err != nil {
+		t.Fatalf("Pick after failed retracts: %v", err)
+	}
+}
+
+// TestHub_RetractDigestIsBound: a signature over a different intent/quote
+// pair does not retract (no cross-quote replay).
+func TestHub_RetractDigestIsBound(t *testing.T) {
+	keyHex, owner := testKey(t)
+	h := NewHub(fakeVerifier{owner: owner}, time.Minute)
+	id, ch := openIntent(t, h)
+
+	q := validQuote(t, 7)
+	q.Deadline = strconv.FormatInt(time.Now().Add(45*time.Second).Unix(), 10)
+	sig := signNonce(t, keyHex, big.NewInt(7))
+	if err := h.SubmitQuote(context.Background(), id, q, sig); err != nil {
+		t.Fatal(err)
+	}
+	<-ch // offer
+
+	// Signed by the right key but bound to a fabricated quote id.
+	if err := h.RetractQuote(id, "1:999", signRetract(t, keyHex, id, "1:999")); err == nil {
+		t.Fatal("expected unknown-quote rejection")
+	}
+	// Right quote id, wrong intent id in the digest.
+	if err := h.RetractQuote(id, QuoteID(q), signRetract(t, keyHex, "i-forged", QuoteID(q))); err == nil {
+		t.Fatal("expected wrong-signer rejection for forged intent digest")
+	}
+	if _, err := h.Pick(id, QuoteID(q)); err != nil {
+		t.Fatalf("Pick after replayed retracts: %v", err)
 	}
 }
 

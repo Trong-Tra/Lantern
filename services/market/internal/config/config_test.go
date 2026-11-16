@@ -168,3 +168,89 @@ REFERENCE_SOLVER_SLIPPAGE_BPS=not-a-number
 		t.Fatal("expected error for non-numeric slippage")
 	}
 }
+
+func TestLoad_WSAllowedOrigins(t *testing.T) {
+	path := writeEnv(t, `AVAX_FUJI_RPC_URL=https://example.com/rpc
+WS_ALLOWED_ORIGINS=https://app.example, https://foo.example ,
+`)
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"https://app.example", "https://foo.example"}
+	if len(cfg.WSAllowedOrigins) != len(want) {
+		t.Fatalf("WSAllowedOrigins = %v", cfg.WSAllowedOrigins)
+	}
+	for i := range want {
+		if cfg.WSAllowedOrigins[i] != want[i] {
+			t.Fatalf("WSAllowedOrigins = %v, want %v", cfg.WSAllowedOrigins, want)
+		}
+	}
+
+	path = writeEnv(t, "AVAX_FUJI_RPC_URL=https://example.com/rpc\n")
+	cfg, err = Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.WSAllowedOrigins) != 0 {
+		t.Fatalf("default WSAllowedOrigins = %v, want empty", cfg.WSAllowedOrigins)
+	}
+}
+
+func TestLoad_X402Terms(t *testing.T) {
+	// All empty → open feed, facilitator/network defaults applied.
+	path := writeEnv(t, "AVAX_FUJI_RPC_URL=https://example.com/rpc\n")
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.X402FacilitatorURL != "https://facilitator.payai.network" {
+		t.Errorf("X402FacilitatorURL = %q", cfg.X402FacilitatorURL)
+	}
+	if cfg.X402Network != "eip155:43113" {
+		t.Errorf("X402Network = %q", cfg.X402Network)
+	}
+	if cfg.X402Asset != "" || cfg.X402PayTo != "" || cfg.X402Amount != "" {
+		t.Errorf("terms set while open: %+v", cfg)
+	}
+
+	// Partial terms are a configuration error, not a silent open feed.
+	path = writeEnv(t, `AVAX_FUJI_RPC_URL=https://example.com/rpc
+X402_ASSET=0x5425890298aed601595a70AB815c96711a31Bc65
+`)
+	if _, err := Load(path); err == nil {
+		t.Fatal("want error for partial x402 terms")
+	}
+
+	// Full terms are kept verbatim.
+	path = writeEnv(t, `AVAX_FUJI_RPC_URL=https://example.com/rpc
+X402_FACILITATOR_URL=https://facilitator.example
+X402_NETWORK=eip155:43113
+X402_ASSET=0x5425890298aed601595a70AB815c96711a31Bc65
+X402_PAY_TO=0xE3837fE309618AE075DbeF0A20735c0615a308E6
+X402_AMOUNT=10000
+`)
+	cfg, err = Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.X402FacilitatorURL != "https://facilitator.example" ||
+		cfg.X402Network != "eip155:43113" ||
+		cfg.X402Asset != "0x5425890298aed601595a70AB815c96711a31Bc65" ||
+		cfg.X402PayTo != "0xE3837fE309618AE075DbeF0A20735c0615a308E6" ||
+		cfg.X402Amount != "10000" {
+		t.Errorf("x402 terms = %+v", cfg)
+	}
+
+	// Malformed payTo / non-decimal amount are rejected.
+	for _, bad := range []string{
+		"X402_PAY_TO=not-an-address\nX402_ASSET=0x5425890298aed601595a70AB815c96711a31Bc65\nX402_AMOUNT=10000\n",
+		"X402_PAY_TO=0xE3837fE309618AE075DbeF0A20735c0615a308E6\nX402_ASSET=0x5425890298aed601595a70AB815c96711a31Bc65\nX402_AMOUNT=0.01\n",
+		"X402_PAY_TO=0xE3837fE309618AE075DbeF0A20735c0615a308E6\nX402_ASSET=0x5425890298aed601595a70AB815c96711a31Bc65\nX402_AMOUNT=0\n",
+	} {
+		path = writeEnv(t, "AVAX_FUJI_RPC_URL=https://example.com/rpc\n"+bad)
+		if _, err := Load(path); err == nil {
+			t.Errorf("want error for %q", bad)
+		}
+	}
+}

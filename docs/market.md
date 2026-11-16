@@ -63,10 +63,10 @@ services/market/
 │   ├── config/              # env loading (same root .env; keys in .env.example)
 │   ├── ingest/              # Envio WS subscriptions → domain events
 │   ├── graph/               # pool graph: token nodes, pool edges, reserve store
-│   ├── graphfeed/           # Lantern Graph: snapshot + per-block diffs, x402-gated
+│   ├── graphfeed/           # Lantern Graph: GET /graph/snapshot (JSON), x402-gated (per-block diffs later)
 │   ├── solver/              # reference solver: route search + split allocation + runner (intent → sign → submit)
 │   ├── protocol/            # quote WS (ws.go): intent broadcast, signed quotes, retract, pick; hub.go = lifecycle
-│   ├── paywall/             # x402 middleware (402 challenge, payment verify, access grants)
+│   ├── paywall/             # x402 middleware (402 challenge, facilitator /settle, PAYMENT-RESPONSE)
 │   ├── chain/               # abigen bindings, quote verification helpers, tx submission
 │   └── api/                 # gqlgen GraphQL (web-facing queries incl. identity reads; apps/api removed 2026-11-15 — FE targets this, not Express)
 └── README.md
@@ -76,7 +76,7 @@ Key choices:
 
 * **Bindings**: `go-ethereum` + `abigen` from Foundry artifacts (`contracts/out`).
 * **Solver transport = raw WebSocket** (`coder/websocket` or `gorilla/websocket`): per-block graph diffs and quote streams are machine traffic — no GraphQL overhead. **GraphQL (gqlgen) is for the web app only.**
-* **x402 paywall**: graph feed endpoints issue 402 challenges; payment verified before the WS upgrades / snapshots serve. Facilitator + exact rail on Fuji: **TBD — verify x402 Avalanche support before Phase 3**, fallback is a minimal 402 flow with direct payment-tx verification.
+* **x402 paywall**: `GET /graph/snapshot` issues a v2 402 challenge (`PAYMENT-REQUIRED` header + JSON body, base64) and settles each `PAYMENT-SIGNATURE` through the **PayAI facilitator** (`https://facilitator.payai.network` — supports `avalanche-fuji` exact, verified live via `GET /supported` and the Fuji echo route) before serving; settle-only (settle subsumes verify, idempotent per payload). Terms from config: `X402_ASSET` (USDC Fuji `0x542589…1Bc65`), `X402_PAY_TO`, `X402_AMOUNT` (base units) — all three or the feed serves open. CORS preflight passes unpaid.
 * **Quote auth**: quotes signed with the agent owner's key; service verifies `ecrecover` + registry ownership. No accounts, no passwords.
 * **Reference solver** (v1, iterate later): depth-capped DFS over the graph (max 3–4 hops), split allocation by grid search over slice percentages (e.g. 1–5% steps), scored by simulated output after price impact. Also the **sanity baseline** quotes are compared against before being shown.
 * **Quote lifecycle**: `IntentOpened` (WS) → solvers stream `Quote` messages → solver may send `Retract` (pools moved) → user's `Pick` → `executeSwap` on-chain → `TradeSettled` → attestation. Stale quotes (deadline passed) are dropped client- and contract-side.
@@ -99,7 +99,7 @@ Key choices:
 | 0 — chain move + contracts | Redeploy identity stack (AgentRegistry + Reputation) on **Fuji (43113)**; `MockToken`, `DemoPool`, `LanternMarket` + tests, deploy scripts, seeded pools; indexer re-pointed at Fuji and extended. **Done 2026-11-15**: deployed + seeded (15 agents, attestations), addresses in `.env` / `indexer/config.yaml` / README; `forge test` 93/93, indexer 7/7 | `forge test`; entities visible in Hasura (after redeploy) |
 | 1 — Go skeleton | module, config, Envio subscription ingest, in-memory graph store that tracks reserves live. **Done 2026-11-15** (`go test ./...` green; live Hasura feed still needs `ENVIO_API_TOKEN` / local indexer run) | `go test ./...`; log line per block showing graph consistency vs on-chain reserves |
 | 2 — quote flow e2e | intent → reference solver quotes → pick → `executeSwap` settles → attestation minted. **Done 2026-11-15**: off-chain (quote protocol WS, reference solver, digest/sign/verify, `SettleSwap`) + **on-chain e2e passed on live Fuji** — `go run ./cmd/e2e` (from `services/market/`) drives intent → quote → pick → `executeSwap` → verifies `TradeSettled` + SWAP/SUCCESS attestation in the receipt; fee = 20 bps confirmed | `go test ./...`; `go run ./cmd/e2e` → `E2E PASS` |
-| 3 — x402 + protocol hardening | graph feed paywalled; quote signatures/deadlines/retraction enforced; bad-signature + stale-quote rejection tests | integration tests |
+| 3 — x402 + protocol hardening | graph feed paywalled; quote signatures/deadlines/retraction enforced; bad-signature + stale-quote rejection tests. **Done 2026-11-16**: gqlgen API (`internal/api`), signed retractions + connection-bound pick + WS origin policy (`internal/protocol`), x402 paywall + graph snapshot feed (`internal/paywall`, `internal/graphfeed`); live 402 challenge + open-mode snapshot verified against Fuji data | `go test ./... -race`; live `GET /graph/snapshot` (open + 402) |
 | 4 — frontend rebuild | swap UI on the quote stream (separate session — frontend frozen until then) | — |
 
 ## Conventions

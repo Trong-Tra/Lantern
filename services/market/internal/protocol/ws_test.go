@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -16,7 +17,13 @@ import (
 // ws:// URL of the endpoint.
 func startWS(t *testing.T, h *Hub) string {
 	t.Helper()
-	srv := httptest.NewServer(Handler(h))
+	return startWSWithOrigins(t, h, nil)
+}
+
+// startWSWithOrigins is startWS with an explicit browser-Origin allowlist.
+func startWSWithOrigins(t *testing.T, h *Hub, allowedOrigins []string) string {
+	t.Helper()
+	srv := httptest.NewServer(Handler(h, allowedOrigins))
 	t.Cleanup(srv.Close)
 	return "ws" + strings.TrimPrefix(srv.URL, "http") + "/quotes"
 }
@@ -175,4 +182,119 @@ func TestWS_ExternalSolverRejected(t *testing.T) {
 func jsonNumber(n int64) string {
 	b, _ := json.Marshal(n)
 	return string(b)
+}
+
+// TestWS_PickFromForeignConnection: intent ids are guessable — a pick from
+// a connection that did not open the intent is rejected and does not disturb
+// the opener's stream.
+func TestWS_PickFromForeignConnection(t *testing.T) {
+	keyHex, owner := testKey(t)
+	h := NewHub(fakeVerifier{owner: owner}, time.Minute)
+	url := startWS(t, h)
+
+	userConn := dialWS(t, url)
+	writeFrame(t, userConn, IntentMsg{
+		Type: TypeIntent, User: intentUser, TokenIn: tokenIn, TokenOut: tokenOut,
+		AmountIn: "1000000000000000000",
+	})
+	opened := readFrame[IntentOpenedMsg](t, userConn)
+
+	intruder := dialWS(t, url)
+	writeFrame(t, intruder, PickMsg{Type: TypePick, IntentID: opened.IntentID, QuoteID: "1:1"})
+	if msg := readFrame[ErrorMsg](t, intruder); msg.Type != TypeError {
+		t.Fatalf("intruder got %+v, want error", msg)
+	}
+
+	// The opener's stream is untouched: quote → pick still works.
+	solverConn := dialWS(t, url)
+	q := validQuote(t, 7)
+	q.Deadline = jsonNumber(time.Now().Add(45 * time.Second).Unix())
+	sig := signNonce(t, keyHex, big.NewInt(7))
+	writeFrame(t, solverConn, QuoteMsg{Type: TypeQuote, IntentID: opened.IntentID, Quote: q, Signature: sig})
+	offer := readFrame[QuoteOfferMsg](t, userConn)
+
+	writeFrame(t, userConn, PickMsg{Type: TypePick, IntentID: opened.IntentID, QuoteID: offer.QuoteID})
+	if picked := readFrame[PickedMsg](t, userConn); picked.Type != TypePicked {
+		t.Fatalf("opener pick got %+v", picked)
+	}
+}
+
+// TestWS_RetractSigned: a retract must carry the quote signer's signature —
+// a wrong key gets an error frame; the owner key retracts for real.
+func TestWS_RetractSigned(t *testing.T) {
+	keyHex, owner := testKey(t)
+	rogueKey, _ := testKey(t)
+	h := NewHub(fakeVerifier{owner: owner}, time.Minute)
+	url := startWS(t, h)
+
+	userConn := dialWS(t, url)
+	writeFrame(t, userConn, IntentMsg{
+		Type: TypeIntent, User: intentUser, TokenIn: tokenIn, TokenOut: tokenOut,
+		AmountIn: "1000000000000000000",
+	})
+	opened := readFrame[IntentOpenedMsg](t, userConn)
+
+	solverConn := dialWS(t, url)
+	q := validQuote(t, 7)
+	q.Deadline = jsonNumber(time.Now().Add(45 * time.Second).Unix())
+	sig := signNonce(t, keyHex, big.NewInt(7))
+	writeFrame(t, solverConn, QuoteMsg{Type: TypeQuote, IntentID: opened.IntentID, Quote: q, Signature: sig})
+	offer := readFrame[QuoteOfferMsg](t, userConn)
+
+	// Wrong signer: error frame (non-forwarding to the user is covered by
+	// TestHub_RetractRequiresQuoteSigner — a ctx-timeout Read would close
+	// the user connection here, so no silence probe).
+	writeFrame(t, solverConn, RetractMsg{
+		Type: TypeRetract, IntentID: opened.IntentID, QuoteID: offer.QuoteID,
+		Signature: signRetract(t, rogueKey, opened.IntentID, offer.QuoteID),
+	})
+	if msg := readFrame[ErrorMsg](t, solverConn); msg.Type != TypeError {
+		t.Fatalf("rogue retract got %+v, want error", msg)
+	}
+
+	// Owner-signed retract reaches the user; the quote can no longer be picked.
+	writeFrame(t, solverConn, RetractMsg{
+		Type: TypeRetract, IntentID: opened.IntentID, QuoteID: offer.QuoteID,
+		Signature: signRetract(t, keyHex, opened.IntentID, offer.QuoteID),
+	})
+	if msg := readFrame[RetractMsg](t, userConn); msg.Type != TypeRetract || msg.QuoteID != offer.QuoteID {
+		t.Fatalf("retract got %+v", msg)
+	}
+	writeFrame(t, userConn, PickMsg{Type: TypePick, IntentID: opened.IntentID, QuoteID: offer.QuoteID})
+	if msg := readFrame[ErrorMsg](t, userConn); msg.Type != TypeError {
+		t.Fatalf("pick after retract got %+v, want error", msg)
+	}
+}
+
+// TestWS_OriginPolicy: with an allowlist, browser Origins are enforced;
+// clients without an Origin header (solvers, tests) are unaffected.
+func TestWS_OriginPolicy(t *testing.T) {
+	_, owner := testKey(t)
+	h := NewHub(fakeVerifier{owner: owner}, time.Minute)
+	url := startWSWithOrigins(t, h, []string{"https://app.example"})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	// Machine client (no Origin) → allowed.
+	conn, _, err := websocket.Dial(ctx, url, nil)
+	if err != nil {
+		t.Fatalf("no-origin dial: %v", err)
+	}
+	conn.CloseNow()
+
+	// Listed browser Origin → allowed.
+	header := http.Header{}
+	header.Set("Origin", "https://app.example")
+	conn, _, err = websocket.Dial(ctx, url, &websocket.DialOptions{HTTPHeader: header})
+	if err != nil {
+		t.Fatalf("listed-origin dial: %v", err)
+	}
+	conn.CloseNow()
+
+	// Foreign browser Origin → handshake rejected.
+	header.Set("Origin", "https://evil.example")
+	if _, _, err = websocket.Dial(ctx, url, &websocket.DialOptions{HTTPHeader: header}); err == nil {
+		t.Fatal("foreign origin accepted")
+	}
 }

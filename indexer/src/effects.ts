@@ -11,8 +11,9 @@ import { createPublicClient, defineChain, http } from "viem";
 const RPC_URL =
   process.env.ENVIO_AVAX_FUJI_RPC_URL ??
   process.env.AVAX_FUJI_RPC_URL ??
-  // Public HyperRPC for Avalanche Fuji (Envio docs) — last-resort fallback.
-  "https://fuji.hypersync.xyz";
+  // Public Avalanche Fuji C-Chain RPC — no auth needed for eth_call (the
+  // HyperSync endpoint rejects unauthenticated calls with 401).
+  "https://api.avax-test.network/ext/bc/C/rpc";
 
 const avalancheFuji = defineChain({
   id: 43113,
@@ -23,10 +24,10 @@ const avalancheFuji = defineChain({
 
 const client = createPublicClient({ chain: avalancheFuji, transport: http(RPC_URL) });
 
-// TBD until the Fuji redeploy (Phase 0) — env var wins. On Envio Cloud set
-// REPUTATION_ADDRESS in the dashboard once Deploy.s.sol has run.
+// Env var wins (e.g. Envio Cloud dashboard); fallback = the verified Fuji
+// deployment (docs/contracts.md — Reputation 0x5Df5…40B8 on 43113).
 const REPUTATION_ADDRESS = (process.env.REPUTATION_ADDRESS ??
-  "0x0000000000000000000000000000000000000000") as Address;
+  "0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8") as Address;
 
 const reputationAbi = [
   {

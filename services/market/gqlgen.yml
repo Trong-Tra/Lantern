@@ -1,0 +1,13 @@
+schema:
+  - internal/api/schema.graphqls
+exec:
+  filename: internal/api/generated.go
+  package: api
+model:
+  filename: internal/api/models_gen.go
+  package: api
+resolver:
+  layout: follow-schema
+  dir: internal/api
+  package: api
+  filename_template: "{name}.resolvers.go"

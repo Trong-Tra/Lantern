@@ -1,0 +1,79 @@
+# Lantern web API — identity + market reads (docs/market.md §3–§4).
+# The single source of truth for web-facing types; TS types get generated
+# from this schema at the frontend rebuild. Backing store: the Envio
+# indexer's Hasura GraphQL (no direct chain reads on this surface).
+#
+# BigInt fields are decimal strings (JS-safe); ids are the on-chain numeric
+# ids as decimal strings (Agent.id = agentId, Attestation.id = tokenId).
+
+type Query {
+  "All registered solver agents (newest first)."
+  agents: [Agent!]!
+  "One agent by ERC-8004 id; null when unknown."
+  agent(id: ID!): Agent
+  "Soulbound track record for an agent (newest first)."
+  attestations(agentId: ID!): [Attestation!]!
+  "Live pool graph: current reserves per pool."
+  pools: [Pool!]!
+  "Settled trades, newest first (limit clamped to 1..200, default 50)."
+  trades(limit: Int = 50): [Trade!]!
+}
+
+type Agent {
+  id: ID!
+  owner: String!
+  uri: String!
+  registeredAt: String!
+  updatedAt: String
+  "ERC-5192 attestations earned by this agent (newest first)."
+  attestations: [Attestation!]!
+}
+
+type Attestation {
+  id: ID!
+  agentId: ID!
+  actionType: ActionType!
+  result: ActionResult!
+  amount: String
+  protocol: String
+  uri: String
+  mintedAt: String!
+  blockNumber: String!
+  txHash: String!
+}
+
+type Pool {
+  id: ID!
+  token0: String!
+  token1: String!
+  reserve0: String!
+  reserve1: String!
+  updatedAtBlock: String!
+}
+
+type Trade {
+  id: ID!
+  agentId: ID!
+  user: String!
+  tokenIn: String!
+  tokenOut: String!
+  amountIn: String!
+  amountOut: String!
+  fee: String!
+  nonce: String!
+  settledAt: String!
+  blockNumber: String!
+  txHash: String!
+}
+
+enum ActionType {
+  STAKE
+  UNSTAKE
+  HARVEST
+  SWAP
+}
+
+enum ActionResult {
+  SUCCESS
+  FAIL
+}

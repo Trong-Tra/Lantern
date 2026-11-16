@@ -7,14 +7,15 @@
 | Concern | Where |
 | --- | --- |
 | Quote protocol WS, solver, settlement | `services/market/` — **built** (Phases 1–2, e2e passing on Fuji) |
-| Web-facing GraphQL (identity reads + market queries) | `services/market/internal/api` (gqlgen) — **not built** (Phase 3/4, plan in `docs/market.md`) |
+| Web-facing GraphQL (identity reads + market queries) | `services/market/internal/api` (gqlgen) — **built 2026-11-16** (Phase 3): `POST/GET /graphql` + `/healthz` on `:8082` (`API_ADDR`); schema = `internal/api/schema.graphqls` |
+| Graph snapshot feed | `GET /graph/snapshot` on `:8082` — **built 2026-11-16**, x402-paywalled (`internal/paywall` + `internal/graphfeed`; open while `X402_*` terms unset) |
 | Raw data | Envio indexer GraphQL (`indexer/`) |
 
 ## Rules for the frontend
 
 * **Do not** target `http://localhost:4000`, `/api/agents…`, or `API_ENDPOINTS` from `packages/config` — those paths belonged to the removed Express app and are stale.
-* The FE contract will be the gqlgen API (schema lands with Phase 3). Until it exists, treat identity reads as `TBD` — wire mocks, not the old API.
-* Envelope convention stays: `{ success, data, message? }` via `createApiResponse` (`packages/utils`) — it will be mirrored by the Go API.
+* The FE contract is the gqlgen API: generate/mocks from `services/market/internal/api/schema.graphqls` (Query `agents`, `agent(id)`, `attestations(agentId)`, `pools`, `trades`). GraphQL responses are standard `{ data, errors }` JSON — the `createApiResponse` envelope does not apply to `/graphql`.
+* Graph data for the pool visualizer: `GET /graph/snapshot` → `{ pools: [{ address, token0, token1, reserve0, reserve1, updatedAtBlock }], count }` (reserves are decimal strings). Paywalled only when the owner sets `X402_ASSET`/`X402_PAY_TO`/`X402_AMOUNT`; otherwise open.
 
 ## What the old API was (history)
 
