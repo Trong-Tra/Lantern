@@ -1423,7 +1423,6 @@ html.no-js .myth .story-progress, html.no-js .myth .reading-toggle { display: no
 }
 @media (max-height: 600px) and (max-width: 759px) {
   .journey-stage { min-height: 100svh; }
-  .story-copy { max-height: calc(100svh - 120px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--gold) transparent; }
 }
 @media (prefers-reduced-motion: reduce) {
   .myth-button { transition: background-color 150ms, border-color 150ms; }
@@ -1452,4 +1451,28 @@ html.no-js .story-panel :is(.story-line, .chapter-aside, .chapter-context) {
 }
 @media (prefers-reduced-motion: reduce) {
   .story-panel :is(.story-line, .chapter-aside, .chapter-context) { opacity: 1 !important; transform: none !important; }
+}
+
+
+/* Reserve the fixed shared header while keeping the scroll-driven stage intact. */
+.myth { --landing-header-space: calc(112px + env(safe-area-inset-top)); }
+.myth .story-panel { padding-top: var(--landing-header-space); }
+.myth:not(.myth-reading) .story-copy {
+  max-height: none;
+  overflow: visible;
+  scale: var(--copy-scale, 1);
+  transform-origin: left center;
+}
+.myth .story-copy :is(.chapter-paper-links, .chapter-proof[open]) {
+  max-height: none;
+  overflow: visible;
+}
+.myth:not(.myth-reading) .panel-network .story-copy { transform-origin: center; }
+@media (max-width: 759px) {
+  .myth:not(.myth-reading) .story-copy { transform-origin: left bottom; }
+  .myth:not(.myth-reading) .panel-network .story-copy { transform-origin: center bottom; }
+}
+.myth-reading .story-panel { scroll-margin-top: var(--landing-header-space); }
+@media (max-width: 600px) {
+  .myth { --landing-header-space: calc(156px + env(safe-area-inset-top)); }
 }

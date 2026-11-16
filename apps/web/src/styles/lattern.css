@@ -16,7 +16,14 @@
 }
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: #957448 #100e0c;
 }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: #100e0c; }
+*::-webkit-scrollbar-thumb { background: #957448; border: 2px solid #100e0c; border-radius: 8px; }
+*::-webkit-scrollbar-thumb:hover { background: #c5a16b; }
+*::-webkit-scrollbar-corner { background: #100e0c; }
 html {
   background: var(--background);
   scroll-behavior: auto;

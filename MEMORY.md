@@ -43,6 +43,98 @@
 
 * `2026-11-16` — agent: **Phase 3 complete — gqlgen API + protocol hardening + x402 paywall** — (1) **`internal/api`** (gqlgen): `schema.graphqls` (`agents`/`agent`/`attestations`/`pools`/`trades`, limit clamp 1–200), `POST|GET /graphql` + `/healthz` on `:8082` (`API_ADDR`), Hasura envelope decoding + nested-attestation `agentId` stamping; (2) **protocol hardening**: signed `Retract` (EIP-191 `lantern:retract:<intent>:<quote>` digest, recovered signer must equal the quote's signer), connection-bound `Pick` (a foreign WS connection cannot pick someone else's intent), WS origin policy (`WS_ALLOWED_ORIGINS`; no-Origin machine clients unaffected), `chain.VerifyQuote` now returns the signer; (3) **x402**: `internal/paywall` (v2 `PAYMENT-REQUIRED` challenge, settle-only via PayAI `POST /settle`, `PAYMENT-RESPONSE` header, CORS preflight unpaid, 503 when facilitator down) + `internal/graphfeed` (`GET /graph/snapshot` → sorted pool JSON, decimal-string reserves) + config `X402_FACILITATOR_URL`/`X402_NETWORK`/`X402_ASSET`/`X402_PAY_TO`/`X402_AMOUNT` (trio all-or-nothing → error, all empty → open feed). Facilitator verified live: `/supported` lists `avalanche-fuji` exact; echo route gave USDC asset `0x542589…1Bc65`. Also this session: stale Passport-era envio stack wiped + fresh `envio dev` (`indexer/.env` created from root token, gitignored), `effects.ts` RPC/Reputation fallbacks fixed, ingest tolerates `ka` before `connection_ack`; **live-feed verification cleared** (9/9 pools `consistency: ok` vs chain). Verified: `go test ./... -race` + vet + gofmt clean; indexer 7/7 + tsc; live smoke — open snapshot serves Fuji pools, gated mode returns the 402 challenge matching PayAI's shape, preflight 204, invalid signature rejected.
 
+* `2026-11-15` — frontend sessions on `frontend-Tai` (merged 2026-11-16; older cinematic-landing history pruned to git):
+
+
+### 2026-11-15 - Remove mock quote summary
+Removed valid mock quote/minimum-received text beneath the wallet button; empty and insufficient-balance feedback retained.
+
+### 2026-11-15 - Headline interval
+Exchange headline rotation increased from 2 to 3 seconds; frontend notes and current state updated.
+
+### 2026-11-15 - Match Swap and chart heights
+Swap mode restores the chart-responsive minimum height through a scoped data-mode selector; other modes retain content sizing. Frontend notes updated; browser QA pending.
+
+
+### 2026-11-15 - Swap mode rounding
+Matched mode highlight radius to the swap panel's 24px; frontend notes updated. Browser visual QA pending.
+
+### 2026-11-15 - Smoother landing header motion
+Coalesced scroll work, cached header height and limited React updates; eased transform with jitter filtering and cleanup.
+Frontend notes updated; browser performance QA pending.
+
+### 2026-11-15 - Profile chart spacing
+Reduced wallet toolbar bottom margin to 32px desktop/tablet and 20px phone; frontend notes updated.
+
+### 2026-11-15 - Hide landing header on downward scroll
+Added direction-aware hide/reveal with an 8px threshold, focus/menu/search protection and reduced-motion support; frontend notes updated.
+Browser QA pending.
+
+### 2026-11-15 - Header search color refinement
+Matched search background to navigation header; removed wallet blur/fallback. Focus border and positions retained.
+
+
+### 2026-11-15 - Header search background
+Matched token search to wallet glass background/blur and fallback; focus and geometry retained. Frontend notes updated.
+
+
+### 2026-11-15 — Faster headline rotation
+Changed exchange headline interval to two seconds; transition duration and reduced-motion behavior retained.
+
+### 2026-11-15 - Landing sticky navigation
+Home header sticks at the viewport top; existing desktop/mobile height and story offsets retained. Frontend placement notes updated.
+Verified: 106 web tests passed; direct TypeScript check passed. Browser QA pending; git unavailable in this copy.
+
+### 2026-11-15 — Rotating exchange headline
+Added four short headline pairs, two-second rotation and eased fade/rise; reserved height keeps panels stable.
+Reduced motion shows original copy; hidden tabs skip updates and timer cleans up on unmount. Frontend notes updated; browser QA pending.
+
+### 2026-11-15 — Direction icons and decrease preview
+Replaced text arrows with consistent SVG icons and accessible direction labels; MON 1D mock now decreases 4.82%.
+Updated frontend notes and fixture regression check; controls unchanged, browser visual QA pending.
+
+- 2026-11-15: Removed Profile MOCK DATA badge beside wallet identity; preview disclosure retained. Typecheck/tests blocked by broken pnpm executable; git history unavailable (no .git directory).
+
+### 2026-11-15 — Larger unsigned chart percentage
+Removed positive/negative signs from percentage text and increased it from 12px to 18px; arrows, trend colors and animation retained.
+Frontend placement notes updated; browser visual QA pending.
+
+### 2026-11-15 - Larger chart time labels
+Increased Exchange horizontal-axis labels to 12px. Existing placement research reviewed; same anchors, mobile label thinning and control reach. CSS verified; browser QA pending.
+
+
+### 2026-11-15 — Continuous chart stroke
+Removed legacy normalized dash drawing from the active chart line; clip-based transitions still animate line and fill together.
+Corrects line-only truncation beyond the earlier viewport fix; browser visual QA pending.
+
+### 2026-11-15 — Timeframe pill highlight
+Inset the active timeframe highlight vertically while retaining button geometry and gold palette; frontend notes updated.
+Existing placement research and user screenshot informed paint-only change; browser visual QA pending.
+
+### 2026-11-15 - Search focus outline correction
+Restored original search border and hover/focus colors; removed only offset focus outline per clarification. Existing placement research applies; geometry unchanged.
+
+
+### 2026-11-15 — Exchange chart endpoint
+Matched SVG viewport, time-label insets and pointer mapping to remove the gap before Now; fixture data retained.
+Updated frontend placement notes; shared controls unchanged. Git metadata unavailable in this workspace.
+
+### 2026-11-15 - Borderless header search
+Removed visible search border across states; retained accessible focus outline and geometry. Existing placement research applies; mobile/desktop reach and scrolling unchanged.
+
+
+### 2026-11-15 - Translucent navigation
+Shared header background reduced to 48% opacity; retained 18px blur with WebKit support. Placement and targets unchanged.
+
+### 2026-11-15 - Profile search spacing
+- Reduced asset-tab top padding from 18px desktop/16px mobile to 4px; frontend placement notes updated.
+- Verification: profile test passed (1/1); typecheck blocked by broken pnpm launcher/missing root TypeScript; browser QA not run. Git history/status unavailable: workspace has no .git directory.
+
+
+### 2026-11-15 — Larger exchange chart controls
+- Increased chart-style, metric and timeframe buttons to 44px minimum, with larger labels/icons and flush highlights. Frontend placement notes updated.
+- Verification: see session handoff; browser visual QA pending.
+
 * `2026-11-15` — agent: **`apps/api` removed (owner)** — Express read layer deleted so the concurrent FE rebuild targets the Go API, not dead routes. Root `package.json` (`dev:api`/`build:api`), `PORT` (.env.example), lockfile (−62 pkgs) cleaned; docs swept (AGENTS stack + test rules, README tree/quick-start/table, GETTING_STARTED, architecture diagram/table, `docs/api.md` → tombstone, market.md refs). Left untouched: `apps/web` (frozen — still has stale `pnpm dev:api` copy) and `packages/config` `API_ENDPOINTS` (FE rebuild rewrites them). Verified: `pnpm install` clean; no `@lantern/api` references left outside frozen web.
 
 * `2026-11-15` — agent: **Phase 2 complete — on-chain e2e PASSED on Fuji** — new `cmd/e2e` (scripted flow: broadcast-seeded graph → in-process hub + reference solver → real WS intent/quote/pick → mint/approve → `SettleSwap` → receipt-log verification of `TradeSettled` + SWAP/SUCCESS attestation; fee = 20 bps exact). Supporting changes: generated `MockToken` + `Reputation` abigen bindings; `SettleSwap` now returns the receipt (verification from `receipt.Logs` — no block-window/RPC-lag races); first verify attempt failed on an `end-20` getLogs window, fixed by parsing the receipt directly. `go run ./cmd/e2e` → `E2E PASS`; `go test ./... -race` green; vet/gofmt clean. `docs/market.md` phases 0–2 marked done.

@@ -601,10 +601,10 @@ test("network clock advances at the settled chapter even when portal remains one
   const { networkClockRuns } = loadSource(
     "src/libs/cinematic/chapter-transition.ts"
   );
-  assert.equal(networkClockRuns([0, 0, 1]), true);
-  assert.equal(networkClockRuns([0, 1, 0]), true);
-  assert.equal(networkClockRuns([0, 0.5, 0.5]), true);
-  assert.equal(networkClockRuns([1, 0, 0]), false);
+  assert.equal(networkClockRuns([0, 0, 1], 1, 1), true);
+  assert.equal(networkClockRuns([0, 1, 0], 1, 0), true);
+  assert.equal(networkClockRuns([0, 0.5, 0.5], 1, 0.5), true);
+  assert.equal(networkClockRuns([1, 0, 0], 0, 0), false);
 });
 
 test("network handoff exchanges intact assemblies and reverses deterministically", () => {

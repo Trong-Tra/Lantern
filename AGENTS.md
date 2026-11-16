@@ -28,6 +28,7 @@ Vision: `docs/00-vision.md` (owner-only changes). `docs/frontend.md` describes t
 
 ## Hard rules
 
+* Before any UI design or layout implementation, research content visibility, scrolling and touch/pointer reach for mobile and desktop. Follow `docs/frontend.md` §Placement research and stable controls; keep shared navigation positions stable across routes.
 * `TBD` > invented values — never fabricate addresses, URLs, scores, tx hashes.
 * Never commit `.env` values; `.env.example` keys only. No `node_modules`/`dist`/`.next`.
 * **`apps/web` is frozen: never edit frontend files in backend sessions.** It is known-broken (references removed API/types) until its own rebuild.

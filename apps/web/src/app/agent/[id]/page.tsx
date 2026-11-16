@@ -17,7 +17,6 @@ import {
   VaultPanel,
 } from "@/components/molecules";
 import { ScoreGauge } from "@/components/molecules/score-gauge";
-import { SiteHeader } from "@/components/organisms/site-header";
 import { Atmosphere } from "@/components/molecules/atmosphere";
 import { fetchAgentProfile, fetchRiskReport } from "@/libs/explorer/api";
 import { formatUpdatedAt, parseAgentId, parsePage } from "@/libs/explorer/present";
@@ -283,7 +282,7 @@ export default async function AgentPage({
 function Shell({ children }: { children: ReactNode }) {
   return (
     <main className="relative mx-auto w-full max-w-6xl overflow-x-clip px-6 pt-36 pb-12">
-      <SiteHeader active="network" />
+
       <Atmosphere />
       <div
         aria-hidden="true"
@@ -297,3 +296,4 @@ function Shell({ children }: { children: ReactNode }) {
     </main>
   );
 }
+
