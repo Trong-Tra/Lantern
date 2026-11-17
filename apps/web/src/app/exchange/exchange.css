@@ -965,12 +965,6 @@
   stroke-dasharray: 4 5;
   opacity: 0.65;
 }
-.market-crosshair {
-  stroke: #efe3ca;
-  stroke-width: 1;
-  stroke-dasharray: 3 4;
-  opacity: 0.65;
-}
 .market-point-halo {
   fill: currentColor;
   opacity: 0.15;

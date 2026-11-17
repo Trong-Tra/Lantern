@@ -24,8 +24,5 @@
       "pairs": [["BTCB", "USDT"], ["WBNB", "USDT"], ["BTCB", "WBNB"]]
     }
   ],
-  "pollSeconds": 3,
-  "candleInterval": "1h",
-  "candleHistory": 1440,
-  "candleHistoryMinutes": 120
+  "pollSeconds": 3
 }

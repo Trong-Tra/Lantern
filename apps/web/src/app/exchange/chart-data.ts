@@ -1,28 +1,56 @@
 import type { Candle } from "../../libs/market/api";
 
-// Periods served by the display feed (CHART_INTERVAL must match
-// marketdata.json's candleInterval). 5m = last 5 minutes on 1m candles
-// (HL's finest interval — sub-minute is rejected), 1H = last hour on 1m.
-export const chartPeriods = ["5m", "1H", "1D", "1W", "1M", "All"];
-export const CHART_INTERVAL = "1h";
-const PERIOD_LIMITS: Record<string, number> = {
-  "5m": 5,
-  "1H": 60,
-  "1D": 48,
-  "1W": 336,
-  "1M": 1440,
-  All: 4000,
+// One timeframe = one native Hyperliquid candle size. Every chart keeps
+// `bars` closed candles plus the candle still forming (limit = bars + 1), so
+// the rightmost bar is the live one: 5m moves as a 5-minute candle, 1H as an
+// hour candle, and so on. No synthetic candles, no rebucketing.
+export const chartPeriods = ["5m", "1H", "1D", "1W", "1M"];
+const TIMEFRAMES: Record<string, { interval: string; bars: number; refetchMs: number }> = {
+  "5m": { interval: "5m", bars: 72, refetchMs: 1000 },
+  "1H": { interval: "1h", bars: 72, refetchMs: 2000 },
+  "1D": { interval: "1d", bars: 72, refetchMs: 5000 },
+  "1W": { interval: "1w", bars: 24, refetchMs: 10000 },
+  "1M": { interval: "1M", bars: 12, refetchMs: 20000 },
 };
+const DEFAULT_PERIOD = TIMEFRAMES["1H"];
 
-/** Candle limit to request for a chart timeframe. */
-export function chartLimitFor(period: string): number {
-  return PERIOD_LIMITS[period] ?? 168;
+/** Feed interval for a timeframe — the candle size the button names. */
+export function chartIntervalFor(period: string): string {
+  return (TIMEFRAMES[period] ?? DEFAULT_PERIOD).interval;
 }
 
-/** Feed interval for a timeframe — 5m and 1H ride the live 1m stream, the rest the 1h stream. */
-export function chartIntervalFor(period: string): string {
-  if (period === "5m" || period === "1H") return "1m";
-  return CHART_INTERVAL;
+/** Closed candles plus the forming one — the bar that moves between polls. */
+export function chartLimitFor(period: string): number {
+  return (TIMEFRAMES[period] ?? DEFAULT_PERIOD).bars + 1;
+}
+
+/** Poll cadence for a timeframe — faster views poll faster so the last candle streams. */
+export function chartRefetchFor(period: string): number {
+  return (TIMEFRAMES[period] ?? DEFAULT_PERIOD).refetchMs;
+}
+
+/**
+ * Glide one candle series into another on a live tick: right-aligned,
+ * element-wise lerp between candles with the same open time, so the moving
+ * last candle eases to its new values. Brand-new or rolled candles pop in at
+ * their real values — no fabricated in-between shapes.
+ */
+export function interpolateCandles(from: Candle[], to: Candle[], t: number): Candle[] {
+  if (!from.length || t >= 1) return to;
+  const offset = to.length - from.length;
+  return to.map((target, index) => {
+    const source = index - offset >= 0 ? from[index - offset] : undefined;
+    if (!source || source.t !== target.t) return target;
+    const mix = (a: number, b: number) => a + (b - a) * t;
+    return {
+      t: target.t,
+      o: mix(source.o, target.o),
+      h: mix(source.h, target.h),
+      l: mix(source.l, target.l),
+      c: mix(source.c, target.c),
+      v: mix(source.v, target.v),
+    };
+  });
 }
 
 export type ChartSeries = {
@@ -60,24 +88,6 @@ function formatDuration(spanMs: number): string {
   return `${days} day${days === 1 ? "" : "s"}`;
 }
 
-/** Bucket real OHLCV candles into at most `max` display candles. */
-function bucketCandles(candles: Candle[], max: number) {
-  const count = Math.min(max, candles.length);
-  const size = candles.length / count;
-  return Array.from({ length: count }, (_, index) => {
-    const start = Math.floor(index * size);
-    const end = Math.max(start + 1, Math.floor((index + 1) * size));
-    const slice = candles.slice(start, end);
-    return {
-      x: 20 + ((index + 0.5) / count) * 600,
-      open: slice[0].o,
-      close: slice[slice.length - 1].c,
-      high: Math.max(...slice.map((c) => c.h)),
-      low: Math.min(...slice.map((c) => c.l)),
-    };
-  });
-}
-
 /**
  * Build chart geometry from live feed candles (newest last, hour-aligned
  * open times in unix ms). Returns null when there is nothing to plot —
@@ -113,8 +123,11 @@ export function buildChartSeries(
     );
 
   const n = candles.length;
+  // Band centers: each candle owns a 600/n slot, so the first and last bodies
+  // sit fully inside the plot instead of being sliced in half by its edges.
+  const xFor = (index: number) => 20 + ((index + 0.5) / n) * 600;
   const points = candles.map((c, index) => ({
-    x: 20 + (n === 1 ? 0 : (index / (n - 1)) * 600),
+    x: xFor(index),
     y: y(c.c),
     value: c.c,
   }));
@@ -124,7 +137,14 @@ export function buildChartSeries(
 
   return {
     timeLabels,
-    candles: bucketCandles(candles, 96),
+    // One display candle per feed candle, sharing the line's x positions.
+    candles: candles.map((c, index) => ({
+      x: xFor(index),
+      open: c.o,
+      close: c.c,
+      high: c.h,
+      low: c.l,
+    })),
     y,
     values,
     volumes: candles.map((c) => (Number.isFinite(c.v) && c.v > 0 ? c.v : 0)),

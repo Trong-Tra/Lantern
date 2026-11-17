@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { loadSource } from "./helpers/load-source.mjs";
-const { chartPeriods, chartLimitFor, chartIntervalFor, buildChartSeries, CHART_INTERVAL } =
+const { chartPeriods, chartLimitFor, chartIntervalFor, chartRefetchFor, buildChartSeries, interpolateCandles } =
   loadSource("src/app/exchange/chart-data.ts");
 
 // Hour-aligned synthetic OHLCV (unix ms open times, newest last).
@@ -26,22 +26,47 @@ function syntheticCandles(count, startPrice = 100) {
   });
 }
 
-test("periods map to per-timeframe candle limits and feed intervals", () => {
-  assert.equal(CHART_INTERVAL, "1h");
-  assert.deepEqual(chartPeriods, ["5m", "1H", "1D", "1W", "1M", "All"]);
-  assert.equal(chartLimitFor("5m"), 5);
-  assert.equal(chartLimitFor("1H"), 60);
-  assert.equal(chartLimitFor("1D"), 48);
-  assert.equal(chartLimitFor("1W"), 336);
-  assert.equal(chartLimitFor("1M"), 1440);
-  assert.equal(chartLimitFor("All"), 4000);
-  assert.equal(chartLimitFor("bogus"), 168);
-  // 5m = last 5 minutes and 1H = last hour both ride the live 1m stream;
-  // HL rejects sub-minute intervals, so 1m is the floor.
-  assert.equal(chartIntervalFor("5m"), "1m");
-  assert.equal(chartIntervalFor("1H"), "1m");
-  assert.equal(chartIntervalFor("1D"), "1h");
+test("each period is its own native candle size plus the forming candle", () => {
+  assert.deepEqual(chartPeriods, ["5m", "1H", "1D", "1W", "1M"]);
+  // Same wording as the button: 5m = 5-minute candles; 72 closed + the live one.
+  assert.equal(chartIntervalFor("5m"), "5m");
+  assert.equal(chartIntervalFor("1H"), "1h");
+  assert.equal(chartIntervalFor("1D"), "1d");
+  assert.equal(chartIntervalFor("1W"), "1w");
+  assert.equal(chartIntervalFor("1M"), "1M");
+  assert.equal(chartLimitFor("5m"), 73);
+  assert.equal(chartLimitFor("1H"), 73);
+  assert.equal(chartLimitFor("1D"), 73);
+  assert.equal(chartLimitFor("1W"), 25);
+  assert.equal(chartLimitFor("1M"), 13);
+  // The extra bar over the closed count is the one that moves between polls.
+  for (const period of chartPeriods) assert.ok(chartLimitFor(period) > 1);
   assert.equal(chartIntervalFor("bogus"), "1h");
+  assert.equal(chartLimitFor("bogus"), 73);
+  // Fast views poll faster so the moving last candle streams.
+  assert.ok(chartRefetchFor("5m") < chartRefetchFor("1H"));
+  assert.ok(chartRefetchFor("1H") < chartRefetchFor("1M"));
+});
+
+test("interpolateCandles glides same-open-time candles, pops rolled ones", () => {
+  const from = syntheticCandles(4, 100);
+  // Same window, last candle moved — glides element-wise.
+  const tick = from.map((c, i) => (i === from.length - 1 ? { ...c, c: c.c + 10, h: c.h + 12 } : c));
+  const half = interpolateCandles(from, tick, 0.5);
+  assert.equal(half.length, tick.length);
+  assert.equal(half.at(-1).c, from.at(-1).c + 5);
+  assert.equal(half.at(-1).h, from.at(-1).h + 6);
+  assert.equal(half[0].c, from[0].c);
+  // t >= 1 lands exactly on the target.
+  assert.deepEqual(interpolateCandles(from, tick, 1), tick);
+  // Window rolled one candle — shifted entries have no same-t partner and pop
+  // at their real values (no fabricated in-between shapes).
+  const rolled = [...from.slice(1), { t: from.at(-1).t + 3_600_000, o: 1, h: 2, l: 0.5, c: 1.5, v: 3 }];
+  const glided = interpolateCandles(from, rolled, 0.5);
+  assert.equal(glided.length, rolled.length);
+  assert.equal(glided.at(-1).c, 1.5);
+  // Empty source goes straight to target.
+  assert.deepEqual(interpolateCandles([], tick, 0.5), tick);
 });
 
 test("series geometry comes from real candles — endpoints, axis, path", () => {
@@ -68,9 +93,14 @@ test("series geometry comes from real candles — endpoints, axis, path", () => 
       );
     assert.ok(chart.path.startsWith("M"));
     assert.equal(chart.path.split("L").length, candles.length);
-    // Display candles bucket to ≤96 with honest OHLC bounds.
-    assert.ok(chart.candles.length <= 96);
-    assert.ok(chart.candles.length > 0);
+    // One display candle per feed candle — no rebucketing.
+    assert.equal(chart.candles.length, candles.length);
+    // Band centers: the first/last bodies clear the plot edges (20..620)
+    // instead of being clipped in half.
+    const slot = 600 / candles.length;
+    assert.ok(Math.abs(chart.candles[0].x - (20 + slot / 2)) < 1e-9);
+    assert.ok(Math.abs(chart.candles.at(-1).x - (620 - slot / 2)) < 1e-9);
+    assert.ok(chart.points.every((point) => point.x > 20 && point.x < 620));
     for (const candle of chart.candles) {
       assert.ok(candle.high >= Math.max(candle.open, candle.close));
       assert.ok(candle.low <= Math.min(candle.open, candle.close));
@@ -79,11 +109,6 @@ test("series geometry comes from real candles — endpoints, axis, path", () => 
     assert.match(chart.duration, /\d+ (hour|day)s?/);
     assert.equal(chart.baseline, chart.y(chart.open));
   }
-});
-
-test("display candles bucket down to the 96-candle cap", () => {
-  const chart = buildChartSeries(syntheticCandles(300), "1M");
-  assert.equal(chart.candles.length, 96);
 });
 
 test("null series for empty, short, or junk input — no fabricated line", () => {
@@ -104,10 +129,11 @@ test("unsorted candles are ordered by open time before plotting", () => {
   assert.equal(chart.open, candles[0].o);
 });
 
-test("timeframes over the same window yield distinct durations", () => {
-  const oneDay = buildChartSeries(syntheticCandles(24), "1D");
-  const oneWeek = buildChartSeries(syntheticCandles(168), "1W");
+test("durations follow the visible candle span", () => {
+  const oneDay = buildChartSeries(syntheticCandles(chartLimitFor("1D")), "1D");
+  const oneWeek = buildChartSeries(syntheticCandles(chartLimitFor("1W")), "1W");
   assert.notEqual(oneDay.duration, oneWeek.duration);
-  assert.match(oneDay.duration, /hour/);
-  assert.match(oneWeek.duration, /day/);
+  for (const chart of [oneDay, oneWeek]) {
+    assert.match(chart.duration, /\d+ (hour|day)s?/);
+  }
 });

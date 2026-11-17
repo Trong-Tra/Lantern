@@ -27,7 +27,7 @@ export function useMarketPrices() {
 }
 
 /** OHLCV history for one Hyperliquid coin. `coin === null` disables the query. */
-export function useMarketCandles(coin: string | null, interval: string, limit: number) {
+export function useMarketCandles(coin: string | null, interval: string, limit: number, refetchMs = 5000) {
   return useQuery<CandlesResponse>({
     queryKey: ["market", "candles", coin, interval, limit, baseUrl],
     queryFn: ({ signal }) => {
@@ -35,8 +35,8 @@ export function useMarketCandles(coin: string | null, interval: string, limit: n
       return fetchCandles(baseUrl, fetcher, { coin, interval, limit }, signal);
     },
     enabled: Boolean(coin),
-    refetchInterval: 5000,
-    staleTime: 2000,
+    refetchInterval: refetchMs,
+    staleTime: Math.min(2000, refetchMs),
   });
 }
 

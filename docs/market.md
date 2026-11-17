@@ -83,6 +83,19 @@ Key choices:
 * **Reference solver** (v1, iterate later): depth-capped DFS over the graph (max 3–4 hops), split allocation by grid search over slice percentages (e.g. 1–5% steps), scored by simulated output after price impact. Also the **sanity baseline** quotes are compared against before being shown.
 * **Quote lifecycle**: `IntentOpened` (WS) → solvers stream `Quote` messages → solver may send `Retract` (pools moved) → user's `Pick` → `executeSwap` on-chain → `TradeSettled` → attestation. Stale quotes (deadline passed) are dropped client- and contract-side.
 
+**Chart timeframes — one native Hyperliquid candle per button.** The `/exchange` buttons are **candle sizes**, not window lengths: `5m` = 5-minute bars, `1H` = 1-hour bars, `1D`/`1W`/`1M` likewise (`1M` = monthly). Nothing is aggregated, synthesized or rebucketed — each chart shows N closed bars plus the bar currently forming, and that last bar is what moves between updates.
+
+| Button | HL interval | Bars served | Forming bar |
+| --- | --- | --- | --- |
+| 5m | `5m` | 73 (72 closed + 1) | yes — a 5-minute candle |
+| 1H | `1h` | 73 | yes |
+| 1D | `1d` | 73 | yes |
+| 1W | `1w` | 25 | yes |
+| 1M | `1M` | 13 | yes |
+
+* Backend source of truth: `candleSpecs` in `internal/marketdata/service.go`. Boot `candleSnapshot` covers `bars × interval` (span from `candleSpan`), then one WS `candle` subscription per interval per coin keeps the forming bar live. HL has no sub-minute interval and none is needed — do not build synthetic candles from `allMids` (mids are throttled and carry no volume).
+* FE source of truth: `TIMEFRAMES` in `apps/web/src/app/exchange/chart-data.ts` mirrors the table (`chartIntervalFor` / `chartLimitFor` / `chartRefetchFor`) and polls so the forming bar advances. Adding or changing a timeframe means editing both tables — nowhere else.
+
 ### 4. Types boundary
 
 `packages/types` stays the TS source of truth for the frozen frontend era. New market types (Intent, Quote, PoolSnapshot, Trade) are defined **once in the GraphQL schema** (`services/market/internal/api/schema.graphqls`); TS types get generated from it when the frontend rebuilds. No hand-maintained duplicate shapes.

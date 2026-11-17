@@ -53,7 +53,7 @@ func candleRows() []map[string]any {
 }
 
 func newTestHL(infoURL, wsURL string, store *Store) *HL {
-	h := NewHL([]string{"BTC", "ETH"}, []candleSpec{{interval: "1h", history: 168 * time.Hour}}, store)
+	h := NewHL([]string{"BTC", "ETH"}, []candleSpec{{interval: "1h", bars: 73}}, store)
 	h.infoURL = infoURL
 	h.wsURL = wsURL
 	return h
@@ -164,6 +164,115 @@ func TestHL_WsLoop(t *testing.T) {
 	cs := store.Candles("BTC", "1h", 10)
 	if len(cs) != 1 || cs[0].C != 64300 || cs[0].T != 1700007200000 {
 		t.Fatalf("candles after ws: %+v", cs)
+	}
+}
+
+// TestHL_WsLoop_StaleSocketForceReconnect: a peer that accepts traffic but
+// sends nothing (half-open socket, seen live 2026-11-18 — feed froze for 8
+// minutes while "connected") must end the loop so Run can reconnect.
+func TestHL_WsLoop_StaleSocketForceReconnect(t *testing.T) {
+	subs := make(chan []string, 1)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		conn, err := websocket.Accept(w, r, nil)
+		if err != nil {
+			t.Errorf("ws accept: %v", err)
+			return
+		}
+		defer conn.Close(websocket.StatusNormalClosure, "bye")
+		ctx := r.Context()
+		var got []string
+		for { // read subscriptions + pings, never write: a silent peer
+			_, msg, err := conn.Read(ctx)
+			if err != nil {
+				break
+			}
+			got = append(got, string(msg))
+		}
+		subs <- got
+	}))
+	t.Cleanup(srv.Close)
+
+	h := newTestHL("", "ws"+strings.TrimPrefix(srv.URL, "http"), NewStore())
+	h.pingEvery = 50 * time.Millisecond
+	h.staleAfter = 250 * time.Millisecond
+
+	start := time.Now()
+	err := h.wsLoop(context.Background())
+	if err == nil || !strings.Contains(err.Error(), "no frames") {
+		t.Fatalf("want stale-read error, got %v", err)
+	}
+	if elapsed := time.Since(start); elapsed > 3*time.Second {
+		t.Fatalf("stale socket took %s to detect", elapsed)
+	}
+	joined := strings.Join(<-subs, "\n")
+	if !strings.Contains(joined, `"method":"ping"`) {
+		t.Errorf("heartbeat ping was never sent: %v", joined)
+	}
+}
+
+// TestHL_WsLoop_PongKeepsSocketAlive: pong replies count as traffic, so a
+// healthy-but-quiet feed must not be torn down by the stale deadline.
+func TestHL_WsLoop_PongKeepsSocketAlive(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		conn, err := websocket.Accept(w, r, nil)
+		if err != nil {
+			return
+		}
+		defer conn.Close(websocket.StatusNormalClosure, "bye")
+		ctx := r.Context()
+		for {
+			_, msg, err := conn.Read(ctx)
+			if err != nil {
+				return
+			}
+			if strings.Contains(string(msg), `"ping"`) {
+				_ = conn.Write(ctx, websocket.MessageText, []byte(`{"channel":"pong"}`))
+			}
+		}
+	}))
+	t.Cleanup(srv.Close)
+
+	h := newTestHL("", "ws"+strings.TrimPrefix(srv.URL, "http"), NewStore())
+	h.pingEvery = 30 * time.Millisecond
+	h.staleAfter = 200 * time.Millisecond
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() { done <- h.wsLoop(ctx) }()
+	time.Sleep(700 * time.Millisecond) // several stale windows
+	cancel()
+	select {
+	case err := <-done:
+		if err != nil && strings.Contains(err.Error(), "no frames") {
+			t.Fatalf("pongs should keep the socket fresh, got %v", err)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("wsLoop did not stop after cancel")
+	}
+}
+
+// candleSpan drives the boot snapshot window: each timeframe asks for exactly
+// its own candle size, so a 5m view gets 5-minute bars and a 1M view months.
+func TestCandleSpan(t *testing.T) {
+	cases := map[string]time.Duration{
+		"1m":  time.Minute,
+		"5m":  5 * time.Minute,
+		"15m": 15 * time.Minute,
+		"1h":  time.Hour,
+		"4h":  4 * time.Hour,
+		"1d":  24 * time.Hour,
+		"1w":  7 * 24 * time.Hour,
+		"1M":  30 * 24 * time.Hour,
+	}
+	for interval, want := range cases {
+		if got, ok := candleSpan(interval); !ok || got != want {
+			t.Errorf("candleSpan(%q) = %v, %v; want %v", interval, got, ok, want)
+		}
+	}
+	for _, bad := range []string{"", "5", "5x", "0m", "m"} {
+		if _, ok := candleSpan(bad); ok {
+			t.Errorf("candleSpan(%q) should fail", bad)
+		}
 	}
 }
 

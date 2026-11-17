@@ -3,10 +3,8 @@
 import {
   useEffect,
   useId,
-  useMemo,
   useRef,
   useState,
-  type PointerEvent,
 } from "react";
 import {
   ChartBarIcon,
@@ -23,8 +21,11 @@ import {
   axisLabelFrame,
   chartIntervalFor,
   chartLimitFor,
+  chartRefetchFor,
+  interpolateCandles,
   type ChartSeries,
 } from "./chart-data";
+import type { Candle } from "@/libs/market/api";
 import { useMarketCandles, useMarketPrices } from "@/hooks/use-market";
 import {
   displaySymbol,
@@ -147,7 +148,6 @@ export function MarketChart({
   onSwitch: () => void;
 }) {
   const [period, setPeriod] = useState("1H");
-  const [selected, setSelected] = useState<number | null>(null);
   const [style, setStyle] = useState("line");
   const gradient = useId();
   const clip = useId();
@@ -156,25 +156,26 @@ export function MarketChart({
   const candlesQuery = useMarketCandles(
     token.coin,
     chartIntervalFor(period),
-    chartLimitFor(period)
+    chartLimitFor(period),
+    chartRefetchFor(period)
   );
-  const target = useMemo(
-    () =>
-      candlesQuery.data
-        ? buildChartSeries(candlesQuery.data.candles, period)
-        : null,
-    [candlesQuery.data, period]
-  );
+  const targetCandles = candlesQuery.data?.candles ?? null;
 
   type PlotFrame = {
     data: ChartSeries | null;
+    /** Real (post-animation) candles behind data — the next glide starts here. */
+    candles: Candle[];
     progress: number;
     /** While a morph runs: plot to draw (flips old→new as growth starts). */
     plotStyle?: string;
   };
-  const [frame, setFrame] = useState<PlotFrame>(() => ({ data: target, progress: 1 }));
+  const [frame, setFrame] = useState<PlotFrame>(() => ({
+    data: targetCandles ? buildChartSeries(targetCandles, period) : null,
+    candles: targetCandles ?? [],
+    progress: 1,
+  }));
   const frameRef = useRef(frame);
-  const previousTarget = useRef(target);
+  const previousCandles = useRef(targetCandles);
   const periodRef = useRef(period);
   const styleRef = useRef(style);
   const morphingRef = useRef(false);
@@ -184,28 +185,46 @@ export function MarketChart({
     const periodChanged = periodRef.current !== period;
     styleRef.current = style;
     periodRef.current = period;
-    if (previousTarget.current === target && !styleChanged) {
+    if (previousCandles.current === targetCandles && !styleChanged) {
       morphingRef.current = false;
       return;
     }
-    previousTarget.current = target;
+    previousCandles.current = targetCandles;
     const previous = frameRef.current;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const build = (cs: Candle[] | null) =>
+      cs && cs.length ? buildChartSeries(cs, period) : null;
     const nearSame =
-      !!previous.data &&
-      !!target &&
-      Math.abs(previous.data.values.length - target.values.length) <= 1;
-    // Live ticks with an unchanged series swap the frame in place — the last
-    // candle just updates instead of the chart retracting and wiping.
+      previous.candles.length > 0 &&
+      !!targetCandles?.length &&
+      Math.abs(previous.candles.length - targetCandles.length) <= 1;
+
+    // Live ticks glide: same window, values move — ease the moving candle
+    // into its new position instead of snapping or re-morphing the chart.
     if (!periodChanged && !styleChanged && nearSame && !morphingRef.current) {
-      const next: PlotFrame = { data: target, progress: 1, plotStyle: style };
-      frameRef.current = next;
-      setFrame(next);
-      return;
+      let request: number;
+      let start: number | undefined;
+      const update = (now: number) => {
+        start ??= now;
+        const t = reduced.matches ? 1 : Math.min(1, (now - start) / 600);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const next: PlotFrame = {
+          data: build(interpolateCandles(previous.candles, targetCandles!, eased)),
+          candles: targetCandles!,
+          progress: 1,
+          plotStyle: style,
+        };
+        frameRef.current = next;
+        setFrame(next);
+        if (t < 1) request = requestAnimationFrame(update);
+      };
+      request = requestAnimationFrame(update);
+      return () => cancelAnimationFrame(request);
     }
+
     // Period/style switches (and retargets mid-flight) retract the previous
     // plot, then grow the new one — the style flips as growth starts.
     morphingRef.current = true;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     let request: number;
     let start: number | undefined;
     const update = (now: number) => {
@@ -216,7 +235,8 @@ export function MarketChart({
       const progress = reduced.matches ? 1 : phase.progress;
       const keepOld = shrinking && !reduced.matches;
       const next: PlotFrame = {
-        data: keepOld ? previous.data : target,
+        data: keepOld ? previous.data : build(targetCandles),
+        candles: keepOld ? previous.candles : targetCandles ?? [],
         progress,
         plotStyle: keepOld ? previous.plotStyle ?? fromStyle : style,
       };
@@ -230,7 +250,7 @@ export function MarketChart({
     };
     request = requestAnimationFrame(update);
     return () => cancelAnimationFrame(request);
-  }, [target, period, style]);
+  }, [targetCandles, period, style]);
 
   const data = frame.data;
   // During a morph the frame carries the plot style (old while retracting,
@@ -243,22 +263,11 @@ export function MarketChart({
   const livePrice = tokenUsdPrice(token, prices.data?.prices);
   const headerPrice = livePrice ?? data?.close ?? null;
   const up = (data?.change ?? 0) >= 0;
-  const lastPoint = data ? data.points.length - 1 : 0;
-  const point = data?.points[selected ?? lastPoint] ?? null;
   const maxVolume = data ? Math.max(...data.volumes, 0) : 0;
   const totalVolumeUsd = data
     ? data.volumes.reduce((sum, volume, index) => sum + volume * data.values[index], 0)
     : 0;
   const updatedAt = prices.data?.updatedAt ?? candlesQuery.data?.updatedAt ?? null;
-
-  function inspect(event: PointerEvent<SVGSVGElement>) {
-    if (!data) return;
-    const count = data.points.length;
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 640;
-    const ratio = Math.max(0, Math.min(1, (x - 20) / 600));
-    setSelected(Math.round(ratio * (count - 1)));
-  }
 
   const plot = token.coin ? (
     candlesQuery.isPending ? (
@@ -279,12 +288,7 @@ export function MarketChart({
           viewBox="0 0 640 300"
           preserveAspectRatio="none"
           role="img"
-          aria-label={`Price ${style} chart for ${displaySymbol(token)}, past ${data.duration}. Open ${dollars(data.open)}, latest ${dollars(data.close)}. Auto-scaled vertical axis. Bottom bars show traded volume.`}
-          onPointerMove={(event) => {
-            if (event.pointerType !== "touch") inspect(event);
-          }}
-          onPointerDown={inspect}
-          onPointerLeave={() => setSelected(null)}
+          aria-label={`Price ${style} chart for ${displaySymbol(token)}, past ${data.duration}. Open ${dollars(data.open)}, latest ${dollars(data.close)}. Auto-scaled vertical axis.${maxVolume > 0 ? " Bottom bars show traded volume." : ""}`}
         >
           <defs>
             <clipPath id={clip}>
@@ -363,8 +367,9 @@ export function MarketChart({
                   const count = data.volumes.length;
                   const height =
                     maxVolume > 0 ? 5 + (volume / maxVolume) * 60 : 0;
-                  const x =
-                    20 + (count === 1 ? 0 : (index / (count - 1)) * 600);
+                  // Same band centers as the candles/line, so the bars line
+                  // up with their candle and none is clipped at the edges.
+                  const x = 20 + ((index + 0.5) / count) * 600;
                   return (
                     <rect
                       key={index}
@@ -378,25 +383,6 @@ export function MarketChart({
               </g>
             </g>
           </g>
-          {selected !== null && point && frame.progress === 1 && (
-            <g>
-              <line
-                className="market-crosshair"
-                x1={point.x}
-                x2={point.x}
-                y1="12"
-                y2="279"
-              />
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r="4"
-                fill="currentColor"
-                stroke="#11100e"
-                strokeWidth="2"
-              />
-            </g>
-          )}
         </svg>
         <div className="matcha-axis" aria-hidden="true">
           {[0, 1, 2, 3, 4].map((index) => {
@@ -442,7 +428,11 @@ export function MarketChart({
               <h2>
                 <DeleteTypeValue value={displaySymbol(token)} letters />
               </h2>
-              <span>Avalanche Fuji</span>
+              <span>
+                {token.coin
+                  ? "Hyperliquid mark · display only"
+                  : "Fuji mock · $1 peg"}
+              </span>
             </div>
           </div>
         </div>
@@ -454,7 +444,8 @@ export function MarketChart({
             },
             {
               label: "Volume",
-              value: data ? compact(totalVolumeUsd) : "—",
+              // Mid-folded tick candles carry no traded volume — don't claim $0.
+              value: data && totalVolumeUsd > 0 ? compact(totalVolumeUsd) : "—",
             },
             { label: "High", value: data ? dollars(data.high) : "—" },
             {
@@ -526,10 +517,7 @@ export function MarketChart({
             <button
               key={item}
               aria-pressed={period === item}
-              onClick={() => {
-                setPeriod(item);
-                setSelected(null);
-              }}
+              onClick={() => setPeriod(item)}
             >
               {item}
             </button>

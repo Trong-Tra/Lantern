@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -18,13 +19,20 @@ const (
 	defaultHLInfoURL = "https://api.hyperliquid.xyz/info"
 	defaultHLWSURL   = "wss://api.hyperliquid.xyz/ws"
 	hlReconnectDelay = 3 * time.Second
+	// hlPingInterval keeps the socket warm (Hyperliquid replies to
+	// `{"method":"ping"}` with a pong frame).
+	hlPingInterval = 30 * time.Second
+	// hlStaleAfter reconnects when nothing — not even a pong — arrives in
+	// this long. A half-open socket never errors on Read, so without this
+	// the feed can sit "connected" and silent for hours.
+	hlStaleAfter = 90 * time.Second
 )
 
-// candleSpec is one candle granularity the feed keeps: e.g. {1h, 1440h} for
-// the period charts and {1m, 120m} for the volatile 1H demo view.
+// candleSpec is one native Hyperliquid candle size the feed keeps, with how
+// many bars to hold (closed bars + the forming one).
 type candleSpec struct {
 	interval string
-	history  time.Duration
+	bars     int
 }
 
 // HL streams Hyperliquid USD mids + candles into the Store. URLs are fields
@@ -36,16 +44,21 @@ type HL struct {
 	infoURL string
 	wsURL   string
 	http    *http.Client
+	// pingEvery/staleAfter drive the liveness guard; tests shorten them.
+	pingEvery  time.Duration
+	staleAfter time.Duration
 }
 
 func NewHL(coins []string, specs []candleSpec, store *Store) *HL {
 	return &HL{
-		coins:   coins,
-		specs:   specs,
-		store:   store,
-		infoURL: defaultHLInfoURL,
-		wsURL:   defaultHLWSURL,
-		http:    &http.Client{Timeout: 15 * time.Second},
+		coins:      coins,
+		specs:      specs,
+		store:      store,
+		infoURL:    defaultHLInfoURL,
+		wsURL:      defaultHLWSURL,
+		http:       &http.Client{Timeout: 15 * time.Second},
+		pingEvery:  hlPingInterval,
+		staleAfter: hlStaleAfter,
 	}
 }
 
@@ -73,10 +86,20 @@ func (h *HL) boot(ctx context.Context) {
 	now := time.Now().UTC()
 	for _, coin := range h.coins {
 		for _, spec := range h.specs {
-			cs, err := h.candleSnapshot(ctx, coin, spec.interval, now.Add(-spec.history))
+			span, ok := candleSpan(spec.interval)
+			if !ok {
+				log.Printf("marketdata: hyperliquid unknown candle interval %q", spec.interval)
+				continue
+			}
+			// Ask for whole bars from `bars` spans back: HL returns the closed
+			// bars plus the one still forming.
+			cs, err := h.candleSnapshot(ctx, coin, spec.interval, now.Add(-time.Duration(spec.bars)*span))
 			if err != nil {
 				log.Printf("marketdata: hyperliquid %s %s history: %v", coin, spec.interval, err)
 				continue
+			}
+			if len(cs) > spec.bars {
+				cs = cs[len(cs)-spec.bars:]
 			}
 			h.store.SetCandles(coin, spec.interval, cs)
 			log.Printf("marketdata: hyperliquid %s %s history: %d candles", coin, spec.interval, len(cs))
@@ -253,9 +276,46 @@ func (h *HL) wsLoop(ctx context.Context) error {
 		}
 	}
 
+	// Heartbeat: pings keep the connection alive and give the read side
+	// regular proof of life, so a silently half-open socket is detected
+	// instead of freezing the feed.
+	pingCtx, stopPings := context.WithCancel(ctx)
+	defer stopPings()
+	pingErr := make(chan error, 1)
+	go func() {
+		ticker := time.NewTicker(h.pingEvery)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-pingCtx.Done():
+				return
+			case <-ticker.C:
+				if err := conn.Write(ctx, websocket.MessageText, []byte(`{"method":"ping"}`)); err != nil {
+					select {
+					case pingErr <- err:
+					default:
+					}
+					conn.Close(websocket.StatusInternalError, "ping failed")
+					return
+				}
+			}
+		}
+	}()
+
 	for {
-		_, data, err := conn.Read(ctx)
+		readCtx, cancel := context.WithTimeout(ctx, h.staleAfter)
+		_, data, err := conn.Read(readCtx)
+		stale := readCtx.Err() == context.DeadlineExceeded
+		cancel()
 		if err != nil {
+			select {
+			case pingErr := <-pingErr:
+				return fmt.Errorf("ping: %w", pingErr)
+			default:
+			}
+			if stale {
+				return fmt.Errorf("read: no frames for %s", h.staleAfter)
+			}
 			return fmt.Errorf("read: %w", err)
 		}
 		h.handleFrame(data)
@@ -313,7 +373,35 @@ func (h *HL) handleFrame(data []byte) {
 		h.store.UpsertCandle(c.S, interval, Candle{T: c.OpenMs, O: o, H: hh, L: l, C: cc, V: v})
 	case "error":
 		log.Printf("marketdata: hyperliquid ws error: %s", truncate(frame.Data, 300))
+	case "pong":
+		// Heartbeat reply — keeps the stale-read deadline refreshed.
 	}
+}
+
+// candleSpan is one bar's duration for a Hyperliquid interval ("5m", "1h",
+// "1d", "1w", "1M", …). Boot history needs it to compute the snapshot start.
+func candleSpan(interval string) (time.Duration, bool) {
+	if interval == "1M" {
+		return 30 * 24 * time.Hour, true
+	}
+	if len(interval) < 2 {
+		return 0, false
+	}
+	count, err := strconv.Atoi(interval[:len(interval)-1])
+	if err != nil || count < 1 {
+		return 0, false
+	}
+	units := map[byte]time.Duration{
+		'm': time.Minute,
+		'h': time.Hour,
+		'd': 24 * time.Hour,
+		'w': 7 * 24 * time.Hour,
+	}
+	unit, ok := units[interval[len(interval)-1]]
+	if !ok {
+		return 0, false
+	}
+	return time.Duration(count) * unit, true
 }
 
 func truncate(b []byte, n int) string {
