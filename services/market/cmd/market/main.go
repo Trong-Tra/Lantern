@@ -3,6 +3,7 @@
 // on-chain reserve consistency check. Phase 2: quote-protocol WebSocket +
 // the in-process reference solver (enabled when its identity is configured).
 // Phase 3: web-facing GraphQL API + the x402-paywalled graph snapshot feed.
+// Phase 4: /market display feed — Hyperliquid prices + real-DEX graph.
 package main
 
 import (
@@ -26,6 +27,7 @@ import (
 	"github.com/lantern/market/internal/graph"
 	"github.com/lantern/market/internal/graphfeed"
 	"github.com/lantern/market/internal/ingest"
+	"github.com/lantern/market/internal/marketdata"
 	"github.com/lantern/market/internal/paywall"
 	"github.com/lantern/market/internal/protocol"
 	"github.com/lantern/market/internal/solver"
@@ -56,7 +58,7 @@ func main() {
 
 	go ingestLoop(ctx, cfg, store)
 	go consistencyLoop(ctx, checker, store)
-	startAPI(ctx, cfg, store)
+	startAPI(ctx, cfg, store, startMarketData(ctx, cfg))
 
 	// Phase 2: quote protocol + reference solver. The verifier needs the
 	// deployed registry, so the hub (and solver) come up only once the
@@ -125,12 +127,29 @@ func strip0x(s string) string {
 	return s
 }
 
+// startMarketData loads the Phase 4 display-feed config (Hyperliquid prices
+// + the real-DEX graph) and starts its loops. A missing or invalid file only
+// disables the feed — the rest of the service comes up regardless. Returns
+// the /market handler, or nil when disabled.
+func startMarketData(ctx context.Context, cfg config.Config) http.Handler {
+	mdcfg, err := marketdata.LoadFile(cfg.MarketDataFile)
+	if err != nil {
+		log.Printf("marketdata: disabled: %v", err)
+		return nil
+	}
+	md := marketdata.New(mdcfg)
+	go md.Start(ctx)
+	log.Printf("marketdata: enabled — file=%s coins=%v chains=%d poll=%ds",
+		cfg.MarketDataFile, mdcfg.Coins, len(mdcfg.Chains), mdcfg.PollSeconds)
+	return md.Handler()
+}
+
 // startAPI serves the web-facing GraphQL API (identity + market reads,
-// proxied from Hasura) and the graph snapshot feed behind the x402 paywall,
-// plus a health endpoint. It comes up regardless of chain wiring — queries
-// fail with an upstream error until the indexer is reachable, which is
-// honest (docs/market.md §3).
-func startAPI(ctx context.Context, cfg config.Config, store *graph.Store) {
+// proxied from Hasura), the graph snapshot feed behind the x402 paywall,
+// the Phase 4 /market display feed (when configured), and a health endpoint.
+// It comes up regardless of chain wiring — queries fail with an upstream
+// error until the indexer is reachable, which is honest (docs/market.md §3).
+func startAPI(ctx context.Context, cfg config.Config, store *graph.Store, market http.Handler) {
 	mux := http.NewServeMux()
 	mux.Handle("/graphql", api.NewHandler(api.NewHasuraSource(cfg.EnvioHTTPURL, cfg.EnvioAdminSecret)))
 	pw := paywall.New(paywall.Config{
@@ -146,6 +165,9 @@ func startAPI(ctx context.Context, cfg config.Config, store *graph.Store) {
 			cfg.X402Amount, cfg.X402Asset, cfg.X402PayTo, cfg.X402FacilitatorURL)
 	} else {
 		log.Print("graph feed: open (X402_ASSET / X402_PAY_TO / X402_AMOUNT not set)")
+	}
+	if market != nil {
+		mux.Handle("/market/", market)
 	}
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)

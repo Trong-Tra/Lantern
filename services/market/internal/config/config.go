@@ -50,6 +50,9 @@ type Config struct {
 	X402Asset          string
 	X402PayTo          string
 	X402Amount         string
+	// MarketDataFile is the Phase 4 display-feed config (marketdata.json).
+	// Missing file = feed disabled, never a startup failure.
+	MarketDataFile string
 }
 
 const defaultEnvioURL = "http://localhost:8080/v1/graphql"
@@ -143,6 +146,10 @@ func Load(envPath string) (Config, error) {
 	if err := validateX402(&cfg); err != nil {
 		return Config{}, err
 	}
+	cfg.MarketDataFile = get("MARKETDATA_FILE")
+	if cfg.MarketDataFile == "" {
+		cfg.MarketDataFile = defaultMarketDataFile
+	}
 	return cfg, nil
 }
 
@@ -192,6 +199,9 @@ const (
 	// GET /supported 2026-11-16); network default is the v2 CAIP-2 id.
 	defaultX402FacilitatorURL = "https://facilitator.payai.network"
 	defaultX402Network        = "eip155:43113" // Avalanche Fuji
+	// Phase 4 display feed — CWD-relative (service runs from services/market);
+	// override with MARKETDATA_FILE when launched elsewhere.
+	defaultMarketDataFile = "marketdata.json"
 )
 
 // httpToWS converts an http(s) URL to its ws(s) equivalent.
