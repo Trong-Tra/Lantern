@@ -215,6 +215,18 @@
   background: #8e99b130;
   color: #d0d8eb;
 }
+.token-mark.amber {
+  background: #b7791f38;
+  color: #f0c070;
+}
+.token-mark.green {
+  background: #2f7d4f38;
+  color: #8ee0a8;
+}
+.token-mark.red {
+  background: #a83b3b38;
+  color: #f0a0a0;
+}
 .exchange-asset > .token-mark {
   width: 46px;
   height: 46px;
@@ -512,6 +524,104 @@
 }
 .exchange-advanced b {
   font-weight: 400;
+}
+.exchange-quote-list {
+  margin: 16px 22px;
+  padding: 12px 14px;
+  border: 1px solid #c9a66c2b;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #bbb2a0;
+  display: grid;
+  gap: 8px;
+}
+.exchange-quote-list > p {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #999;
+}
+.exchange-quote-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.exchange-quote-row b {
+  color: #f3f6fc;
+  font-weight: 500;
+}
+.exchange-quote-row small {
+  color: #999;
+  flex: 1 1 auto;
+}
+.exchange-quote-row code {
+  font-size: 10px;
+  color: #777;
+}
+.exchange-quote-agent {
+  padding: 3px 8px;
+  border: 1px solid #c9a66c33;
+  border-radius: 10px;
+  font-size: 10px;
+  color: #c4aa7e;
+  white-space: nowrap;
+}
+.exchange-quote-row button {
+  min-height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 16px;
+  background: #c9a66c;
+  color: #21190e;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.exchange-quote-row button:hover {
+  background: #e5c38d;
+}
+.exchange-quote-picked {
+  border-color: #6cbf8a55;
+}
+.exchange-graph-pools {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid #c9a66c1f;
+}
+.exchange-graph-pools > p {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #999;
+}
+.exchange-pool-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+.exchange-pool-row span {
+  color: #f3f6fc;
+}
+.exchange-pool-row small {
+  color: #777;
+}
+.exchange-pool-row b {
+  color: #bbb2a0;
+  flex: 1 1 auto;
+}
+.exchange-pool-row code {
+  font-size: 10px;
+  color: #777;
+}
+.exchange-limit > span {
+  font-size: 11px;
+  color: #999;
 }
 .exchange-picker-backdrop {
   position: fixed;

@@ -21,8 +21,10 @@ const config = createConfig({
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
 
+  // react-query (market feed / quote queries) works without a wallet RPC —
+  // only wagmi stays gated so wallet panels keep their configure notice.
   if (!rpcConfigured) {
-    return <>{children}</>;
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
 
   return (
