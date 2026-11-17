@@ -96,6 +96,13 @@ Key choices:
 * Backend source of truth: `candleSpecs` in `internal/marketdata/service.go`. Boot `candleSnapshot` covers `bars × interval` (span from `candleSpan`), then one WS `candle` subscription per interval per coin keeps the forming bar live. HL has no sub-minute interval and none is needed — do not build synthetic candles from `allMids` (mids are throttled and carry no volume).
 * FE source of truth: `TIMEFRAMES` in `apps/web/src/app/exchange/chart-data.ts` mirrors the table (`chartIntervalFor` / `chartLimitFor` / `chartRefetchFor`) and polls so the forming bar advances. Adding or changing a timeframe means editing both tables — nowhere else.
 
+**Route breakdown — clicking a solver quote shows how the split is routed.** A quote carries `routes: [{ bps, pools[] }]` (whole-path allocations that sum to 10000; each hop carries its path's full share). The `/exchange` quote row is a disclosure button: opening it renders `QuoteRouteFlow` (`apps/web/src/app/exchange/quote-routes.tsx`) as one line per path — `62.5%` → pool chip (`mUSDC / mWAVAX`, address, `62.5% of input`) → `mWAVAX` → next pool → … — so the user sees what share of the input reaches which pool and where it goes after.
+
+* Logic lives in `apps/web/src/libs/market/routes.ts` (pure, unit-tested in `tests/exchange-routes.test.mjs`): `FUJI_DEMO_POOLS` is the address→pair registry, seeded from `contracts/broadcast/DeployMarket.s.sol/43113/run-latest.json` / `script/seed/market.json` — quotes carry pool addresses only, so regenerating the topology means updating that table and nowhere else.
+* Hops are walked from the quote's `tokenIn`; a pool the registry doesn't know, or a pair that doesn't touch the running token, renders `?` with a dashed chip rather than a guessed symbol.
+
+**Chain wiring (web) = Avalanche Fuji.** `providers.tsx` builds the wagmi config for `avalancheFuji` (`libs/chain.ts`, public RPC default, `NEXT_PUBLIC_FUJI_RPC_URL` overrides) and the wallet button asks for Fuji — there is no Monad prompt and no env gate, since the public RPC makes the wallet usable without setup. `monadTestnet` remains exported only for the legacy, known-broken agent-page panels (`vault-panel`, `swap-demo-panel`), which die with that page in the Phase 4 rebuild.
+
 ### 4. Types boundary
 
 `packages/types` stays the TS source of truth for the frozen frontend era. New market types (Intent, Quote, PoolSnapshot, Trade) are defined **once in the GraphQL schema** (`services/market/internal/api/schema.graphqls`); TS types get generated from it when the frontend rebuilds. No hand-maintained duplicate shapes.

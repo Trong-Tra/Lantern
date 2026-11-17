@@ -21,6 +21,7 @@ import { MARKET_TOKENS, findToken, formatUnits, tokenUsdPrice, type MarketToken 
 import { quoteMeetsSlippage, type QuoteBody, type SignedQuote } from "@/libs/market/quote-ws";
 import { useQuoteStream } from "@/hooks/use-quote-stream";
 import { useMarketGraph, useMarketPrices } from "@/hooks/use-market";
+import { QuoteRouteFlow } from "./quote-routes";
 const MarketChart = dynamic(
   () => import("./market-chart").then((module) => module.MarketChart),
   {
@@ -31,8 +32,6 @@ const MarketChart = dynamic(
     ),
   }
 );
-
-const rpcConfigured = Boolean(process.env.NEXT_PUBLIC_MONAD_RPC_URL);
 
 const formatUsd = (value: number) =>
   value.toLocaleString("en-US", {
@@ -128,10 +127,9 @@ function safeUnits(value: string, decimals: number): string {
   }
 }
 
-// Wallet address lives behind wagmi; without an RPC config we render the
-// same shell with no address (quotes idle, wallet button shows its notice).
+// Wallet address lives behind wagmi; the chain ships a public Fuji RPC
+// default, so the wallet path is always used.
 export function Exchange({ initialToken = "mWETH" }: { initialToken?: string }) {
-  if (!rpcConfigured) return <ExchangeView address={null} initialToken={initialToken} />;
   return <ExchangeWithWallet initialToken={initialToken} />;
 }
 
@@ -151,6 +149,8 @@ function ExchangeView({ address, initialToken }: { address: string | null; initi
   const [settings, setSettings] = useState(false);
   const [search, setSearch] = useState("");
   const [picker, setPicker] = useState<"sell" | "buy" | null>(null);
+  // Which agent quote has its route breakdown open (one at a time).
+  const [openRouteId, setOpenRouteId] = useState<string | null>(null);
 
   const sellToken = findToken(sell);
   const buyToken = findToken(buy);
@@ -465,20 +465,44 @@ function ExchangeView({ address, initialToken }: { address: string | null; initi
               {mode === "Swap" && !quoteState.closed && !picked && visibleQuotes.length > 0 && (
                 <div className="exchange-quote-list" aria-label="Solver quotes">
                   <p>Solver quotes · signed, streaming in</p>
-                  {visibleQuotes.map((entry) => (
-                    <div className="exchange-quote-row" key={entry.quoteId}>
-                      <span className="exchange-quote-agent" title={entry.quote.agentId}>
-                        Agent {entry.quote.agentId}
-                      </span>
-                      <b>
-                        {safeUnits(entry.quote.quotedOut, buyToken?.decimals ?? 18)} {buy}
-                      </b>
-                      <small>
-                        min {safeUnits(entry.quote.minOut, buyToken?.decimals ?? 18)}
-                      </small>
-                      <button onClick={() => pick(entry.quoteId)}>Select</button>
-                    </div>
-                  ))}
+                  {visibleQuotes.map((entry) => {
+                    const open = openRouteId === entry.quoteId;
+                    const routeId = `quote-route-${entry.quoteId}`;
+                    return (
+                      <div className="exchange-quote-row" key={entry.quoteId}>
+                        <button
+                          type="button"
+                          className="exchange-quote-toggle"
+                          aria-expanded={open}
+                          aria-controls={routeId}
+                          onClick={() => setOpenRouteId(open ? null : entry.quoteId)}
+                        >
+                          <span className="exchange-quote-agent" title={entry.quote.agentId}>
+                            Agent {entry.quote.agentId}
+                          </span>
+                          <b>
+                            {safeUnits(entry.quote.quotedOut, buyToken?.decimals ?? 18)} {buy}
+                          </b>
+                          <small>
+                            min {safeUnits(entry.quote.minOut, buyToken?.decimals ?? 18)}
+                          </small>
+                          <ChevronDownIcon
+                            className="exchange-quote-chevron"
+                            data-open={open}
+                            aria-hidden="true"
+                          />
+                        </button>
+                        <button className="exchange-quote-select" onClick={() => pick(entry.quoteId)}>
+                          Select
+                        </button>
+                        {open && (
+                          <div className="exchange-quote-route" id={routeId}>
+                            <QuoteRouteFlow quote={entry.quote} />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               {mode === "Swap" && picked && (
@@ -494,6 +518,7 @@ function ExchangeView({ address, initialToken }: { address: string | null; initi
                     </small>
                     <code title={picked.signature}>{shortAddress(picked.signature)}</code>
                   </div>
+                  <QuoteRouteFlow quote={picked.quote} />
                 </div>
               )}
               <div className="exchange-swap-bottom">

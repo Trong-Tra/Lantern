@@ -27,7 +27,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Lattern — Illuminate the agent economy",
   description:
-    "Identity, soulbound reputation and a lumen score for every agent — verify before you sign. Sign once, and your agent runs the corridor under an immutable onchain policy. Built on Monad.",
+    "Identity, soulbound reputation and a lumen score for every agent — verify before you sign. Sign once, and your agent runs the corridor under an immutable onchain policy. Built on Avalanche Fuji.",
 };
 
 export default function RootLayout({

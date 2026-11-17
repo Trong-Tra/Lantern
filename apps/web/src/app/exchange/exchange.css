@@ -568,7 +568,7 @@
   color: #c4aa7e;
   white-space: nowrap;
 }
-.exchange-quote-row button {
+.exchange-quote-select {
   min-height: 32px;
   padding: 0 14px;
   border: 0;
@@ -579,11 +579,142 @@
   font-weight: 600;
   cursor: pointer;
 }
-.exchange-quote-row button:hover {
+.exchange-quote-select:hover {
   background: #e5c38d;
 }
 .exchange-quote-picked {
   border-color: #6cbf8a55;
+}
+/* Click a solver quote to open its route: split per path, then every hop. */
+.exchange-quote-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 240px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.exchange-quote-toggle:focus-visible {
+  outline: 2px solid #c9a66c;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.exchange-quote-toggle small {
+  flex: 1 1 auto;
+}
+.exchange-quote-chevron {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: #999;
+  transition: transform 160ms ease;
+}
+.exchange-quote-chevron[data-open="true"] {
+  transform: rotate(180deg);
+  color: #e5c38d;
+}
+.exchange-quote-route {
+  flex: 1 1 100%;
+}
+.exchange-route-flow {
+  display: grid;
+  gap: 8px;
+  padding: 10px 0 4px;
+  border-top: 1px solid #c9a66c1f;
+}
+.exchange-route-head {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #999;
+}
+.exchange-route-head span {
+  color: #e5c38d;
+}
+.exchange-route-flow ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.exchange-route-flow li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.exchange-route-share {
+  flex: 0 0 auto;
+  min-width: 42px;
+  padding-top: 6px;
+  font-size: 11px;
+  color: #f3f6fc;
+}
+.exchange-route-hops {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  row-gap: 8px;
+  flex: 1 1 220px;
+  flex-wrap: wrap;
+}
+.exchange-route-hop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.exchange-route-pool {
+  display: grid;
+  gap: 1px;
+  padding: 5px 8px;
+  border: 1px solid #c9a66c33;
+  border-radius: 6px;
+  background: #141419;
+}
+.exchange-route-pool b {
+  font-size: 11px;
+  font-weight: 500;
+  color: #f3f6fc;
+}
+.exchange-route-pool code {
+  font-size: 9px;
+  color: #777;
+}
+.exchange-route-pool small {
+  flex: none;
+  font-size: 9px;
+  color: #c9a66c;
+}
+.exchange-route-arrow {
+  font-size: 11px;
+  color: #c9a66c;
+}
+.exchange-route-token {
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: #c9a66c14;
+  font-size: 11px;
+  color: #e5c38d;
+  white-space: nowrap;
+}
+.exchange-route-token[data-unknown="true"] {
+  background: none;
+  border: 1px dashed #c9a66c44;
+  color: #999;
+}
+.exchange-route-empty {
+  margin: 0;
+  font-size: 11px;
+  color: #999;
 }
 .exchange-graph-pools {
   display: grid;

@@ -67,6 +67,12 @@ export function findToken(symbol: string): MarketToken | undefined {
   return MARKET_TOKENS.find((token) => token.symbol === symbol);
 }
 
+/** Look a token up by contract address (case-insensitive — quotes may checksum differently). */
+export function findTokenByAddress(address: string): MarketToken | undefined {
+  const wanted = address.toLowerCase();
+  return MARKET_TOKENS.find((token) => token.address.toLowerCase() === wanted);
+}
+
 /** Chart/market display symbol: the HL coin (ETH/BTC/AVAX), else the Fuji ticker without the m-prefix (USDC/USDT). */
 export function displaySymbol(token: MarketToken): string {
   return token.coin ?? token.symbol.replace(/^m/, "");
