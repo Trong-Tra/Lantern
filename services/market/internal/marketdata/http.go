@@ -49,8 +49,8 @@ func Handler(store *Store) http.Handler {
 		limit := 168
 		if v := q.Get("limit"); v != "" {
 			n, err := strconv.Atoi(v)
-			if err != nil || n < 1 || n > 2000 {
-				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "limit must be an integer in [1,2000]"})
+			if err != nil || n < 1 || n > 4000 {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "limit must be an integer in [1,4000]"})
 				return
 			}
 			limit = n

@@ -41,6 +41,9 @@ type Config struct {
 	CandleInterval string `json:"candleInterval"`
 	// CandleHistory is how many candles to boot-fetch per coin (default 168).
 	CandleHistory int `json:"candleHistory"`
+	// CandleHistoryMinutes is the boot history for the 1m stream behind the
+	// FE's 5m and 1H views (default 120).
+	CandleHistoryMinutes int `json:"candleHistoryMinutes"`
 }
 
 // LoadFile reads and validates a marketdata.json. Structural problems are
@@ -83,6 +86,12 @@ func (c *Config) validate() error {
 	}
 	if c.CandleHistory < 1 {
 		return fmt.Errorf("candleHistory %d: want >= 1", c.CandleHistory)
+	}
+	if c.CandleHistoryMinutes == 0 {
+		c.CandleHistoryMinutes = 120
+	}
+	if c.CandleHistoryMinutes < 60 {
+		return fmt.Errorf("candleHistoryMinutes %d: want >= 60", c.CandleHistoryMinutes)
 	}
 	seen := map[string]bool{}
 	for i := range c.Chains {

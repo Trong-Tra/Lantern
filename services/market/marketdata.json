@@ -26,5 +26,6 @@
   ],
   "pollSeconds": 3,
   "candleInterval": "1h",
-  "candleHistory": 168
+  "candleHistory": 1440,
+  "candleHistoryMinutes": 120
 }

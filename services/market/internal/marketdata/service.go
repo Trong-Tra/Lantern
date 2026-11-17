@@ -35,7 +35,17 @@ func (s *Service) Start(ctx context.Context) {
 			PollLoop(ctx, ch, pools, s.store, every)
 		}()
 	}
-	go NewHL(s.cfg.Coins, s.cfg.CandleInterval, s.cfg.CandleHistory, s.store).Run(ctx)
+	specs := []candleSpec{{
+		interval: s.cfg.CandleInterval,
+		history:  time.Duration(s.cfg.CandleHistory) * time.Hour,
+	}}
+	if s.cfg.CandleInterval != "1m" {
+		specs = append(specs, candleSpec{
+			interval: "1m",
+			history:  time.Duration(s.cfg.CandleHistoryMinutes) * time.Minute,
+		})
+	}
+	go NewHL(s.cfg.Coins, specs, s.store).Run(ctx)
 }
 
 // Store exposes the feed for tests.

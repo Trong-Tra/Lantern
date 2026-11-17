@@ -53,7 +53,7 @@ func candleRows() []map[string]any {
 }
 
 func newTestHL(infoURL, wsURL string, store *Store) *HL {
-	h := NewHL([]string{"BTC", "ETH"}, "1h", 168, store)
+	h := NewHL([]string{"BTC", "ETH"}, []candleSpec{{interval: "1h", history: 168 * time.Hour}}, store)
 	h.infoURL = infoURL
 	h.wsURL = wsURL
 	return h

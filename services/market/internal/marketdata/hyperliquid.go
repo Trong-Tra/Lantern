@@ -20,27 +20,32 @@ const (
 	hlReconnectDelay = 3 * time.Second
 )
 
+// candleSpec is one candle granularity the feed keeps: e.g. {1h, 1440h} for
+// the period charts and {1m, 120m} for the volatile 1H demo view.
+type candleSpec struct {
+	interval string
+	history  time.Duration
+}
+
 // HL streams Hyperliquid USD mids + candles into the Store. URLs are fields
 // so tests can point at fakes; production uses the defaults.
 type HL struct {
-	coins    []string
-	interval string
-	history  int
-	store    *Store
-	infoURL  string
-	wsURL    string
-	http     *http.Client
+	coins   []string
+	specs   []candleSpec
+	store   *Store
+	infoURL string
+	wsURL   string
+	http    *http.Client
 }
 
-func NewHL(coins []string, interval string, history int, store *Store) *HL {
+func NewHL(coins []string, specs []candleSpec, store *Store) *HL {
 	return &HL{
-		coins:    coins,
-		interval: interval,
-		history:  history,
-		store:    store,
-		infoURL:  defaultHLInfoURL,
-		wsURL:    defaultHLWSURL,
-		http:     &http.Client{Timeout: 15 * time.Second},
+		coins:   coins,
+		specs:   specs,
+		store:   store,
+		infoURL: defaultHLInfoURL,
+		wsURL:   defaultHLWSURL,
+		http:    &http.Client{Timeout: 15 * time.Second},
 	}
 }
 
@@ -67,13 +72,15 @@ func (h *HL) Run(ctx context.Context) {
 func (h *HL) boot(ctx context.Context) {
 	now := time.Now().UTC()
 	for _, coin := range h.coins {
-		cs, err := h.candleSnapshot(ctx, coin, now.Add(-time.Duration(h.history)*time.Hour))
-		if err != nil {
-			log.Printf("marketdata: hyperliquid %s history: %v", coin, err)
-			continue
+		for _, spec := range h.specs {
+			cs, err := h.candleSnapshot(ctx, coin, spec.interval, now.Add(-spec.history))
+			if err != nil {
+				log.Printf("marketdata: hyperliquid %s %s history: %v", coin, spec.interval, err)
+				continue
+			}
+			h.store.SetCandles(coin, spec.interval, cs)
+			log.Printf("marketdata: hyperliquid %s %s history: %d candles", coin, spec.interval, len(cs))
 		}
-		h.store.SetCandles(coin, h.interval, cs)
-		log.Printf("marketdata: hyperliquid %s history: %d candles", coin, len(cs))
 	}
 	if mids, err := h.metaMids(ctx); err != nil {
 		log.Printf("marketdata: hyperliquid mids: %v", err)
@@ -107,12 +114,12 @@ type hlInfoResp struct {
 }
 
 // candleSnapshot POSTs /info type=candleSnapshot for one coin since start.
-func (h *HL) candleSnapshot(ctx context.Context, coin string, start time.Time) ([]Candle, error) {
+func (h *HL) candleSnapshot(ctx context.Context, coin, interval string, start time.Time) ([]Candle, error) {
 	req := map[string]any{
 		"type": "candleSnapshot",
 		"req": map[string]any{
 			"coin":      coin,
-			"interval":  h.interval,
+			"interval":  interval,
 			"startTime": start.UnixMilli(),
 			"endTime":   time.Now().UTC().UnixMilli(),
 		},
@@ -234,9 +241,11 @@ func (h *HL) wsLoop(ctx context.Context) error {
 
 	subs := []string{`{"method":"subscribe","subscription":{"type":"allMids"}}`}
 	for _, coin := range h.coins {
-		subs = append(subs, fmt.Sprintf(
-			`{"method":"subscribe","subscription":{"type":"candle","coin":%q,"interval":%q}}`,
-			coin, h.interval))
+		for _, spec := range h.specs {
+			subs = append(subs, fmt.Sprintf(
+				`{"method":"subscribe","subscription":{"type":"candle","coin":%q,"interval":%q}}`,
+				coin, spec.interval))
+		}
 	}
 	for _, s := range subs {
 		if err := conn.Write(ctx, websocket.MessageText, []byte(s)); err != nil {
@@ -298,8 +307,8 @@ func (h *HL) handleFrame(data []byte) {
 			return
 		}
 		interval := c.I
-		if interval == "" {
-			interval = h.interval
+		if interval == "" && len(h.specs) > 0 {
+			interval = h.specs[0].interval
 		}
 		h.store.UpsertCandle(c.S, interval, Candle{T: c.OpenMs, O: o, H: hh, L: l, C: cc, V: v})
 	case "error":

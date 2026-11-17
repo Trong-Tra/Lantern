@@ -34,7 +34,8 @@ func TestLoadFile_Happy(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadFile: %v", err)
 	}
-	if cfg.PollSeconds != 3 || cfg.CandleInterval != "1h" || cfg.CandleHistory != 168 {
+	if cfg.PollSeconds != 3 || cfg.CandleInterval != "1h" || cfg.CandleHistory != 168 ||
+		cfg.CandleHistoryMinutes != 120 {
 		t.Fatalf("defaults not applied: %+v", cfg)
 	}
 	if len(cfg.Chains) != 1 || cfg.Chains[0].Name != "ethereum" {
