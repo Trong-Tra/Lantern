@@ -60,7 +60,9 @@ function NetworkAssembly({
   useEffect(() => () => geometry.dispose(), [geometry]);
   useFrame(({ camera, gl }) => {
     if (!lines.current || !lantern.current) return;
-    const weight = journeyState.chapters[1] + journeyState.chapters[2];
+    const weight = journeyState.transition === 0 && !journeyState.reducedMotion
+      ? ease((journeyState.portal - 0.88) / 0.12)
+      : journeyState.chapters[1] + journeyState.chapters[2];
     const crossing =
       journeyState.transition === 1
         ? journeyState.portal

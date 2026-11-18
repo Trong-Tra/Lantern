@@ -45,8 +45,7 @@ function ChapterLight({ lantern, chapter: ownChapter }: { lantern: RefObject<Gro
 
   const
     lines = useRef<LineSegments>(null),
-    signals = useRef<Points>(null),
-    elapsed = useRef(0);
+    signals = useRef<Points>(null);
   const bands = useRef<Mesh>(null),
     dust = useRef<Points>(null);
   const bandUniforms = useMemo(() => ({ presence: { value: 0 } }), []);
@@ -116,7 +115,7 @@ function ChapterLight({ lantern, chapter: ownChapter }: { lantern: RefObject<Gro
     },
     [geometry, signalGeometry, bandGeometry, dustGeometry]
   );
-  useFrame(({ camera, size }, delta) => {
+  useFrame(({ camera, size, clock }, delta) => {
     if (!group.current || !lines.current || !lantern.current) return;
     const travel = chapterObjectTravel(ownChapter, journeyState.chapters);
     const presence = ownChapter === 4 && journeyState.transition < 4
@@ -127,8 +126,7 @@ function ChapterLight({ lantern, chapter: ownChapter }: { lantern: RefObject<Gro
     if (!group.current.visible) return;
     const weights = Array<number>(12).fill(0);
     weights[ownChapter] = 1;
-    if (!journeyState.reducedMotion) elapsed.current += Math.min(delta, 0.05);
-    const time = journeyState.reducedMotion ? 10.8 : elapsed.current;
+    const time = journeyState.reducedMotion ? 10.8 : clock.elapsedTime;
     const frames = new Map<number, NonNullable<ReturnType<typeof getPathFrames>>>();
     for (let chapter = 4; chapter <= 10; chapter++) {
       if (weights[chapter] <= 0.0001) continue;

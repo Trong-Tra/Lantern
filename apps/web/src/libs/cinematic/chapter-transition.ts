@@ -37,6 +37,12 @@ export function sampleJourney(
 export function scrollToScore(scroll: number, start: number, travel: number) {
   return clamp((scroll - start) / Math.max(1, travel)) * 4.8;
 }
+/** Hidden story panels keep their authored animation slot with zero weight. */
+export function remapChapterWeights(weights: number[], indices: number[], count: number) {
+  const chapters = Array<number>(count).fill(0);
+  weights.forEach((weight, index) => { chapters[indices[index]] = weight; });
+  return chapters;
+}
 export const journeyState = {
   ...sampleJourney(0),
   reducedMotion: false,
@@ -237,17 +243,15 @@ export function sectionThreePath(
     y = u * Math.sin(spin) + v * Math.cos(tilt) * Math.cos(spin);
     z = v * Math.sin(tilt);
   } else {
-    // Two closed cubic contours preserve the reference's rounded, open silhouette.
+    // Avalanche's two separated peaks share the existing eight logo strands.
     const edge = index - 24;
-    const inner = edge >= 4;
-    const radius = inner ? 0.57 : 1.12;
-    const handle = radius * (inner ? 0.91 : 0.3);
-    const q = 1 - p;
-    const u = 3 * q * q * p * handle + 3 * q * p * p * radius + p ** 3 * radius;
-    const v = q ** 3 * radius + 3 * q * q * p * radius + 3 * q * p * p * handle;
-    const angle = (-(edge % 4) * Math.PI) / 2 + (inner ? -0.28 : 0);
-    x = u * Math.cos(angle) - v * Math.sin(angle);
-    y = u * Math.sin(angle) + v * Math.cos(angle);
+    const vertices = edge < 4
+      ? [[-0.18, 1.05], [-1.2, -0.95], [-0.32, -0.95], [0.28, 0.1]]
+      : [[0.58, -0.18], [0.14, -0.95], [1.02, -0.95], [0.8, -0.565]];
+    const from = vertices[edge % 4];
+    const to = vertices[(edge + 1) % 4];
+    x = from[0] + (to[0] - from[0]) * p;
+    y = from[1] + (to[1] - from[1]) * p;
     z = 0;
   }
   const turn = -0.16 + Math.sin(time * 0.13) * 0.05;

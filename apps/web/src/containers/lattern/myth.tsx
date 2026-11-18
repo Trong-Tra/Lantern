@@ -14,12 +14,13 @@ import { useLenisScroll } from "@/hooks/use-lenis-scroll";
 import {
   journeyState,
   sampleJourney,
+  remapChapterWeights,
   contentBeat,
   ease,
   scrollToScore,
 } from "@/libs/cinematic/chapter-transition";
 import { ProductPreview } from "@/components/organisms/lattern-preview";
-import { LATTERN_SCENES } from "@/constants/lattern-scenes";
+import { LATTERN_SCENES as ALL_LATTERN_SCENES } from "@/constants/lattern-scenes";
 import "./myth.css";
 import { ReferenceDetails } from "./reference-details";
 import { LanternWelcome } from "./lantern-welcome";
@@ -27,8 +28,18 @@ const JourneyWorld = dynamic(
   () => import("@/components/organisms/lantern-journey"),
   { ssr: false }
 );
+// Re-enable the Ask Lattern demo when the product preview is needed again.
+const PRODUCT_PREVIEW_ENABLED = false;
+const LATTERN_SCENES = ALL_LATTERN_SCENES.filter(
+  (scene) => PRODUCT_PREVIEW_ENABLED || scene.id !== "product"
+);
+const LAST_CHAPTER = LATTERN_SCENES.length - 1;
+const CHAPTER_INDICES = LATTERN_SCENES.map((scene) => ALL_LATTERN_SCENES.indexOf(scene));
 const anchors = LATTERN_SCENES.map((scene) => scene.id);
-const WORLD_CHAPTERS = [0, 0, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4];
+const WORLD_CHAPTERS = LATTERN_SCENES.map(
+  (scene) =>
+    [0, 0, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4][ALL_LATTERN_SCENES.indexOf(scene)]
+);
 const STORY_END = LATTERN_SCENES.length - 0.2;
 const subscribeHydration = () => () => {};
 
@@ -134,8 +145,16 @@ export function MythLanding() {
         const copy = panel?.querySelector<HTMLElement>(".story-copy");
         if (!panel || !copy) continue;
         const style = getComputedStyle(panel);
-        const available = panel.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-        copy.style.setProperty("--copy-scale", String(Math.min(1, Math.max(0, available) / Math.max(1, copy.offsetHeight))));
+        const available =
+          panel.clientHeight -
+          parseFloat(style.paddingTop) -
+          parseFloat(style.paddingBottom);
+        copy.style.setProperty(
+          "--copy-scale",
+          String(
+            Math.min(1, Math.max(0, available) / Math.max(1, copy.offsetHeight))
+          )
+        );
       }
     };
     const observer = new ResizeObserver(fit);
@@ -213,9 +232,9 @@ export function MythLanding() {
         weights: worldWeights,
       };
       Object.assign(journeyState, world, {
-        chapters: score.weights,
+        chapters: remapChapterWeights(score.weights, CHAPTER_INDICES, ALL_LATTERN_SCENES.length),
         portal: staticMode ? 0 : score.mix,
-        transition: score.from,
+        transition: CHAPTER_INDICES[score.from],
         reducedMotion: staticMode,
         tail: Math.max(
           0,
@@ -348,8 +367,7 @@ export function MythLanding() {
           duration: 3.2,
           easing: (t) => (1 - Math.cos(Math.PI * t)) / 2,
         });
-      }
-      else window.scrollTo({ top, behavior: reduced ? "instant" : "smooth" });
+      } else window.scrollTo({ top, behavior: reduced ? "instant" : "smooth" });
     }
   };
   return (
@@ -379,9 +397,11 @@ export function MythLanding() {
           .myth-header nav { display: flex; }
         `}</style>
         </noscript>
-        <a className="myth-skip" href="#demo">
-          Skip to product preview
-        </a>
+        {PRODUCT_PREVIEW_ENABLED && (
+          <a className="myth-skip" href="#demo">
+            Skip to product preview
+          </a>
+        )}
         <div className="myth-world" aria-hidden="true">
           {!staticMode && (
             <JourneyWorld
@@ -418,7 +438,7 @@ export function MythLanding() {
                 key={scene.id}
                 id={staticMode ? scene.id : undefined}
                 data-chapter-id={scene.id}
-                className={`story-panel ${[3, 4, 5].includes(index) ? "panel-identity" : ""} ${index === 11 ? "panel-network" : ""} ${index >= 4 && index <= 10 ? "panel-celestial" : ""}`}
+                className={`story-panel ${[3, 4, 5].includes(index) ? "panel-identity" : ""} ${scene.id === "finale" ? "panel-network" : ""} ${index >= 4 && index < LAST_CHAPTER ? "panel-celestial" : ""}`}
                 ref={(node) => {
                   panels.current[index] = node;
                 }}
@@ -448,20 +468,20 @@ export function MythLanding() {
                       ))}
                     </h2>
                   )}
-                  <p className="story-line">
-                    {scene.copy}
-                  </p>
-                  <p className="chapter-aside">
-                    {scene.aside}
-                  </p>
+                  <p className="story-line">{scene.copy}</p>
+                  <p className="chapter-aside">{scene.aside}</p>
                   <p className="chapter-context">{scene.kicker}</p>
-                  <ReferenceDetails index={index} />
-                  {index === 11 && (
+                  <ReferenceDetails index={ALL_LATTERN_SCENES.indexOf(scene)} />
+                  {scene.id === "finale" && (
                     <div className="hero-actions">
-                      <a className="myth-button" href="#demo">
-                        Launch Lattern ↗
-                      </a>
-                      <p>Explore the interactive demo · Sample agents</p>
+                      {PRODUCT_PREVIEW_ENABLED && (
+                        <>
+                          <a className="myth-button" href="#demo">
+                            Launch Lattern ↗
+                          </a>
+                          <p>Explore the interactive demo · Sample agents</p>
+                        </>
+                      )}
                       <Link href="/docs">
                         Docs <small>the scoring paper</small>
                       </Link>
@@ -484,27 +504,35 @@ export function MythLanding() {
               <div>
                 <span ref={progressBar} />
               </div>
-              <button
-                className="next-scene"
-                aria-label={
-                  active < 11 ? "Go to the next scene" : "Go to the agent demo"
-                }
-                onClick={() =>
-                  active < 11
-                    ? jump(active + 1)
-                    : document
-                        .getElementById("demo")
-                        ?.scrollIntoView({ behavior: reduced ? "instant" : "smooth" })
-                }
-              >
-                ↓
-              </button>
+              {(active < LAST_CHAPTER || PRODUCT_PREVIEW_ENABLED) && (
+                <button
+                  className="next-scene"
+                  aria-label={
+                    active < LAST_CHAPTER
+                      ? "Go to the next scene"
+                      : "Go to the agent demo"
+                  }
+                  onClick={() =>
+                    active < LAST_CHAPTER
+                      ? jump(active + 1)
+                      : document
+                          .getElementById("demo")
+                          ?.scrollIntoView({
+                            behavior: reduced ? "instant" : "smooth",
+                          })
+                  }
+                >
+                  ↓
+                </button>
+              )}
             </div>
           </div>
         </section>
-        <section id="demo" className="demo-section">
-          <ProductPreview />
-        </section>
+        {PRODUCT_PREVIEW_ENABLED && (
+          <section id="demo" className="demo-section">
+            <ProductPreview />
+          </section>
+        )}
         <button
           className="reading-toggle"
           aria-label={`${LATTERN_SCENES[active].name}. ${reading ? "Return to animated story" : "Read story without animation"}`}

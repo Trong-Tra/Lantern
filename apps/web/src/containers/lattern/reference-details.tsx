@@ -4,7 +4,7 @@ export function ReferenceDetails({ index }: { index: number }) {
     <>
       <p className="chapter-detail">
         {
-          "Built by engineers from centralized exchanges · two papers behind the protocol (IEEE + consortium digital identity) · ERC-8004 research"
+          "Built by engineers from centralized exchanges · published research behind the protocol (IEEE) · ERC-8004 research"
         }
       </p>
       <span className="ignition-signature" aria-hidden="true">
@@ -176,7 +176,7 @@ export function ReferenceDetails({ index }: { index: number }) {
           rel="noreferrer"
         >
           <span className="proof-receipt__label">
-            {"Published research · 1 / 2"}
+            {"Published research"}
           </span>
           <p className="proof-receipt__cite">
             {
@@ -185,24 +185,6 @@ export function ReferenceDetails({ index }: { index: number }) {
           </p>
           <span className="proof-receipt__venue">
             {"MAPR 2026 · IEEE Xplore 11685704 · 1st author ↗"}
-          </span>
-        </a>
-        <a
-          className="proof-receipt proof-receipt--link"
-          href="https://ieeexplore.ieee.org/abstract/document/11231625"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <span className="proof-receipt__label">
-            {"Published research · 2 / 2"}
-          </span>
-          <p className="proof-receipt__cite">
-            {
-              "Lotus: A Hybrid Cross-Chain Framework for Privacy-Preserving Digital Identity."
-            }
-          </p>
-          <span className="proof-receipt__venue">
-            {"ISCIT 2025 · IEEE Xplore 11231625 · co-author ↗"}
           </span>
         </a>
       </div>

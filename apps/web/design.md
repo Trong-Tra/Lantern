@@ -593,3 +593,8 @@ Landing content fit (2026-11-15): chapter copy and expanded references have intr
 
 ## Section arrow pacing (2026-11-15)
 The next-section arrow uses a 3.2-second Lenis chapter jump with sine ease-in/out for gentle acceleration and deceleration. Reduced-motion reading mode remains. Timing-only; existing placement research applies and control positions, content visibility and touch/pointer reach remain unchanged on mobile and desktop.
+
+## Landing logo - 2026-11-16
+The animated ring centerpiece draws the Avalanche (AVAX) two-peak mark using the existing eight gold strands. Existing ring placement, transitions and mobile/desktop control positions are retained.
+
+Landing content (2026-11-16): Lotus publication removed; the remaining research receipt has no count. Ask Lattern chapter/demo and its entry links are disabled with PRODUCT_PREVIEW_ENABLED in myth.tsx; retained for future use. Reviewed existing scrolling/reflow and stable-control research for assumed 390px phone/1440px desktop: removing content reduces scrolling, keeps shared navigation anchors and existing targets. Responsive visual QA pending.
