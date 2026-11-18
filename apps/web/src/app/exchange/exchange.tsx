@@ -22,6 +22,7 @@ import { quoteMeetsSlippage, type QuoteBody, type SignedQuote } from "@/libs/mar
 import { useQuoteStream } from "@/hooks/use-quote-stream";
 import { useMarketGraph, useMarketPrices } from "@/hooks/use-market";
 import { QuoteRouteFlow } from "./quote-routes";
+import { QuoteStreamList } from "./quote-list";
 const MarketChart = dynamic(
   () => import("./market-chart").then((module) => module.MarketChart),
   {
@@ -463,59 +464,33 @@ function ExchangeView({ address, initialToken }: { address: string | null; initi
                 </div>
               )}
               {mode === "Swap" && !quoteState.closed && !picked && visibleQuotes.length > 0 && (
-                <div className="exchange-quote-list" aria-label="Solver quotes">
-                  <p>Solver quotes · signed, streaming in</p>
-                  {visibleQuotes.map((entry) => {
-                    const open = openRouteId === entry.quoteId;
-                    const routeId = `quote-route-${entry.quoteId}`;
-                    return (
-                      <div className="exchange-quote-row" key={entry.quoteId}>
-                        <button
-                          type="button"
-                          className="exchange-quote-toggle"
-                          aria-expanded={open}
-                          aria-controls={routeId}
-                          onClick={() => setOpenRouteId(open ? null : entry.quoteId)}
-                        >
-                          <span className="exchange-quote-agent" title={entry.quote.agentId}>
-                            Agent {entry.quote.agentId}
-                          </span>
-                          <b>
-                            {safeUnits(entry.quote.quotedOut, buyToken?.decimals ?? 18)} {buy}
-                          </b>
-                          <small>
-                            min {safeUnits(entry.quote.minOut, buyToken?.decimals ?? 18)}
-                          </small>
-                          <ChevronDownIcon
-                            className="exchange-quote-chevron"
-                            data-open={open}
-                            aria-hidden="true"
-                          />
-                        </button>
-                        <button className="exchange-quote-select" onClick={() => pick(entry.quoteId)}>
-                          Select
-                        </button>
-                        {open && (
-                          <div className="exchange-quote-route" id={routeId}>
-                            <QuoteRouteFlow quote={entry.quote} />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <QuoteStreamList
+                  quotes={visibleQuotes}
+                  buySymbol={buy}
+                  buyDecimals={buyToken?.decimals ?? 18}
+                  openRouteId={openRouteId}
+                  onToggleRoute={(quoteId) =>
+                    setOpenRouteId((current) => (current === quoteId ? null : quoteId))
+                  }
+                  onPick={pick}
+                />
               )}
               {mode === "Swap" && picked && (
                 <div className="exchange-quote-list exchange-quote-picked" aria-label="Selected quote">
                   <p>Quote selected · agent {picked.quote.agentId}</p>
-                  <div className="exchange-quote-row">
-                    <span className="exchange-quote-agent">Picked</span>
-                    <b>
-                      {safeUnits(picked.quote.quotedOut, buyToken?.decimals ?? 18)} {buy}
-                    </b>
-                    <small>
-                      min {safeUnits(picked.quote.minOut, buyToken?.decimals ?? 18)}
-                    </small>
+                  <div className="exchange-quote-line">
+                    <span className="exchange-quote-agent">
+                      <i className="exchange-quote-dot" aria-hidden="true" />
+                      Picked
+                    </span>
+                    <span className="exchange-quote-values">
+                      <b>
+                        {safeUnits(picked.quote.quotedOut, buyToken?.decimals ?? 18)} {buy}
+                      </b>
+                      <small>
+                        min {safeUnits(picked.quote.minOut, buyToken?.decimals ?? 18)}
+                      </small>
+                    </span>
                     <code title={picked.signature}>{shortAddress(picked.signature)}</code>
                   </div>
                   <QuoteRouteFlow quote={picked.quote} />
