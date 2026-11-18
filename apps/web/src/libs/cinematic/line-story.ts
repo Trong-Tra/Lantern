@@ -91,10 +91,10 @@ export function lineHandoff(
   sourceCircle = linePiece(0, index)
 ) {
   if (chapter === 0) {
-    if (progress > 0 && progress < 0.18) {
-      return circleExit(sourceCircle, index, ease(progress / 0.18));
+    if (progress > 0 && progress < 0.36) {
+      return circleExit(sourceCircle, index, ease(progress / 0.36));
     }
-    if (progress >= 0.18 && progress <= 0.72) return firstStrandPiece(index);
+    if (progress >= 0.36 && progress <= 0.72) return firstStrandPiece(index);
     if (progress > 0.72 && progress < 0.78) {
       const release = ease((progress - 0.72) / 0.06);
       return firstStrandPiece(index).map((value, axis) =>

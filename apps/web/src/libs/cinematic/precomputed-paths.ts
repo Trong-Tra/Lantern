@@ -3,6 +3,7 @@ import { PATH_FPS, pathSegments, type PathFrames } from "./path-frames";
 let worker: Worker | undefined;
 const paths = new Map<number, Map<number, Float32Array>>();
 const pending = new Set<string>();
+const lastReady = new Map<number, Float32Array>();
 
 function prepare(kind: number, frame: number) {
   if (!worker) return;
@@ -34,6 +35,7 @@ export function startPathPrecompute(onFrame: () => void, onError: () => void) {
   }>) => {
     pending.delete(`${data.kind}:${data.frame}`);
     paths.get(data.kind)?.set(data.frame, data.positions);
+    lastReady.set(data.kind, data.positions);
     onFrame();
   };
   worker.onerror = onError;
@@ -43,6 +45,7 @@ export function startPathPrecompute(onFrame: () => void, onError: () => void) {
     worker = undefined;
     paths.clear();
     pending.clear();
+    lastReady.clear();
   };
 }
 
@@ -52,7 +55,10 @@ export function getPathFrames(kind: number, time: number): PathFrames | null {
     frame = Math.floor(at);
   prepare(kind, frame);
   const rows = paths.get(kind);
-  if (!rows?.size) return null;
+  if (!rows?.size) {
+    const held = lastReady.get(kind);
+    return held ? { a: held, b: held, mix: 0, segments: pathSegments(kind) } : null;
+  }
   let a = rows.get(frame),
     b = rows.get(frame + 1);
   if (!a) {

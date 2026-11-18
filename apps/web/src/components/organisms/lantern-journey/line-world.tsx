@@ -110,12 +110,17 @@ export function LineWorld({ anchor }: { anchor: RefObject<Vector3> }) {
     const surface = ribbon.current.geometry.attributes.position;
     const ribbonWeight =
       journeyState.transition === 0 && !journeyState.reducedMotion
-        ? ease((journeyState.portal - 0.18) / 0.1) *
+        ? ease((journeyState.portal - 0.36) / 0.1) *
           (1 - ease((journeyState.portal - 0.76) / 0.1))
         : 0;
-    lines.current.visible = ribbonWeight < 0.999;
+    lines.current.visible = true;
     const lineMaterial = lines.current.material as LineBasicMaterial;
-    lineMaterial.opacity = .64 * (1 - conceptPresence) * (1 - ribbonWeight) * (1 - journeyState.chapters[1] - journeyState.chapters[2]);
+    // Keep the actual travelling strands lit while their ribbon surface forms.
+    const firstHandoff = journeyState.transition === 0 && !journeyState.reducedMotion;
+    const linePresence = firstHandoff
+      ? 1 - ease((journeyState.portal - 0.92) / 0.08)
+      : 1 - journeyState.chapters[1] - journeyState.chapters[2];
+    lineMaterial.opacity = .64 * (1 - conceptPresence) * (1 - ribbonWeight * .45) * linePresence;
     lineMaterial.color.set("#d9b77e");
     lineMaterial.color.r += conceptPresence * .9;
     lineMaterial.color.g += conceptPresence * .85;
@@ -154,7 +159,7 @@ export function LineWorld({ anchor }: { anchor: RefObject<Vector3> }) {
         );
       const spanWeight =
         journeyState.transition === 0 && !journeyState.reducedMotion
-          ? ease((journeyState.portal - 0.18) / 0.1) *
+          ? ease((journeyState.portal - 0.36) / 0.1) *
             (1 - ease((journeyState.portal - 0.76) / 0.1))
           : 0;
       if (spanWeight > 0) {

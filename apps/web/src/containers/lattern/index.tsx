@@ -26,10 +26,6 @@ const LatternWorld = dynamic(
 // reputation; the direct intellectual ancestor of Lantern's ERC-5192 layer.
 const ERC8004_PUBLICATION_URL =
   "https://ieeexplore.ieee.org/abstract/document/11685704";
-// Owner's second publication (2025, co-author) — privacy-preserving digital
-// identity across chains; the root of the FISCO BCOS port (docs/09 §5, ref [19]).
-const LOTUS_PUBLICATION_URL =
-  "https://ieeexplore.ieee.org/abstract/document/11231625";
 
 const subscribeMotion = (callback: () => void) => {
   const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -227,7 +223,7 @@ export function LatternExperience() {
                     data-sequence="0.951"
                   >
                     <span className="proof-receipt__label">
-                      Published research · 1 / 2
+                      Published research
                     </span>
                     <p className="proof-receipt__cite">
                       Verifiable AI Reviewers: Decentralized Skill Matching
@@ -235,24 +231,6 @@ export function LatternExperience() {
                     </p>
                     <span className="proof-receipt__venue">
                       MAPR 2026 · IEEE Xplore 11685704 · 1st author ↗
-                    </span>
-                  </a>
-                  <a
-                    className="proof-receipt proof-receipt--link"
-                    href={LOTUS_PUBLICATION_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    data-sequence="0.959"
-                  >
-                    <span className="proof-receipt__label">
-                      Published research · 2 / 2
-                    </span>
-                    <p className="proof-receipt__cite">
-                      Lotus: A Hybrid Cross-Chain Framework for
-                      Privacy-Preserving Digital Identity.
-                    </p>
-                    <span className="proof-receipt__venue">
-                      ISCIT 2025 · IEEE Xplore 11231625 · co-author ↗
                     </span>
                   </a>
 

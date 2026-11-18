@@ -7,6 +7,20 @@
 
 **Product (new concept):** two planes on Avalanche (Fuji first). **Lantern Graph** = we build/maintain the live pool graph (assets = nodes, pools = edges) and sell access to solver agents via **x402** — paying us beats running their own indexing. **Lantern Market** = a user posts a swap intent; solvers (ERC-8004 identities) answer with **signed route + split-allocation quotes** that **stream in one by one** (every solver's algorithm/latency differs); the user picks one; quotes carry deadlines and solvers can retract them as pools shift. Only the picked quote settles on-chain — the solver earns the fee, and an ERC-5192 attestation mints. Standing is earned by being picked and executing — never claimed.
 
+**Landing page state (from frontend-Tai, merged 2026-11-18):**
+
+* **First handoff visibility (2026-11-16)**: circular strands stay lit through departure onto the two lanes (first 36% of handoff); ribbon keeps strand outlines and destination network reveals only at the end.
+
+* **Artwork continuity (2026-11-16)**: later chapter artwork shares one animation clock and holds its last prepared pose while the worker catches up; existing spatial handoffs retained from frontend-Tai.
+
+* **Landing animation fix (2026-11-16)**: visible panel weights map to all 12 authored chapter slots; disabled preview stays zero, preserving finite finale geometry and original transition IDs.
+
+* **Landing content (2026-11-16)**: Lotus research receipt removed. Ask Lattern chapter/demo disabled through PRODUCT_PREVIEW_ENABLED; code retained, demo links hidden.
+
+* **Landing logo (2026-11-16)**: animated ring centerpiece uses the Avalanche (AVAX) two-peak mark; existing gold light paths and ring animation retained.
+
+* **Swap mode height (2026-11-15)**: Swap uses the chart's 510-640px viewport-responsive minimum height; Limit/Advanced remain intrinsic and expanded settings can grow without inner scrolling.
+
 **What exists NOW (after the pivot prune + Phases 0–2):**
 
 * **Contracts** (`contracts/`, Foundry): identity (`AgentRegistry` ERC-8004 + `Reputation` ERC-5192) + market (`MockToken` open-mint ERC-20, `DemoPool` constant-product pair with owner-only `seed()`, `LanternMarket.executeSwap` settling user-picked signed quotes — EIP-191 sig → `registry.ownerOf(agentId)`, deadline/nonce checks, re-quote vs live reserves, 20 bps solver fee, SWAP/SUCCESS attestation). `forge test` 93/93. `script/DeployMarket.s.sol` deploys 5 tokens / 9 pools from `script/seed/market.json`. **Fuji 43113 deployed 2026-11-15** (deployer `0x7EA6…F1F2`): Registry `0x62cd4e0C…a6341`, Reputation `0x5Df5E5FD…40B8`, LanternMarket `0xE77719De…f70B`, 5 tokens + 9 pools + 15 agents + 120 attestations seeded (addresses in README + `docs/contracts.md`). Monad 10143 deployment legacy read-only.
@@ -59,6 +73,27 @@
 
 * `2026-11-15` — frontend sessions on `frontend-Tai` (merged 2026-11-16; older cinematic-landing history pruned to git):
 
+### 2026-11-16 - Keep first circle-to-lanes motion visible
+- Extended circle exit, retained luminous strands through ribbon formation, delayed destination network reveal.
+- Updated route tests and frontend notes; layout and shared controls unchanged.
+
+### 2026-11-16 - Restore uninterrupted artwork motion
+- Compared frontend-Tai: spatial handoff code unchanged; fixed frame-cache gaps and conflicting per-object clocks.
+- Retain last worker pose through delays/revisits; regression test covers eviction, recovery and cleanup.
+
+### 2026-11-16 - Preserve animation slots for disabled chapters
+- Remapped visible panel weights and transition IDs to original chapter indices; fixes NaN geometry after disabling Ask Lattern.
+- Added regression coverage for finite coordinates/weights through the finale.
+
+### 2026-11-16 - Landing content cleanup
+Removed Lotus receipt/count and adjusted research copy; disabled Ask Lattern chapter/demo and its links, retaining code for later. Updated frontend/design notes.
+
+### 2026-11-16 - Landing AVAX logo
+- Replaced the Monad centerpiece contours with the Avalanche mark in chapter-transition.ts; animation and placement retained.
+- Updated landing design and frontend notes; 106 web tests passed.
+
+### 2026-11-15 - Frontend commit preparation
+Added .next-* build-backup ignore rule; staging/commit blocked by permission denial creating .git/index.lock.
 
 ### 2026-11-15 - Remove mock quote summary
 Removed valid mock quote/minimum-received text beneath the wallet button; empty and insufficient-balance feedback retained.

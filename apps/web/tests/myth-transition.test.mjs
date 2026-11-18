@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { loadSource } from "./helpers/load-source.mjs";
 const {
   sampleJourney,
+  remapChapterWeights,
   scrollToScore,
   signalPosition,
   contentBeat,
@@ -11,6 +12,30 @@ const {
   transitionFlight,
   stripeArrival,
 } = loadSource("src/libs/cinematic/chapter-transition.ts");
+
+test("disabled preview preserves finite authored chapter slots through the finale", () => {
+  const indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11];
+  for (let position = 0; position <= 10.8; position += 0.05) {
+    const score = sampleJourney(position, { count: indices.length, hold: 0 });
+    const chapters = remapChapterWeights(score.weights, indices, 12);
+    assert.equal(chapters.length, 12);
+    assert.equal(chapters[9], 0);
+    assert.ok(chapters.every(Number.isFinite));
+    assert.ok(Math.abs(chapters.reduce((sum, weight) => sum + weight, 0) - 1) < 1e-10);
+    for (let index = 0; index < 16; index++) {
+      const target = [0, 0, 0];
+      chapters.forEach((weight, chapter) => {
+        const pose = agentPose(chapter, index, 4);
+        target[0] += pose.x * weight;
+        target[1] += pose.y * weight;
+        target[2] += pose.z * weight;
+      });
+      assert.ok(target.every(Number.isFinite));
+      assert.ok(Number.isFinite(chapters[11] * 0.28));
+    }
+  }
+  assert.equal(remapChapterWeights(sampleJourney(10.8, { count: 11 }).weights, indices, 12)[11], 1);
+});
 test("opening stripes wait for ignition and settle before the welcome ends", () => {
   for (let i = 0; i < 128; i++) {
     assert.equal(stripeArrival(2.8, i), 0);
@@ -239,7 +264,7 @@ test("transition ribbons remain straight after formation", () => {
     "src/libs/cinematic/line-story.ts"
   );
   for (let i = 0; i < 128; i++) {
-    for (const p of [0.18, 0.22, 0.28, 0.44, 0.6, 0.72]) {
+    for (const p of [0.36, 0.4, 0.44, 0.6, 0.72]) {
       const straight = lineHandoff(0, p, i, linePiece(0, i));
       assert.deepEqual(straight, firstStrandPiece(i));
       assert.equal(straight[1], straight[4]);
@@ -416,7 +441,7 @@ test("circle pieces leave only after reaching their horizontal exit", () => {
     const circle = linePiece(0, i);
     const target = firstStrandPiece(i);
     const source = linePiece(0, i, 0.47);
-    for (let step = 0; step <= 18; step++) {
+    for (let step = 0; step <= 36; step++) {
       const p = step / 100;
       const actual = lineHandoff(0, p, i, p === 0 ? source : circle, source);
       for (const n of [0, 3]) {

@@ -109,9 +109,9 @@ export const LATTERN_SCENES = [
     end: 0.972,
     kicker: "11 / The people behind the light",
     title: "We've kept\ntrust before.",
-    copy: "Engineers out of centralized exchanges — where a bad fill is a lawsuit, not a footnote. Two papers back the protocol. The receipts are onchain.",
+    copy: "Engineers out of centralized exchanges — where a bad fill is a lawsuit, not a footnote. Published research backs the protocol. The receipts are onchain.",
     aside:
-      "Two papers, one protocol: Verifiable AI Reviewers (MAPR 2026 · 1st author) and Lotus — privacy-preserving cross-chain identity (ISCIT 2025 · co-author), the root of the FISCO BCOS path.",
+      "Verifiable AI Reviewers (MAPR 2026 - 1st author): decentralized skill matching and soulbound reputation for multi-agent peer review.",
   },
   {
     id: "finale",
