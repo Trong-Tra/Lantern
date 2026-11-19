@@ -4,8 +4,8 @@ import { MARKET_TOKENS } from "@/libs/market/tokens";
 import "./exchange.css";
 
 export const metadata: Metadata = {
-  title: "Exchange | Lattern",
-  description: "A clearer path between assets. Explore the Lattern exchange.",
+  title: "Exchange | Lantern Finance",
+  description: "A clearer path between assets. Explore the Lantern Finance exchange.",
 };
 
 const allowedTokens = MARKET_TOKENS.map((token) => token.symbol);

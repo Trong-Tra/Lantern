@@ -530,7 +530,7 @@ function ExchangeView({ address, initialToken }: { address: string | null; initi
         </div>
         <footer className="exchange-footer">
           <span>
-            LATTERN <span>·</span> Illuminate the agent economy.
+            LANTERN FINANCE <span>·</span> Illuminate the agent economy.
           </span>
           <Link href="/network">
             Explore the network <ArrowUpRightIcon />

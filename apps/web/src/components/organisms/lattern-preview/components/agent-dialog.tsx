@@ -68,7 +68,7 @@ export function AgentDialog({
         >
           <div className="mb-6 flex items-center justify-between gap-4">
             <p className="font-(family-name:--font-jetbrains-mono) text-[10px] tracking-widest text-amber-200/70 uppercase">
-              Lattern / Interactive demo
+              Lantern Finance / Interactive demo
             </p>
             <Dialog.Close
               aria-label="Close agent details"

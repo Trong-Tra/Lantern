@@ -72,7 +72,7 @@ export function SiteNavigation() {
 
   return (
     <header ref={headerRef} onFocusCapture={() => setHidden(false)} className={`site-navigation${pathname === "/" ? " site-navigation-sticky" : ""}${pathname === "/" && hidden && !menuOpen && !searchOpen ? " site-navigation-hidden" : ""}`}>
-      <Link prefetch={true} href="/" className="site-brand" aria-label="Lattern home">
+      <Link prefetch={true} href="/" className="site-brand" aria-label="Lantern Finance home">
         <span className="site-logo" aria-hidden="true">
           <LatternMark className="site-logo-flat" />
           <span className="site-logo-volume">
@@ -80,7 +80,7 @@ export function SiteNavigation() {
             <span className="site-logo-core" />
           </span>
         </span>
-        <span className="site-brand-name">LATTERN</span>
+        <span className="site-brand-name">LANTERN FINANCE</span>
       </Link>
       <nav className="landing-navigation" aria-label="Main navigation">
         {links.map(({ label, href }) => <Link prefetch={true} key={href} href={href} aria-current={pathname === href ? "page" : undefined}><span>{label}</span></Link>)}

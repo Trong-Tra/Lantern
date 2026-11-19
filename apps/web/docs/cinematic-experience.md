@@ -1,4 +1,4 @@
-# Lattern cinematic prototype
+# Lantern Finance cinematic prototype
 
 The new route starts at `src/app/page.tsx` → `src/containers/lattern/index.tsx`.
 It does not import the previous home/experience implementation.
@@ -27,6 +27,6 @@ Scroll progress owns narrative state. Idle flame and dust may animate independen
 
 Reduced-motion preference, manual reading mode, renderer failure or a 12-second initialization timeout show the DOM story. Mobile uses fewer nodes and particles, smaller lantern geometry on screen and a simplified layout. Modal dialogs pause Lenis and restore focus on close.
 
-All agent profiles, scores, histories and confirmations are fictional. The demo has no wallet connection, transaction signing, RPC submission or live verification. GitHub and contract links remain “Not published yet” until official URLs are supplied. Launch Lattern opens the local product preview.
+All agent profiles, scores, histories and confirmations are fictional. The demo has no wallet connection, transaction signing, RPC submission or live verification. GitHub and contract links remain “Not published yet” until official URLs are supplied. Launch Lantern Finance opens the local product preview.
 
 Before release, test the full journey on physical mobile devices, measure frame rate and accessibility contrast, and replace mock product wiring only once actual APIs and authorization requirements are available. No measured FPS guarantee is implied by the current DPR and instancing optimizations.

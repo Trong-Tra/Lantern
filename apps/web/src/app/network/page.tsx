@@ -11,7 +11,7 @@ import { Atmosphere } from "@/components/molecules/atmosphere";
 import { fetchAgentsPage, withQuery } from "@/libs/explorer/api";
 import { formatUpdatedAt, parsePage } from "@/libs/explorer/present";
 
-export const metadata: Metadata = { title: "The Network — Lattern" };
+export const metadata: Metadata = { title: "The Network — Lantern Finance" };
 
 const PAGE_SIZE = 12;
 

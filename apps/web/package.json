@@ -33,11 +33,13 @@
     "next-themes": "^0.4.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-simple-maps": "^5.0.5",
     "tailwind-merge": "^3.7.0",
     "three": "^0.186.0",
     "usehooks-ts": "^3.1.1",
     "viem": "^2.57.4",
-    "wagmi": "^3.7.7"
+    "wagmi": "^3.7.7",
+    "world-atlas": "^2.0.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

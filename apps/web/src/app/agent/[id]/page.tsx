@@ -21,7 +21,7 @@ import { Atmosphere } from "@/components/molecules/atmosphere";
 import { fetchAgentProfile, fetchRiskReport } from "@/libs/explorer/api";
 import { formatUpdatedAt, parseAgentId, parsePage } from "@/libs/explorer/present";
 
-export const metadata: Metadata = { title: "Agent profile — Lattern" };
+export const metadata: Metadata = { title: "Agent profile — Lantern Finance" };
 
 const ATT_PAGE_SIZE = 10;
 

@@ -5,9 +5,9 @@ import { ConnectWalletButton } from "@/containers/lattern/components/connect-wal
 export function SiteHeader() {
   return (
     <header className="lattern-header">
-      <Link href="/" className="lattern-wordmark no-underline" aria-label="Lattern — home">
+      <Link href="/" className="lattern-wordmark no-underline" aria-label="Lantern Finance — home">
         <LatternMark />
-        <span>LATTERN</span>
+        <span>LANTERN FINANCE</span>
       </Link>
       <ConnectWalletButton />
     </header>

@@ -28,7 +28,7 @@ const JourneyWorld = dynamic(
   () => import("@/components/organisms/lantern-journey"),
   { ssr: false }
 );
-// Re-enable the Ask Lattern demo when the product preview is needed again.
+// Re-enable the Ask Lantern Finance demo when the product preview is needed again.
 const PRODUCT_PREVIEW_ENABLED = false;
 const LATTERN_SCENES = ALL_LATTERN_SCENES.filter(
   (scene) => PRODUCT_PREVIEW_ENABLED || scene.id !== "product"
@@ -417,7 +417,7 @@ export function MythLanding() {
         <section
           className="journey"
           ref={journey}
-          aria-label="The story of Lattern"
+          aria-label="The story of Lantern Finance"
         >
           {!staticMode && (
             <div className="journey-anchors" aria-hidden="true">
@@ -477,7 +477,7 @@ export function MythLanding() {
                       {PRODUCT_PREVIEW_ENABLED && (
                         <>
                           <a className="myth-button" href="#demo">
-                            Launch Lattern ↗
+                            Launch Lantern Finance ↗
                           </a>
                           <p>Explore the interactive demo · Sample agents</p>
                         </>

@@ -38,7 +38,7 @@ const TRUSTED_POINTS = [
 const STEPS = [
   "USER",
   "INTENT",
-  "LATTERN",
+  "LANTERN FINANCE",
   "TRUSTED AGENT",
   "WALLET ACTION",
   "MONAD",
