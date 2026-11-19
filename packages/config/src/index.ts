@@ -7,11 +7,9 @@ export const DEFAULT_API_URL = "http://localhost:8082";
  * falling back to DEFAULT_API_URL.
  */
 export function getApiBaseUrl(): string {
-  const envUrl =
-    typeof globalThis !== "undefined"
-      ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.NEXT_PUBLIC_API_URL
-      : undefined;
-  return envUrl || DEFAULT_API_URL;
+  // Static access — Next/Turbopack inlines NEXT_PUBLIC_* at build time only
+  // for direct `process.env.X` member expressions (dynamic reads never inline).
+  return process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
 }
 
 export const API_ENDPOINTS = {
@@ -35,12 +33,7 @@ export const MARKET_ENDPOINTS = {
  * (the market service serves both on one origin).
  */
 export function getMarketApiBaseUrl(): string {
-  const envUrl =
-    typeof globalThis !== "undefined"
-      ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
-          ?.NEXT_PUBLIC_MARKET_API_URL
-      : undefined;
-  return envUrl || getApiBaseUrl();
+  return process.env.NEXT_PUBLIC_MARKET_API_URL || getApiBaseUrl();
 }
 
 /** Default origin for the quote-protocol WebSocket (raw JSON frames). */
@@ -51,24 +44,14 @@ export const DEFAULT_QUOTE_WS_URL = "ws://localhost:8081/quotes";
  * Prefers `NEXT_PUBLIC_QUOTE_WS_URL`, falling back to DEFAULT_QUOTE_WS_URL.
  */
 export function getQuoteWsUrl(): string {
-  const envUrl =
-    typeof globalThis !== "undefined"
-      ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
-          ?.NEXT_PUBLIC_QUOTE_WS_URL
-      : undefined;
-  return envUrl || DEFAULT_QUOTE_WS_URL;
+  return process.env.NEXT_PUBLIC_QUOTE_WS_URL || DEFAULT_QUOTE_WS_URL;
 }
 
 /** Avalanche Fuji testnet explorer (Snowtrace). Env-overridable. */
 export const DEFAULT_EXPLORER_URL = "https://testnet.snowtrace.io";
 
 export function getExplorerUrl(): string {
-  const envUrl =
-    typeof globalThis !== "undefined"
-      ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
-          ?.NEXT_PUBLIC_EXPLORER_URL
-      : undefined;
-  return envUrl || DEFAULT_EXPLORER_URL;
+  return process.env.NEXT_PUBLIC_EXPLORER_URL || DEFAULT_EXPLORER_URL;
 }
 
 /** Link to a transaction on the Fuji testnet explorer. */
