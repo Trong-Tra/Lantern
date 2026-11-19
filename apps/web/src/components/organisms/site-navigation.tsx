@@ -8,6 +8,7 @@ import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { MenuToggle } from "@/components/ui/menu-toggle";
 import { LatternMark } from "@/components/icons/lattern-mark";
 import { ConnectWalletButton } from "@/containers/lattern/components/connect-wallet-button";
+import { MARKET_TOKENS } from "@/libs/market/tokens";
 
 const links = [
   { label: "Home", href: "/" },
@@ -15,11 +16,7 @@ const links = [
   { label: "Exchange", href: "/exchange" },
   { label: "Profile", href: "/profile" },
 ];
-const tokens = [
-  { symbol: "MON", name: "Monad" },
-  { symbol: "USDC", name: "USD Coin" },
-  { symbol: "ETH", name: "Ethereum" },
-];
+const tokens = MARKET_TOKENS.map(({ symbol, name }) => ({ symbol, name }));
 
 export function SiteNavigation() {
   const pathname = usePathname();
@@ -52,7 +49,6 @@ export function SiteNavigation() {
       }
       previousY = currentY;
     };
-    setHidden(false);
     const onScroll = () => {
       if (!frame) frame = window.requestAnimationFrame(update);
     };
@@ -64,11 +60,19 @@ export function SiteNavigation() {
     };
   }, [pathname, menuOpen, searchOpen]);
 
+  // Reveal the header when navigation or overlays change — deferred a frame
+  // so the effect body stays free of synchronous setState.
+  useEffect(() => {
+    if (pathname !== "/") return;
+    const raf = requestAnimationFrame(() => setHidden(false));
+    return () => cancelAnimationFrame(raf);
+  }, [pathname, menuOpen, searchOpen]);
+
   const results = tokens.filter((token) => `${token.symbol} ${token.name}`.toLowerCase().includes(query.trim().toLowerCase()));
 
   return (
     <header ref={headerRef} onFocusCapture={() => setHidden(false)} className={`site-navigation${pathname === "/" ? " site-navigation-sticky" : ""}${pathname === "/" && hidden && !menuOpen && !searchOpen ? " site-navigation-hidden" : ""}`}>
-      <Link prefetch={true} href="/" className="site-brand" aria-label="Lattern home">
+      <Link prefetch={true} href="/" className="site-brand" aria-label="Lantern Finance home">
         <span className="site-logo" aria-hidden="true">
           <LatternMark className="site-logo-flat" />
           <span className="site-logo-volume">
@@ -76,7 +80,7 @@ export function SiteNavigation() {
             <span className="site-logo-core" />
           </span>
         </span>
-        <span className="site-brand-name">LATTERN</span>
+        <span className="site-brand-name">LANTERN FINANCE</span>
       </Link>
       <nav className="landing-navigation" aria-label="Main navigation">
         {links.map(({ label, href }) => <Link prefetch={true} key={href} href={href} aria-current={pathname === href ? "page" : undefined}><span>{label}</span></Link>)}

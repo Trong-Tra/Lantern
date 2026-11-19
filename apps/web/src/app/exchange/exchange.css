@@ -215,6 +215,18 @@
   background: #8e99b130;
   color: #d0d8eb;
 }
+.token-mark.amber {
+  background: #b7791f38;
+  color: #f0c070;
+}
+.token-mark.green {
+  background: #2f7d4f38;
+  color: #8ee0a8;
+}
+.token-mark.red {
+  background: #a83b3b38;
+  color: #f0a0a0;
+}
 .exchange-asset > .token-mark {
   width: 46px;
   height: 46px;
@@ -512,6 +524,382 @@
 }
 .exchange-advanced b {
   font-weight: 400;
+}
+.exchange-quote-list {
+  margin: 14px 22px;
+  font-size: 12px;
+  color: #bbb2a0;
+  display: grid;
+  gap: 4px;
+}
+.exchange-quote-list > p {
+  margin: 0 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #999;
+}
+.exchange-quote-live {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c9a66c;
+  box-shadow: 0 0 8px #c9a66c66;
+  animation: exchange-quote-pulse 2.4s ease-in-out infinite;
+}
+.exchange-quote-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+/* One row per solver offer; rows rise in as quotes stream, withdraw on retract. */
+.exchange-quote {
+  display: grid;
+  gap: 6px;
+  padding: 8px 0 7px;
+  border-top: 1px solid #c9a66c1a;
+  animation: exchange-quote-in 0.5s var(--exchange-ease) both;
+}
+.exchange-quote[data-leaving] {
+  animation: exchange-quote-out 0.2s ease-in both;
+  pointer-events: none;
+}
+.exchange-quote-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.exchange-quote-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.exchange-quote-toggle:focus-visible {
+  outline: 2px solid #c9a66c;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.exchange-quote-agent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: #c4aa7e;
+  white-space: nowrap;
+}
+.exchange-quote-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #c9a66c80;
+}
+.exchange-quote[data-best] .exchange-quote-dot {
+  background: #e5c38d;
+  box-shadow: 0 0 6px #e5c38d88;
+}
+.exchange-quote-values {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  text-align: right;
+}
+.exchange-quote-values b {
+  color: #f3f6fc;
+  font-weight: 500;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.exchange-quote[data-best] .exchange-quote-values b {
+  color: #e5c38d;
+}
+.exchange-quote-values small {
+  color: #999;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.exchange-quote-best {
+  font-style: normal;
+  color: #e5c38d;
+}
+.exchange-quote-select {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 18px;
+  background: #c9a66c;
+  color: #21190e;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.15s;
+}
+.exchange-quote-select:hover {
+  background: #e5c38d;
+}
+.exchange-quote-select:active {
+  transform: translateY(1px);
+}
+/* Share-of-best meter: the leader runs full width in gold. */
+.exchange-quote-meter {
+  height: 2px;
+  border-radius: 1px;
+  background: #c9a66c14;
+  overflow: hidden;
+}
+.exchange-quote-meter i {
+  display: block;
+  height: 100%;
+  border-radius: 1px;
+  background: #8a7a5c;
+  transition: width 0.5s var(--exchange-ease);
+}
+.exchange-quote[data-best] .exchange-quote-meter i {
+  background: linear-gradient(90deg, #c9a66c, #e5c38d);
+}
+.exchange-quote-chevron {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: #999;
+  transition: transform 180ms var(--exchange-ease);
+}
+.exchange-quote-chevron[data-open="true"] {
+  transform: rotate(180deg);
+  color: #e5c38d;
+}
+.exchange-quote-route {
+  padding-top: 2px;
+}
+.exchange-quote-picked {
+  border-top: 1px solid #6cbf8a33;
+}
+.exchange-quote-picked > p {
+  color: #8fbf9f;
+}
+.exchange-quote-picked .exchange-quote-dot {
+  background: #6cbf8a;
+  box-shadow: 0 0 6px #6cbf8a77;
+}
+.exchange-quote-picked code {
+  flex: 0 0 auto;
+  font-size: 10px;
+  color: #777;
+}
+/* Transit-line route diagram: wires draw left to right, nodes follow. */
+.exchange-route-flow {
+  display: grid;
+  gap: 6px;
+  padding: 4px 0 2px;
+}
+.exchange-route-head {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #999;
+}
+.exchange-route-head span {
+  color: #e5c38d;
+}
+.exchange-route-canvas {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.exchange-route-canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.exchange-route-spine {
+  stroke: #c9a66c55;
+  stroke-width: 1;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: exchange-draw 0.4s var(--exchange-ease) both;
+}
+.exchange-route-wire {
+  stroke: #c9a66c66;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: exchange-draw 0.42s var(--exchange-ease) both;
+}
+.exchange-route-share {
+  fill: #f3f6fc;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  animation: exchange-fade 0.35s ease both;
+  animation-delay: var(--route-delay, 0ms);
+}
+.exchange-route-node circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: exchange-route-node-in 0.35s var(--exchange-ease) both;
+  animation-delay: var(--route-delay, 0ms);
+  fill: #141419;
+  stroke: #c9a66c;
+  stroke-width: 1.4;
+}
+.exchange-route-node text {
+  animation: exchange-fade 0.3s ease both;
+  animation-delay: var(--route-delay, 0ms);
+}
+.exchange-route-node[data-tone="out"] circle {
+  fill: #e5c38d;
+  stroke: #e5c38d;
+}
+.exchange-route-node[data-tone="unknown"] circle {
+  fill: none;
+  stroke: #777;
+  stroke-dasharray: 2 2;
+}
+.exchange-route-node-label {
+  fill: #d8cfbd;
+  font-size: 10.5px;
+}
+.exchange-route-node[data-tone="out"] .exchange-route-node-label {
+  fill: #e5c38d;
+}
+.exchange-route-node[data-tone="unknown"] .exchange-route-node-label {
+  fill: #8a8577;
+}
+.exchange-route-node[data-kind="pool"] .exchange-route-node-label {
+  fill: #c9a66c;
+  font-size: 10px;
+}
+.exchange-route-node-sub {
+  fill: #6f6a5e;
+  font-family: ui-monospace, monospace;
+  font-size: 8px;
+}
+.exchange-route-empty {
+  margin: 0;
+  font-size: 11px;
+  color: #999;
+}
+@keyframes exchange-quote-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes exchange-quote-out {
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@keyframes exchange-quote-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes exchange-route-node-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .exchange-quote,
+  .exchange-quote[data-leaving] {
+    animation: none;
+  }
+  .exchange-quote-live {
+    animation: none;
+  }
+  .exchange-quote-meter i,
+  .exchange-quote-chevron,
+  .exchange-quote-select {
+    transition: none;
+  }
+  .exchange-route-spine,
+  .exchange-route-wire {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .exchange-route-share,
+  .exchange-route-node circle,
+  .exchange-route-node text {
+    animation: none;
+  }
+}
+.exchange-graph-pools {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid #c9a66c1f;
+}
+.exchange-graph-pools > p {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #999;
+}
+.exchange-pool-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+.exchange-pool-row span {
+  color: #f3f6fc;
+}
+.exchange-pool-row small {
+  color: #777;
+}
+.exchange-pool-row b {
+  color: #bbb2a0;
+  flex: 1 1 auto;
+}
+.exchange-pool-row code {
+  font-size: 10px;
+  color: #777;
+}
+.exchange-limit > span {
+  font-size: 11px;
+  color: #999;
 }
 .exchange-picker-backdrop {
   position: fixed;
@@ -853,12 +1241,6 @@
   stroke: #d1c3a4;
   stroke-width: 1;
   stroke-dasharray: 4 5;
-  opacity: 0.65;
-}
-.market-crosshair {
-  stroke: #efe3ca;
-  stroke-width: 1;
-  stroke-dasharray: 3 4;
   opacity: 0.65;
 }
 .market-point-halo {

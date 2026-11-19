@@ -3,10 +3,8 @@
 import {
   useEffect,
   useId,
-  useMemo,
   useRef,
   useState,
-  type PointerEvent,
 } from "react";
 import {
   ChartBarIcon,
@@ -18,11 +16,23 @@ import {
 import {
   chartPeriods,
   chartTransition,
-  getChartData,
+  buildChartSeries,
   formatChartAxis,
   axisLabelFrame,
-  mockMarkets,
+  chartIntervalFor,
+  chartLimitFor,
+  chartRefetchFor,
+  interpolateCandles,
+  type ChartSeries,
 } from "./chart-data";
+import type { Candle } from "@/libs/market/api";
+import { useMarketCandles, useMarketPrices } from "@/hooks/use-market";
+import {
+  displaySymbol,
+  findToken,
+  tokenUsdPrice,
+  type MarketToken,
+} from "@/libs/market/tokens";
 
 function dollars(value: number) {
   return value.toLocaleString("en-US", {
@@ -130,33 +140,91 @@ function DeleteTypeValue({
 
 export function MarketChart({
   token,
-  mock,
   pairedToken,
   onSwitch,
 }: {
-  token: { symbol: string; name: string; color: string; mark: string };
-  mock: boolean;
+  token: MarketToken;
   pairedToken: string;
   onSwitch: () => void;
 }) {
-  const [period, setPeriod] = useState("1D");
-  const [selected, setSelected] = useState<number | null>(null);
+  const [period, setPeriod] = useState("1H");
   const [style, setStyle] = useState("line");
-  const [metric, setMetric] = useState("price");
   const gradient = useId();
-  const target = useMemo(
-    () => getChartData(token.symbol, period),
-    [token.symbol, period]
-  );
-  const [frame, setFrame] = useState({ data: target, progress: 1 });
-  const frameRef = useRef(frame);
-  const previousTarget = useRef(target);
   const clip = useId();
+
+  const prices = useMarketPrices();
+  const candlesQuery = useMarketCandles(
+    token.coin,
+    chartIntervalFor(period),
+    chartLimitFor(period),
+    chartRefetchFor(period)
+  );
+  const targetCandles = candlesQuery.data?.candles ?? null;
+
+  type PlotFrame = {
+    data: ChartSeries | null;
+    /** Real (post-animation) candles behind data — the next glide starts here. */
+    candles: Candle[];
+    progress: number;
+    /** While a morph runs: plot to draw (flips old→new as growth starts). */
+    plotStyle?: string;
+  };
+  const [frame, setFrame] = useState<PlotFrame>(() => ({
+    data: targetCandles ? buildChartSeries(targetCandles, period) : null,
+    candles: targetCandles ?? [],
+    progress: 1,
+  }));
+  const frameRef = useRef(frame);
+  const previousCandles = useRef(targetCandles);
+  const periodRef = useRef(period);
+  const styleRef = useRef(style);
+  const morphingRef = useRef(false);
   useEffect(() => {
-    if (previousTarget.current === target) return;
-    previousTarget.current = target;
+    const styleChanged = styleRef.current !== style;
+    const fromStyle = styleRef.current;
+    const periodChanged = periodRef.current !== period;
+    styleRef.current = style;
+    periodRef.current = period;
+    if (previousCandles.current === targetCandles && !styleChanged) {
+      morphingRef.current = false;
+      return;
+    }
+    previousCandles.current = targetCandles;
     const previous = frameRef.current;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const build = (cs: Candle[] | null) =>
+      cs && cs.length ? buildChartSeries(cs, period) : null;
+    const nearSame =
+      previous.candles.length > 0 &&
+      !!targetCandles?.length &&
+      Math.abs(previous.candles.length - targetCandles.length) <= 1;
+
+    // Live ticks glide: same window, values move — ease the moving candle
+    // into its new position instead of snapping or re-morphing the chart.
+    if (!periodChanged && !styleChanged && nearSame && !morphingRef.current) {
+      let request: number;
+      let start: number | undefined;
+      const update = (now: number) => {
+        start ??= now;
+        const t = reduced.matches ? 1 : Math.min(1, (now - start) / 600);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const next: PlotFrame = {
+          data: build(interpolateCandles(previous.candles, targetCandles!, eased)),
+          candles: targetCandles!,
+          progress: 1,
+          plotStyle: style,
+        };
+        frameRef.current = next;
+        setFrame(next);
+        if (t < 1) request = requestAnimationFrame(update);
+      };
+      request = requestAnimationFrame(update);
+      return () => cancelAnimationFrame(request);
+    }
+
+    // Period/style switches (and retargets mid-flight) retract the previous
+    // plot, then grow the new one — the style flips as growth starts.
+    morphingRef.current = true;
     let request: number;
     let start: number | undefined;
     const update = (now: number) => {
@@ -165,36 +233,192 @@ export function MarketChart({
       const phase = chartTransition(elapsed, previous.progress);
       const { shrinking } = phase;
       const progress = reduced.matches ? 1 : phase.progress;
-      const next = {
-        data: shrinking && !reduced.matches ? previous.data : target,
+      const keepOld = shrinking && !reduced.matches;
+      const next: PlotFrame = {
+        data: keepOld ? previous.data : build(targetCandles),
+        candles: keepOld ? previous.candles : targetCandles ?? [],
         progress,
+        plotStyle: keepOld ? previous.plotStyle ?? fromStyle : style,
       };
       frameRef.current = next;
       setFrame(next);
-      if (!reduced.matches && elapsed < 940)
+      if (!reduced.matches && elapsed < 940) {
         request = requestAnimationFrame(update);
+      } else {
+        morphingRef.current = false;
+      }
     };
     request = requestAnimationFrame(update);
     return () => cancelAnimationFrame(request);
-  }, [target]);
+  }, [targetCandles, period, style]);
+
   const data = frame.data;
-  const market = mockMarkets[token.symbol];
-  const cap = metric === "cap";
-  const format = (value: number) =>
-    cap ? compact(value * market.supply) : dollars(value);
-  const point = data.points[selected ?? 48];
-  const up = target.change >= 0;
-  function inspect(event: PointerEvent<SVGSVGElement>) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 640;
-    setSelected(Math.max(0, Math.min(48, Math.round(((x - 20) / 600) * 48))));
-  }
+  // During a morph the frame carries the plot style (old while retracting,
+  // new while growing); otherwise the state style wins.
+  const activeStyle = frame.plotStyle ?? style;
+  const candleCount = Math.max(1, data?.candles.length ?? 1);
+  const bodyWidth = Math.min(14, Math.max(1.5, (600 / candleCount) * 0.72));
+  const volumeCount = Math.max(1, data?.volumes.length ?? 1);
+  const volumeWidth = Math.min(6, Math.max(0.5, (600 / volumeCount) * 0.7));
+  const livePrice = tokenUsdPrice(token, prices.data?.prices);
+  const headerPrice = livePrice ?? data?.close ?? null;
+  const up = (data?.change ?? 0) >= 0;
+  const maxVolume = data ? Math.max(...data.volumes, 0) : 0;
+  const totalVolumeUsd = data
+    ? data.volumes.reduce((sum, volume, index) => sum + volume * data.values[index], 0)
+    : 0;
+  const updatedAt = prices.data?.updatedAt ?? candlesQuery.data?.updatedAt ?? null;
+
+  const plot = token.coin ? (
+    candlesQuery.isPending ? (
+      <div className="market-empty" role="status" aria-label="Loading price chart">
+        Loading candles…
+      </div>
+    ) : candlesQuery.isError && !candlesQuery.data ? (
+      <div className="market-empty" role="status">
+        Market feed unreachable — is the market service running?
+      </div>
+    ) : !data ? (
+      <div className="market-empty" role="status">
+        No candle history yet.
+      </div>
+    ) : (
+      <div className="matcha-plot">
+        <svg
+          viewBox="0 0 640 300"
+          preserveAspectRatio="none"
+          role="img"
+          aria-label={`Price ${style} chart for ${displaySymbol(token)}, past ${data.duration}. Open ${dollars(data.open)}, latest ${dollars(data.close)}. Auto-scaled vertical axis.${maxVolume > 0 ? " Bottom bars show traded volume." : ""}`}
+        >
+          <defs>
+            <clipPath id={clip}>
+              <rect x="20" y="0" width={600 * frame.progress} height="300" />
+            </clipPath>
+            <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
+              <stop stopColor="currentColor" stopOpacity=".18" />
+              <stop offset="1" stopColor="currentColor" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {[0, 1, 2, 3, 4].map((index) => (
+            <line
+              key={index}
+              className="matcha-grid"
+              x1="20"
+              x2="620"
+              y1={25 + index * 52}
+              y2={25 + index * 52}
+            />
+          ))}
+          <g clipPath={`url(#${clip})`}>
+            <g
+              transform={`translate(20 279) scale(1 ${frame.progress}) translate(-20 -279)`}
+            >
+              {activeStyle === "line" ? (
+                <>
+                  <path
+                    className="market-area"
+                    d={`${data.path} L620 275 L20 275 Z`}
+                    fill={`url(#${gradient})`}
+                  />
+                  <path
+                    className="exchange-chart-line"
+                    d={data.path}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </>
+              ) : (
+                <g className="matcha-candles">
+                  {data.candles.map((candle, index) => (
+                    <g
+                      key={index}
+                      className={
+                        candle.close >= candle.open
+                          ? "candle-up"
+                          : "candle-down"
+                      }
+                    >
+                      <line
+                        x1={candle.x}
+                        x2={candle.x}
+                        y1={data.y(candle.high)}
+                        y2={data.y(candle.low)}
+                      />
+                      <rect
+                        x={candle.x - bodyWidth / 2}
+                        y={Math.min(
+                          data.y(candle.open),
+                          data.y(candle.close)
+                        )}
+                        width={bodyWidth}
+                        height={Math.max(
+                          2,
+                          Math.abs(data.y(candle.close) - data.y(candle.open))
+                        )}
+                      />
+                    </g>
+                  ))}
+                </g>
+              )}
+              <g className="matcha-volume">
+                {data.volumes.map((volume, index) => {
+                  const count = data.volumes.length;
+                  const height =
+                    maxVolume > 0 ? 5 + (volume / maxVolume) * 60 : 0;
+                  // Same band centers as the candles/line, so the bars line
+                  // up with their candle and none is clipped at the edges.
+                  const x = 20 + ((index + 0.5) / count) * 600;
+                  return (
+                    <rect
+                      key={index}
+                      x={x - volumeWidth / 2}
+                      y={(279 - height).toFixed(3)}
+                      width={volumeWidth}
+                      height={height.toFixed(3)}
+                    />
+                  );
+                })}
+              </g>
+            </g>
+          </g>
+        </svg>
+        <div className="matcha-axis" aria-hidden="true">
+          {[0, 1, 2, 3, 4].map((index) => {
+            const range = data.high - data.low;
+            const value =
+              data.low -
+              range * 0.16 +
+              ((230 - (25 + index * 52)) / 210) * range * 1.32;
+            return (
+              <span
+                key={index}
+                style={{ top: `${((25 + index * 52) / 300) * 100}%` }}
+              >
+                <DeleteTypeValue value={formatChartAxis(value, data.close)} />
+              </span>
+            );
+          })}
+        </div>
+        <div className="matcha-time-labels" aria-hidden="true">
+          {data.timeLabels.map((label, index) => (
+            <span key={`${label}-${index}`}>{label}</span>
+          ))}
+        </div>
+      </div>
+    )
+  ) : (
+    <div className="market-empty" role="status">
+      Stable value — pegged at $1.00, no chart feed.
+    </div>
+  );
 
   return (
     <section
       className="exchange-chart market-chart matcha-chart"
       data-direction={up ? "up" : "down"}
-      aria-label={`${token.name} market chart`}
+      aria-label={`${displaySymbol(token)} market chart`}
     >
       <div className="matcha-market-header">
         <div className="matcha-token">
@@ -202,37 +426,60 @@ export function MarketChart({
             <span className={`token-mark ${token.color}`}>{token.mark}</span>
             <div>
               <h2>
-                <DeleteTypeValue value={token.name} letters />
+                <DeleteTypeValue value={displaySymbol(token)} letters />
               </h2>
-              <span>{token.symbol} · Monad</span>
+              <span>
+                {token.coin
+                  ? "Hyperliquid mark · display only"
+                  : "Fuji mock · $1 peg"}
+              </span>
             </div>
           </div>
-          {!mock && <span className="exchange-preview">UI preview</span>}
         </div>
         <div className="matcha-metrics" aria-label="Market statistics">
           {[
             {
-              label: "Market cap",
-              value: compact(target.close * market.supply),
+              label: "Change",
+              value: data ? `${up ? "+" : ""}${data.change.toFixed(2)}%` : "—",
             },
-            { label: "24h Volume", value: compact(market.volume) },
-            { label: "Holders", value: market.holders },
-            { label: "Age", value: market.age },
+            {
+              label: "Volume",
+              // Mid-folded tick candles carry no traded volume — don't claim $0.
+              value: data && totalVolumeUsd > 0 ? compact(totalVolumeUsd) : "—",
+            },
+            { label: "High", value: data ? dollars(data.high) : "—" },
+            {
+              label: "Updated",
+              value: updatedAt
+                ? new Date(updatedAt).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })
+                : "—",
+            },
           ].map((item) => (
             <div key={item.label}>
               <span>{item.label}</span>
-              <strong>{mock ? item.value : "—"}</strong>
+              <strong>{item.value}</strong>
             </div>
           ))}
         </div>
       </div>
       <div className="matcha-price-row">
         <div className="market-value">
-          <strong>{mock ? format(data.close) : "—"}</strong>
-          {mock && (
-            <span className="market-change" aria-label={`${up ? "Increase" : "Decrease"} ${Math.abs(target.change).toFixed(2)} percent over the past ${data.duration}`}>
-              {up ? <ArrowUpRightIcon className="market-change-icon" aria-hidden="true" /> : <ArrowDownRightIcon className="market-change-icon" aria-hidden="true" />}
-              <RollingValue value={`${Math.abs(target.change).toFixed(2)}%`} />
+          <strong>{headerPrice !== null ? dollars(headerPrice) : "—"}</strong>
+          {data && (
+            <span
+              className="market-change"
+              aria-label={`${up ? "Increase" : "Decrease"} ${Math.abs(data.change).toFixed(2)} percent over the past ${data.duration}`}
+            >
+              {up ? (
+                <ArrowUpRightIcon className="market-change-icon" aria-hidden="true" />
+              ) : (
+                <ArrowDownRightIcon className="market-change-icon" aria-hidden="true" />
+              )}
+              <RollingValue value={`${Math.abs(data.change).toFixed(2)}%`} />
               <small>past {data.duration}</small>
             </span>
           )}
@@ -254,181 +501,13 @@ export function MarketChart({
               <ChartBarIcon />
             </button>
           </div>
-          <div className="matcha-segment" aria-label="Chart metric">
-            <button aria-pressed={!cap} onClick={() => setMetric("price")}>
-              Price
-            </button>
-            <button aria-pressed={cap} onClick={() => setMetric("cap")}>
-              MCap
-            </button>
-          </div>
         </div>
       </div>
-      {mock ? (
-        <div className="matcha-plot">
-          <svg
-            viewBox="0 0 640 300"
-            preserveAspectRatio="none"
-            role="img"
-            aria-label={`Mock ${metric === "cap" ? "market cap" : "price"} ${style} chart for ${token.name}, past ${data.duration}. Open ${format(data.open)}, latest ${format(data.close)}. Auto-scaled vertical axis. Bottom bars show mock trading volume.`}
-            onPointerMove={(event) => {
-              if (event.pointerType !== "touch") inspect(event);
-            }}
-            onPointerDown={inspect}
-            onPointerLeave={() => setSelected(null)}
-          >
-            <defs>
-              <clipPath id={clip}>
-                <rect x="20" y="0" width={600 * frame.progress} height="300" />
-              </clipPath>
-              <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
-                <stop stopColor="currentColor" stopOpacity=".18" />
-                <stop offset="1" stopColor="currentColor" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            {[0, 1, 2, 3, 4].map((index) => (
-              <line
-                key={index}
-                className="matcha-grid"
-                x1="20"
-                x2="620"
-                y1={25 + index * 52}
-                y2={25 + index * 52}
-              />
-            ))}
-            <g clipPath={`url(#${clip})`}>
-              <g
-                transform={`translate(20 279) scale(1 ${frame.progress}) translate(-20 -279)`}
-              >
-                {style === "line" ? (
-                  <>
-                    <path
-                      className="market-area"
-                      d={`${data.path} L620 275 L20 275 Z`}
-                      fill={`url(#${gradient})`}
-                    />
-                    <path
-                      className="exchange-chart-line"
-                      d={data.path}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </>
-                ) : (
-                  <g className="matcha-candles">
-                    {data.candles.map((candle, index) => (
-                      <g
-                        key={index}
-                        className={
-                          candle.close >= candle.open
-                            ? "candle-up"
-                            : "candle-down"
-                        }
-                      >
-                        <line
-                          x1={candle.x}
-                          x2={candle.x}
-                          y1={data.y(candle.high)}
-                          y2={data.y(candle.low)}
-                        />
-                        <rect
-                          x={candle.x - 7}
-                          y={Math.min(
-                            data.y(candle.open),
-                            data.y(candle.close)
-                          )}
-                          width="14"
-                          height={Math.max(
-                            2,
-                            Math.abs(data.y(candle.close) - data.y(candle.open))
-                          )}
-                        />
-                      </g>
-                    ))}
-                  </g>
-                )}
-                <g className="matcha-volume">
-                  {data.values.map((value, index) => {
-                    const volume =
-                      5 +
-                      Math.abs(
-                        Math.sin(index * 13.7 + chartPeriods.indexOf(period))
-                      ) *
-                        22 +
-                      (Math.abs(value - (data.values[index - 1] ?? value)) /
-                        (data.high - data.low)) *
-                        90;
-                    return (
-                      <rect
-                        key={index}
-                        x={16 + (index / 48) * 600}
-                        y={(279 - volume).toFixed(3)}
-                        width="8"
-                        height={volume.toFixed(3)}
-                      />
-                    );
-                  })}
-                </g>
-              </g>
-            </g>
-            {selected !== null && frame.progress === 1 && (
-              <g>
-                <line
-                  className="market-crosshair"
-                  x1={point.x}
-                  x2={point.x}
-                  y1="12"
-                  y2="279"
-                />
-                <circle
-                  cx={point.x}
-                  cy={point.y}
-                  r="4"
-                  fill="currentColor"
-                  stroke="#11100e"
-                  strokeWidth="2"
-                />
-              </g>
-            )}
-          </svg>
-          <div className="matcha-axis" aria-hidden="true">
-            {[0, 1, 2, 3, 4].map((index) => {
-              const range = data.high - data.low;
-              const value =
-                data.low -
-                range * 0.16 +
-                ((230 - (25 + index * 52)) / 210) * range * 1.32;
-              return (
-                <span
-                  key={index}
-                  style={{ top: `${((25 + index * 52) / 300) * 100}%` }}
-                >
-                  <DeleteTypeValue
-                    value={formatChartAxis(
-                      value,
-                      data.close,
-                      cap ? market.supply : undefined
-                    )}
-                  />
-                </span>
-              );
-            })}
-          </div>
-          <div className="matcha-time-labels" aria-hidden="true">
-            {data.timeLabels.map((label) => (
-              <span key={label}>{label}</span>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="market-empty">Market data is not connected.</div>
-      )}
+      {plot}
       <div className="matcha-chart-footer">
         <button className="matcha-switch" onClick={onSwitch}>
           <ArrowsRightLeftIcon />
-          <span>Switch to {pairedToken}</span>
+          <span>Switch to {findToken(pairedToken) ? displaySymbol(findToken(pairedToken)!) : pairedToken}</span>
         </button>
         <div
           className="matcha-segment matcha-periods"
@@ -438,10 +517,7 @@ export function MarketChart({
             <button
               key={item}
               aria-pressed={period === item}
-              onClick={() => {
-                setPeriod(item);
-                setSelected(null);
-              }}
+              onClick={() => setPeriod(item)}
             >
               {item}
             </button>
@@ -451,4 +527,3 @@ export function MarketChart({
     </section>
   );
 }
-

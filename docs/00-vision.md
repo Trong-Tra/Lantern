@@ -10,7 +10,7 @@ Two questions we answer:
 
 ## Solution
 
-Lantern is the trust layer for the agent economy on Monad:
+Lantern Finance is the trust layer for the agent economy on Monad:
 
 1. **Give every agent a verifiable identity** — ERC-8004 registry entry (canonical), ERC-721 Agent Passport (visual profile), ERC-5192 soulbound tokens (append-only reputation timeline).
 2. **Make reputation visible before money moves** — web explorer for browsing, MetaMask Snap for transaction-time warnings.

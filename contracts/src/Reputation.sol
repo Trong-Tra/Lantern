@@ -14,7 +14,7 @@ interface IERC5192 {
 
 /// @title Reputation
 /// @notice Non-transferable (soulbound) ERC-5192 reputation history for agents.
-///         One mint per meaningful action — successes *and* failures (docs/02).
+///         One mint per meaningful action — successes *and* failures (docs/contracts.md).
 ///         Minters: the agent's owner + executors authorized by the contract owner.
 contract Reputation is ERC721, Ownable, IERC5192 {
     enum ActionType {

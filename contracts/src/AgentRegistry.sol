@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 /// @title AgentRegistry
-/// @notice Minimal ERC-8004-style trustless agent registry (interface per docs/02).
+/// @notice Minimal ERC-8004-style trustless agent registry (interface per docs/contracts.md).
 ///         Canonical source of agent identity: agentId -> owner + agentURI.
 ///         No stored registration time — indexers use the block timestamp of
 ///         {AgentRegistered}.

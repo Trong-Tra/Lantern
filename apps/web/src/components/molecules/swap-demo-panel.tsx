@@ -16,7 +16,7 @@ import {
 import { injected } from "wagmi/connectors";
 import { monadTestnet } from "@/libs/chain";
 import { validateMonAmount } from "@/libs/explorer/vault";
-import { buildExplorerTxUrl, getMonadExplorerUrl } from "@lantern/config";
+import { buildExplorerTxUrl, getExplorerUrl } from "@lantern/config";
 import { NoticeCard } from "./explorer";
 
 const POOL_ADDRESS = (process.env.NEXT_PUBLIC_DEMO_FX_POOL_ADDRESS ||
@@ -409,7 +409,7 @@ function SwapDemoPanelInner() {
   const doneAll = completed || finished;
 
   const shortAddress = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
-  const explorerUrl = (a: Address) => `${getMonadExplorerUrl()}/address/${a}`;
+  const explorerUrl = (a: Address) => `${getExplorerUrl()}/address/${a}`;
   const addr = agentAddress!;
 
   return (

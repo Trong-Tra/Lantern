@@ -46,7 +46,7 @@ export function ProductPreview({
     setSubmittedQuery("");
     if (!trimmed) {
       setError(
-        "Tell Lattern what you want to do: swap, send a payment, or bridge."
+        "Tell Lantern Finance what you want to do: swap, send a payment, or bridge."
       );
       input.current?.focus();
       return;
@@ -83,7 +83,7 @@ export function ProductPreview({
     <div className="w-full border border-amber-200/20 bg-stone-950/95 font-(family-name:--font-geist-sans) text-stone-100 shadow-2xl">
       <div className="flex items-center justify-between gap-4 border-b border-amber-200/15 px-5 py-3 sm:px-7">
         <span className="font-(family-name:--font-jetbrains-mono) text-[10px] tracking-widest text-amber-100/70 uppercase">
-          Lattern / Discovery
+          Lantern Finance / Discovery
         </span>
         <span className="flex items-center gap-2 text-[10px] text-stone-400">
           <span
@@ -99,7 +99,7 @@ export function ProductPreview({
             htmlFor={inputId}
             className="block text-2xl font-light tracking-tight text-amber-50 sm:text-3xl"
           >
-            Ask Lattern
+            Ask Lantern Finance
           </label>
           <div className="mt-5 border border-amber-200/20 bg-black/25 focus-within:border-amber-200/60">
             <textarea

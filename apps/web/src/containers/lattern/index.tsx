@@ -106,10 +106,10 @@ export function LatternExperience() {
         <button
           className="lattern-wordmark"
           onClick={() => jump(0)}
-          aria-label="Lattern, return to the beginning"
+          aria-label="Lantern Finance, return to the beginning"
         >
           <LatternMark />
-          <span>LATTERN</span>
+          <span>LANTERN FINANCE</span>
         </button>
         <nav className="lattern-top-nav" aria-label="Main navigation">
           <Link href="/" aria-current="page">
@@ -160,7 +160,7 @@ export function LatternExperience() {
               <SceneDetails id={scene.id} />
               {scene.id === "ignition" && (
                 <span className="ignition-signature" aria-hidden="true">
-                  LATTERN
+                  LANTERN FINANCE
                 </span>
               )}
               {scene.id === "darkness" && (
@@ -175,7 +175,7 @@ export function LatternExperience() {
                     className="primary-action"
                     onClick={() => jump(0.929, true)}
                   >
-                    Launch Lattern <span aria-hidden="true">↗</span>
+                    Launch Lantern Finance <span aria-hidden="true">↗</span>
                   </button>
                   <p className="final-demo-note">
                     Explore the interactive demo · Sample agents

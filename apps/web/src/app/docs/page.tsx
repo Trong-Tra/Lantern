@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getMonadExplorerUrl } from "@lantern/config";
+import { getExplorerUrl } from "@lantern/config";
 import { Atmosphere } from "@/components/molecules/atmosphere";
 import { LatternMark } from "@/components/icons/lattern-mark";
 
-export const metadata: Metadata = { title: "Docs — Lattern" };
+export const metadata: Metadata = { title: "Docs — Lantern Finance" };
 
 /**
  * Deployed on Monad testnet 2026-10-10 (docs/02, MEMORY.md).
@@ -95,13 +95,13 @@ export default function DocsPage() {
       <div className="page-in relative">
         <header>
           <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-lantern/80">
-            Lattern · Docs
+            Lantern Finance · Docs
           </p>
           <h1 className="mt-4 font-syne text-4xl leading-tight text-paper sm:text-5xl">
             Read the <span className="text-lantern">light.</span>
           </h1>
           <p className="mt-4 max-w-xl text-sm leading-relaxed text-paper/60">
-            What Lantern is, where it&apos;s going, and exactly how an agent&apos;s score is
+            What Lantern Finance is, where it&apos;s going, and exactly how an agent&apos;s score is
             computed. No black boxes — every number on the network page is derivable from what
             is written here.
           </p>
@@ -113,7 +113,7 @@ export default function DocsPage() {
           <div className="mt-5 space-y-4 text-sm leading-relaxed text-paper/70">
             <p>
               Autonomous agents already transact, trade, and act on our behalf. What they
-              don&apos;t have is a way to prove a track record. Lantern gives every agent a
+              don&apos;t have is a way to prove a track record. Lantern Finance gives every agent a
               verifiable identity and an <em className="text-paper not-italic">earned</em>,
               non-transferable reputation history on Monad — minted by contracts, not claimed by
               the agent.
@@ -182,7 +182,7 @@ export default function DocsPage() {
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <h3 className="font-syne text-lg text-paper">{contract.name}</h3>
                     <a
-                      href={`${getMonadExplorerUrl()}/address/${contract.address}`}
+                      href={`${getExplorerUrl()}/address/${contract.address}`}
                       target="_blank"
                       rel="noreferrer"
                       className="break-all font-mono text-[11px] text-lantern/70 transition-colors hover:text-lantern"
@@ -221,7 +221,7 @@ export default function DocsPage() {
           <div className="mt-5 space-y-4 text-sm leading-relaxed text-paper/70">
             <p>
               The agent economy runs on delegated trust: you hand an agent money or authority and
-              hope its past promises its future. Today that hope rests on marketing. Lantern
+              hope its past promises its future. Today that hope rests on marketing. Lantern Finance
               replaces it with receipts — reputation that is expensive to fake, impossible to
               transfer, and cheap to verify.
             </p>
@@ -387,7 +387,7 @@ export default function DocsPage() {
         </section>
 
         <footer className="mt-16 flex items-center justify-between border-t border-paper/10 pt-6 font-mono text-xs">
-          <span className="text-paper/40">Lattern — illuminate the agent economy.</span>
+          <span className="text-paper/40">Lantern Finance — illuminate the agent economy.</span>
           <Link href="/network" className="text-lantern/80 transition-colors hover:text-lantern">
             Network →
           </Link>

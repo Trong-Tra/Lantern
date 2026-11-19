@@ -1,0 +1,28 @@
+{
+  "coins": ["BTC", "ETH", "AVAX", "BNB"],
+  "chains": [
+    {
+      "name": "ethereum",
+      "rpc": "https://ethereum-rpc.publicnode.com",
+      "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
+      "tokens": [
+        { "symbol": "WBTC", "address": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", "coin": "BTC" },
+        { "symbol": "WETH", "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", "coin": "ETH" },
+        { "symbol": "USDC", "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", "coin": "USDC" }
+      ],
+      "pairs": [["WBTC", "WETH"], ["WETH", "USDC"], ["WBTC", "USDC"]]
+    },
+    {
+      "name": "bsc",
+      "rpc": "https://bsc-rpc.publicnode.com",
+      "factory": "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73",
+      "tokens": [
+        { "symbol": "BTCB", "address": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c", "coin": "BTC" },
+        { "symbol": "WBNB", "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", "coin": "BNB" },
+        { "symbol": "USDT", "address": "0x55d398326f99059fF775485246999027B3197955", "coin": "USDC" }
+      ],
+      "pairs": [["BTCB", "USDT"], ["WBNB", "USDT"], ["BTCB", "WBNB"]]
+    }
+  ],
+  "pollSeconds": 3
+}

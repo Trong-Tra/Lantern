@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import {
   API_ENDPOINTS,
-  buildExplorerPassportUrl,
   buildExplorerTxUrl,
   getApiBaseUrl,
 } from "@lantern/config";
@@ -21,7 +20,7 @@ import { Atmosphere } from "@/components/molecules/atmosphere";
 import { fetchAgentProfile, fetchRiskReport } from "@/libs/explorer/api";
 import { formatUpdatedAt, parseAgentId, parsePage } from "@/libs/explorer/present";
 
-export const metadata: Metadata = { title: "Agent profile — Lattern" };
+export const metadata: Metadata = { title: "Agent profile — Lantern Finance" };
 
 const ATT_PAGE_SIZE = 10;
 
@@ -98,19 +97,6 @@ export default async function AgentPage({
             </p>
             <p className="mt-1.5 font-mono text-[11px] break-all text-paper/30">
               {profile.identityUri}
-              {profile.passportTokenId !== undefined ? (
-                <>
-                  {" · passport "}
-                  <a
-                    href={buildExplorerPassportUrl(profile.passportTokenId)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-lantern/70 transition-colors hover:text-lantern"
-                  >
-                    #{profile.passportTokenId} on Monadscan ↗
-                  </a>
-                </>
-              ) : null}
             </p>
             {profile.bio ? (
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-paper/60">{profile.bio}</p>

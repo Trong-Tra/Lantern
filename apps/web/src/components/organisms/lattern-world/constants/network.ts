@@ -49,7 +49,7 @@ export const HISTORY = [
 ] as const;
 export const INFRASTRUCTURE = [
   "Agent network",
-  "Lattern identity",
+  "Lantern Finance identity",
   "Reputation layer",
   "Execution layer",
   "Monad",

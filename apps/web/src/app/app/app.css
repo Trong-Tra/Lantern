@@ -1,0 +1,354 @@
+/* App — agent network showcase (map + standing board).
+   Placement (2026-11-18): assumed 390px phone / 1440px desktop, no project
+   analytics. Header clearance 88px desktop / 132px phone matches other app
+   routes. Map full content width; standing board one column on phones, three
+   columns ≥900px. Shared SiteNavigation stays fixed top-right and is not
+   reflowed. 8004scan buttons are ≥44px tall in-card anchors. */
+
+.app-page {
+  min-height: 100svh;
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgba(255, 196, 107, 0.09), transparent 65%),
+    #090807;
+  color: #efe8d8;
+}
+.app-main {
+  position: relative;
+  z-index: 1;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 120px 24px 72px;
+}
+.app-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #ffc46bcc;
+}
+.app-kicker-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffc46b;
+  box-shadow: 0 0 10px #ffc46b99;
+  animation: app-pulse 2.4s ease-in-out infinite;
+}
+@keyframes app-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.85); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-kicker-dot { animation: none; }
+}
+.app-title {
+  margin: 16px 0 0;
+  font-family: var(--font-syne), sans-serif;
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  color: #efe8d8;
+}
+.app-title em {
+  font-style: normal;
+  color: #ffc46b;
+}
+.app-lede {
+  margin: 14px 0 0;
+  max-width: 540px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #cfc5b9;
+}
+.app-disclaimer {
+  margin: 12px 0 0;
+  max-width: 540px;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #9c9386;
+}
+
+/* — Map — */
+.app-map-section {
+  margin-top: 40px;
+  border: 1px solid rgba(230, 205, 156, 0.12);
+  border-radius: 20px;
+  background: rgba(230, 205, 156, 0.03);
+  overflow: hidden;
+}
+.app-map-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 18px 22px 0;
+}
+.app-map-head h2 {
+  margin: 0;
+  font-family: var(--font-syne), sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #efe8d8;
+}
+.app-map-head p {
+  margin: 0;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 11px;
+  color: #9c9386;
+}
+.app-map-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2.1 / 1;
+  min-height: 240px;
+  max-height: 420px;
+}
+.app-map-canvas svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.app-map-land {
+  fill: #1a1612;
+  stroke: #c9a66c33;
+  stroke-width: 0.4;
+}
+.app-map-graticule {
+  fill: none;
+  stroke: #c9a66c14;
+  stroke-width: 0.35;
+}
+.app-map-pin {
+  fill: #ffc46b;
+  stroke: #090807;
+  stroke-width: 1.2;
+  cursor: default;
+}
+.app-map-pin-halo {
+  fill: none;
+  stroke: #ffc46b55;
+  stroke-width: 1.5;
+}
+.app-map-pin:focus-visible {
+  outline: 2px solid #ffc46b;
+  outline-offset: 3px;
+}
+.app-map-tip {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 14px));
+  padding: 8px 12px;
+  border: 1px solid rgba(201, 166, 108, 0.45);
+  border-radius: 8px;
+  background: rgba(9, 8, 7, 0.94);
+  color: #efe8d8;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.app-map-tip strong {
+  display: block;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 11px;
+  color: #ffc46b;
+  font-weight: 500;
+}
+.app-map-tip span {
+  color: #9c9386;
+  font-size: 10px;
+}
+.app-map-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+  color: #9c9386;
+  font-size: 13px;
+}
+
+/* — Standing board — */
+.app-board-section {
+  margin-top: 36px;
+}
+.app-board-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+.app-board-head h2 {
+  margin: 0;
+  font-family: var(--font-syne), sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #efe8d8;
+}
+.app-board-head p {
+  margin: 0;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 11px;
+  color: #9c9386;
+}
+.app-board {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 900px) {
+  .app-board { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.app-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid rgba(230, 205, 156, 0.12);
+  border-radius: 16px;
+  background: rgba(230, 205, 156, 0.03);
+  transition: border-color 0.2s ease;
+}
+.app-card:hover,
+.app-card:focus-within {
+  border-color: rgba(255, 196, 107, 0.35);
+}
+.app-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.app-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 196, 107, 0.35);
+  border-radius: 6px;
+  background: rgba(255, 196, 107, 0.08);
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 12px;
+  color: #ffc46b;
+}
+.app-rank[data-lead="true"] {
+  background: rgba(255, 196, 107, 0.18);
+  color: #ffe5af;
+}
+.app-standing {
+  text-align: right;
+}
+.app-standing strong {
+  display: block;
+  font-family: var(--font-syne), sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1;
+  color: #efe8d8;
+  font-variant-numeric: tabular-nums;
+}
+.app-standing span {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9c9386;
+}
+.app-card-id {
+  margin: 0;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 15px;
+  color: #ffc46b;
+}
+.app-card-meta {
+  margin: 0;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 11px;
+  line-height: 1.7;
+  color: #9c9386;
+  overflow-wrap: anywhere;
+}
+.app-card-meta b {
+  font-weight: 500;
+  color: #cfc5b9;
+}
+.app-scan {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: auto;
+  padding: 0 16px;
+  border: 1px solid rgba(201, 166, 108, 0.55);
+  border-radius: 10px;
+  background: rgba(201, 166, 108, 0.1);
+  color: #e8cd9e;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.app-scan:hover,
+.app-scan:focus-visible {
+  background: rgba(255, 196, 107, 0.18);
+  border-color: rgba(255, 196, 107, 0.7);
+  color: #ffe5af;
+}
+.app-scan:focus-visible {
+  outline: 2px solid #ffc46b;
+  outline-offset: 3px;
+}
+.app-scan svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* — States — */
+.app-state {
+  margin-top: 28px;
+  padding: 28px 22px;
+  border: 1px dashed rgba(230, 205, 156, 0.22);
+  border-radius: 16px;
+  text-align: center;
+  color: #9c9386;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.app-state strong {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-syne), sans-serif;
+  font-size: 16px;
+  color: #cfc5b9;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .app-main { padding: 132px 16px 64px; }
+  .app-map-head,
+  .app-board-head { padding-left: 0; padding-right: 0; }
+  .app-map-head { padding: 16px 16px 0; }
+  .app-map-canvas { aspect-ratio: 1.45 / 1; min-height: 200px; }
+  .app-card { padding: 16px; }
+}

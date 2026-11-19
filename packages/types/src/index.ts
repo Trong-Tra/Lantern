@@ -22,10 +22,7 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
   totalPages: number;
 }
 
-/** Risk classification for an agent (derived off-chain; formula TBD — docs/03). */
-export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "UNKNOWN";
-
-/** On-chain action categories minted as ERC-5192 attestations (docs/02). */
+/** On-chain action categories minted as ERC-5192 attestations (docs/contracts.md). Mirrors Reputation.sol. */
 export type AttestationActionType = "STAKE" | "UNSTAKE" | "HARVEST" | "SWAP";
 
 export type AttestationResult = "SUCCESS" | "FAIL";
@@ -45,20 +42,15 @@ export interface Attestation {
   timestamp: number;
 }
 
+/**
+ * A registered solver agent: ERC-8004 identity + the raw counts of its
+ * soulbound attestation record. No derived score/risk — in the arena,
+ * standing is earned by winning route competitions, not claimed by a formula.
+ */
 export interface AgentSummary {
   agentId: number;
   name: string;
-  /** Absent until the passport is minted (1:1 with agentId, docs/02). */
-  passportTokenId?: number;
   owner: string;
-  /**
-   * Lumen score v1 (owner-approved 2026-10-13, docs/03): 100 × A × V where
-   * A = Σ γ^aᵢ·xᵢ / Σ γ^aᵢ (recency-weighted accuracy, 30-day half-life)
-   * and V = min(n, 50)/50 (track record — Sybil can't borrow credibility).
-   * Absent when the agent has zero executions; UI falls back to N/A.
-   */
-  score?: number;
-  risk: RiskLevel;
   executions: number;
   failures: number;
   /** Unix seconds. */
@@ -67,34 +59,5 @@ export interface AgentSummary {
 
 export interface AgentProfile extends AgentSummary {
   identityUri: string;
-  passportUri?: string;
   attestations: Attestation[];
-  /** Demo persona blurb used by the chat endpoint (mock-only until live data). */
-  bio?: string;
-}
-
-export interface RiskReport {
-  agentId: number;
-  /** Score formula TBD — omitted until scoring lands. */
-  score?: number;
-  risk: RiskLevel;
-  reasons: string[];
-}
-
-/** One turn of agent chat (assistant = the agent's LLM persona). */
-export interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-}
-
-/** Request body for POST /api/agents/:id/chat. */
-export interface ChatRequest {
-  message: string;
-  /** Prior turns, oldest first. Server caps what it keeps. */
-  history?: ChatMessage[];
-}
-
-/** Successful chat response data. */
-export interface ChatReply {
-  reply: string;
 }

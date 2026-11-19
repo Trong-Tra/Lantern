@@ -1,105 +1,153 @@
-import { mockAssets } from "./mock-data";
+import type { Candle } from "../../libs/market/api";
 
-export const chartPeriods = ["1H", "1D", "1W", "1M", "1Y", "All"];
-const changes = [0.84, -4.82, -3.26, 12.4, 28.6, 42.1];
-const durations = [
-  "1 hour",
-  "24 hours",
-  "7 days",
-  "30 days",
-  "1 year",
-  "2 years",
-];
+// One timeframe = one native Hyperliquid candle size. Every chart keeps
+// `bars` closed candles plus the candle still forming (limit = bars + 1), so
+// the rightmost bar is the live one: 5m moves as a 5-minute candle, 1H as an
+// hour candle, and so on. No synthetic candles, no rebucketing.
+export const chartPeriods = ["5m", "1H", "1D", "1W", "1M"];
+const TIMEFRAMES: Record<string, { interval: string; bars: number; refetchMs: number }> = {
+  "5m": { interval: "5m", bars: 72, refetchMs: 1000 },
+  "1H": { interval: "1h", bars: 72, refetchMs: 2000 },
+  "1D": { interval: "1d", bars: 72, refetchMs: 5000 },
+  "1W": { interval: "1w", bars: 24, refetchMs: 10000 },
+  "1M": { interval: "1M", bars: 12, refetchMs: 20000 },
+};
+const DEFAULT_PERIOD = TIMEFRAMES["1H"];
 
-// Fictional market metadata for the development-only chart.
-export const mockMarkets: Record<
-  string,
-  { supply: number; volume: number; holders: string; age: string }
-> = {
-  MON: {
-    supply: 10_000_000_000,
-    volume: 18_600_000,
-    holders: "124K",
-    age: "1y",
-  },
-  USDC: {
-    supply: 50_000_000_000,
-    volume: 1_280_000_000,
-    holders: "3.2M",
-    age: "8y",
-  },
-  ETH: {
-    supply: 120_000_000,
-    volume: 18_650_000_000,
-    holders: "3.3M",
-    age: "11y",
-  },
+/** Feed interval for a timeframe — the candle size the button names. */
+export function chartIntervalFor(period: string): string {
+  return (TIMEFRAMES[period] ?? DEFAULT_PERIOD).interval;
+}
+
+/** Closed candles plus the forming one — the bar that moves between polls. */
+export function chartLimitFor(period: string): number {
+  return (TIMEFRAMES[period] ?? DEFAULT_PERIOD).bars + 1;
+}
+
+/** Poll cadence for a timeframe — faster views poll faster so the last candle streams. */
+export function chartRefetchFor(period: string): number {
+  return (TIMEFRAMES[period] ?? DEFAULT_PERIOD).refetchMs;
+}
+
+/**
+ * Glide one candle series into another on a live tick: right-aligned,
+ * element-wise lerp between candles with the same open time, so the moving
+ * last candle eases to its new values. Brand-new or rolled candles pop in at
+ * their real values — no fabricated in-between shapes.
+ */
+export function interpolateCandles(from: Candle[], to: Candle[], t: number): Candle[] {
+  if (!from.length || t >= 1) return to;
+  const offset = to.length - from.length;
+  return to.map((target, index) => {
+    const source = index - offset >= 0 ? from[index - offset] : undefined;
+    if (!source || source.t !== target.t) return target;
+    const mix = (a: number, b: number) => a + (b - a) * t;
+    return {
+      t: target.t,
+      o: mix(source.o, target.o),
+      h: mix(source.h, target.h),
+      l: mix(source.l, target.l),
+      c: mix(source.c, target.c),
+      v: mix(source.v, target.v),
+    };
+  });
+}
+
+export type ChartSeries = {
+  timeLabels: string[];
+  candles: { x: number; open: number; close: number; high: number; low: number }[];
+  y: (value: number) => number;
+  values: number[];
+  /** Real traded volume per point (base units of the pair's quote side). */
+  volumes: number[];
+  points: { x: number; y: number; value: number }[];
+  open: number;
+  close: number;
+  low: number;
+  high: number;
+  change: number;
+  baseline: number;
+  duration: string;
+  path: string;
 };
 
-export function getChartData(symbol: string, period: string) {
-  const asset = mockAssets[symbol];
-  const periodIndex = chartPeriods.indexOf(period);
-  if (!asset || periodIndex < 0)
-    throw new Error("Unknown mock chart asset or period");
-  const change =
-    symbol === "USDC"
-      ? changes[periodIndex] * 0.004
-      : symbol === "ETH"
-        ? changes[periodIndex] * -0.7
-        : changes[periodIndex];
-  const close = asset.price;
-  const open = close / (1 + change / 100);
-  const amplitude =
-    Math.abs(close - open) * 0.36 +
-    close * (symbol === "USDC" ? 0.0001 : 0.003);
-  const values = Array.from({ length: 49 }, (_, index) => {
-    const progress = index / 48;
-    const wave =
-      Math.sin(progress * Math.PI * 9 + periodIndex) *
-      Math.sin(progress * Math.PI) *
-      amplitude;
-    return open + (close - open) * progress + wave;
-  });
-  // Keep fixture endpoints exact, so the chart and displayed change agree.
-  values[0] = open;
-  values[48] = close;
-  const low = Math.min(...values);
-  const high = Math.max(...values);
-  const padding = (high - low) * 0.16;
+function formatAgo(tMs: number, nowMs: number): string {
+  const delta = Math.max(0, nowMs - tMs);
+  if (delta < 60_000) return "now";
+  if (delta < 3_600_000) return `${Math.round(delta / 60_000)}m ago`;
+  if (delta < 86_400_000) return `${Math.round(delta / 3_600_000)}h ago`;
+  return `${Math.round(delta / 86_400_000)}d ago`;
+}
+
+function formatDuration(spanMs: number): string {
+  const minutes = Math.max(1, Math.round(spanMs / 60_000));
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"}`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 48) return `${hours} hour${hours === 1 ? "" : "s"}`;
+  const days = Math.max(1, Math.round(hours / 24));
+  return `${days} day${days === 1 ? "" : "s"}`;
+}
+
+/**
+ * Build chart geometry from live feed candles (newest last, hour-aligned
+ * open times in unix ms). Returns null when there is nothing to plot —
+ * the chart renders its empty state instead of a fabricated series.
+ */
+export function buildChartSeries(
+  raw: Candle[],
+  period: string,
+  nowMs: number = Date.now()
+): ChartSeries | null {
+  if (!Array.isArray(raw)) return null;
+  const candles = raw
+    .filter((c) => Number.isFinite(c?.t) && Number.isFinite(c?.c) && c.c > 0)
+    .slice()
+    .sort((a, b) => a.t - b.t);
+  if (candles.length < 2) return null;
+
+  const values = candles.map((c) => c.c);
+  const first = candles[0];
+  const last = candles[candles.length - 1];
+  const open = first.o > 0 ? first.o : values[0];
+  const close = values[values.length - 1];
+  const low = Math.min(...candles.map((c) => c.l));
+  const high = Math.max(...candles.map((c) => c.h));
+  const change = open > 0 ? ((close - open) / open) * 100 : 0;
+
+  const padding = (high - low) * 0.16 || Math.abs(close) * 0.004 || 1;
   const y = (value: number) =>
     Number(
       (
-        230 -
-        ((value - low + padding) / (high - low + padding * 2)) * 210
+        230 - ((value - low + padding) / (high - low + padding * 2)) * 210
       ).toFixed(3)
     );
-  const points = values.map((value, index) => ({
-    x: 20 + (index / 48) * 600,
-    y: y(value),
-    value,
+
+  const n = candles.length;
+  // Band centers: each candle owns a 600/n slot, so the first and last bodies
+  // sit fully inside the plot instead of being sliced in half by its edges.
+  const xFor = (index: number) => 20 + ((index + 0.5) / n) * 600;
+  const points = candles.map((c, index) => ({
+    x: xFor(index),
+    y: y(c.c),
+    value: c.c,
   }));
-  const candles = Array.from({ length: 16 }, (_, index) => {
-    const group = values.slice(index * 3, index * 3 + 4);
-    return {
-      x: 20 + ((index + 0.5) / 16) * 600,
-      open: group[0],
-      close: group[group.length - 1],
-      high: Math.max(...group),
-      low: Math.min(...group),
-    };
-  });
+
+  const labelIndex = [0, Math.floor((n - 1) * 0.25), Math.floor((n - 1) * 0.5), Math.floor((n - 1) * 0.75), n - 1];
+  const timeLabels = labelIndex.map((index) => formatAgo(candles[index].t, nowMs));
+
   return {
-    timeLabels: [
-      ["1h ago", "45m ago", "30m ago", "15m ago", "Now"],
-      ["24h ago", "18h ago", "12h ago", "6h ago", "Now"],
-      ["7d ago", "5d ago", "3.5d ago", "2d ago", "Now"],
-      ["30d ago", "23d ago", "15d ago", "7d ago", "Now"],
-      ["1y ago", "9mo ago", "6mo ago", "3mo ago", "Now"],
-      ["2y ago", "18mo ago", "1y ago", "6mo ago", "Now"],
-    ][periodIndex],
-    candles,
+    timeLabels,
+    // One display candle per feed candle, sharing the line's x positions.
+    candles: candles.map((c, index) => ({
+      x: xFor(index),
+      open: c.o,
+      close: c.c,
+      high: c.h,
+      low: c.l,
+    })),
     y,
     values,
+    volumes: candles.map((c) => (Number.isFinite(c.v) && c.v > 0 ? c.v : 0)),
     points,
     open,
     close,
@@ -107,12 +155,9 @@ export function getChartData(symbol: string, period: string) {
     high,
     change,
     baseline: y(open),
-    duration: durations[periodIndex],
+    duration: formatDuration(last.t - first.t),
     path: points
-      .map(
-        (point, index) =>
-          `${index ? "L" : "M"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`
-      )
+      .map((point, index) => `${index ? "L" : "M"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
       .join(" "),
   };
 }

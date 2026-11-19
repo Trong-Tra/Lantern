@@ -8,7 +8,7 @@ export function ReferenceDetails({ index }: { index: number }) {
         }
       </p>
       <span className="ignition-signature" aria-hidden="true">
-        {"LATTERN"}
+        {"LANTERN FINANCE"}
       </span>
     </>,
     <></>,
@@ -107,7 +107,7 @@ export function ReferenceDetails({ index }: { index: number }) {
         </span>
         <span>
           <i>{"02"}</i>
-          {"Lattern resolves"}
+          {"Lantern Finance resolves"}
           <b>{"↗"}</b>
         </span>
         <span>
@@ -141,7 +141,7 @@ export function ReferenceDetails({ index }: { index: number }) {
         </span>
         <span>
           <i>{"02"}</i>
-          {"Lattern identity"}
+          {"Lantern Finance identity"}
         </span>
         <span>
           <i>{"03"}</i>

@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=./node_modules/envio/evm.schema.json
 name: lantern-indexer
-description: Lantern — ERC-8004 agent identity, ERC-721 passports, ERC-5192 soulbound reputation on Monad testnet
+description: Lantern — ERC-8004 solver identity + ERC-5192 soulbound track record + market (pools, settled trades) on Avalanche Fuji
 schema: ./schema.graphql
 field_selection:
   transaction_fields:
@@ -11,21 +11,40 @@ contracts:
     events:
       - event: AgentRegistered
       - event: AgentUpdated
-  - name: AgentPassport
-    abi_file_path: ./abis/AgentPassport.json
-    events:
-      - event: Transfer
   - name: Reputation
     abi_file_path: ./abis/Reputation.json
     events:
       - event: AttestationMinted
+  # DemoPool: Sync alone is the reserve source of truth — it fires on seed()
+  # and after every swap(), so the Swap event adds nothing to index yet.
+  - name: DemoPool
+    abi_file_path: ./abis/DemoPool.json
+    events:
+      - event: Sync
+  - name: LanternMarket
+    abi_file_path: ./abis/LanternMarket.json
+    events:
+      - event: TradeSettled
 chains:
-  - id: 10143 # Monad testnet — native HyperSync
+  - id: 43113 # Avalanche Fuji — native HyperSync
     start_block: 0 # auto-fast-forwards to the first relevant block
     contracts:
+      # Deployed to Fuji 2026-11-15 (broadcast/…/43113/run-latest.json).
       - name: AgentRegistry
         address: "0x62cd4e0C5B0D4587861a21710ed15ba1823a6341"
-      - name: AgentPassport
-        address: "0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8"
       - name: Reputation
-        address: "0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8"
+        address: "0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8"
+      # One DemoPool entry, all 9 seeded pools (script/seed/market.json).
+      - name: DemoPool
+        address:
+          - "0xFB9D4e5d3F4f8b089739B9D2f03e21d37f87e536"
+          - "0x49BF5bc89639b46CFe5B2eFA716BB187f253a47E"
+          - "0x27E4967EB9e09efaD6809914874159C771b51cAc"
+          - "0x2300Ae9042ADaF68C4C8B80FAB6e19A9249d5ca0"
+          - "0xC82B5A7Fbc0535346C994Dd8D6d47983690B7360"
+          - "0x4B581d01AFF9D688384F507208e56f70f71B1838"
+          - "0x8937E9037A7Ad5d323236C7E11AE9dB0d065D982"
+          - "0x3997d6a7B3b31EbDF39433a20a4D4eFc86c68Ca5"
+          - "0x82DbcDa614D0b3475c64e65088cA7b73228b09e0"
+      - name: LanternMarket
+        address: "0xE77719De4D0921110DDcFb3497415Efd6F29f70B"

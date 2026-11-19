@@ -90,7 +90,7 @@ export function SceneDetails({ id }: Readonly<{ id: string }>) {
       >
         {[
           "User intent",
-          "Lattern resolves",
+          "Lantern Finance resolves",
           "Agent accepts",
           "Wallet authorization",
           "Monad settlement",
@@ -110,7 +110,7 @@ export function SceneDetails({ id }: Readonly<{ id: string }>) {
       <div className="infrastructure-stack">
         {[
           "Agent network",
-          "Lattern identity",
+          "Lantern Finance identity",
           "Reputation layer",
           "Execution layer",
           "Monad",

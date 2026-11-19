@@ -28,7 +28,7 @@ interface IERC721Receiver {
 
 /// @title ERC721
 /// @notice Minimal in-house ERC-721 implementation (no external dependencies).
-///         Shared base for AgentPassport and Reputation (see docs/02).
+///         Shared base for the soulbound Reputation token (see docs/contracts.md).
 abstract contract ERC721 is IERC721 {
     string public name;
     string public symbol;

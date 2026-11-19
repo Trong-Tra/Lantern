@@ -1,5 +1,5 @@
 ---
-name: Lantern Dark Protocol
+name: Lantern Finance Dark Protocol
 colors:
   surface: "#16111f"
   surface-dim: "#16111f"
@@ -206,7 +206,7 @@ Elevation does not rely on heavy drop shadows or skeuomorphic bevels. Instead, d
 - **Ground Level (`#050308`):** Deep canvas background.
 - **Layer 1 - Quorum Plates:** Background `#0B0714` at 85% opacity, combined with `backdrop-filter: blur(12px)`. Outlined with a razor-thin 1px border of `#2E1A47` at 60% opacity.
 - **Layer 2 - Floating Nodes & Terminals:** Background `#120924` at 92% opacity. Perimeter stroke transitions from `#836EF9` (20% opacity) at the top edge to `#2E1A47` (40% opacity) at the bottom edge, simulating top-down zenith lighting.
-- **Active Illumination (The Lantern Glow):** When a node or agent becomes active, it emits an incandescent ambient glow:
+- **Active Illumination (The Lantern Finance Glow):** When a node or agent becomes active, it emits an incandescent ambient glow:
   - `box-shadow: 0 0 32px -4px rgba(252, 231, 200, 0.07), 0 0 1px 1px rgba(252, 231, 200, 0.25)`
 - **Atmospheric Underglow:** Key interface sectors utilize an anchored radial gradient: `radial-gradient(ellipse 60% 40% at 50% -10%, rgba(131, 110, 249, 0.08), transparent)`.
 

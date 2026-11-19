@@ -1,7 +1,6 @@
-# Lantern indexer schema (docs/05).
+# Lantern indexer schema (docs/indexer.md).
 # Entity ids are the on-chain numeric ids as decimal strings:
 #   Agent.id        = agentId        (AgentRegistry)
-#   Passport.id     = passport tokenId (AgentPassport ERC-721)
 #   Attestation.id  = tokenId        (Reputation ERC-5192)
 
 enum ActionType {
@@ -22,19 +21,8 @@ type Agent {
   uri: String!
   registeredAt: BigInt!
   updatedAt: BigInt
-  passports: [Passport!]! @derivedFrom(field: "agent") # 0..1 in practice — 1:1 enforced by contract
   attestations: [Attestation!]! @derivedFrom(field: "agent")
-}
-
-type Passport {
-  id: ID!
-  agent: Agent!
-  tokenId: BigInt!
-  owner: String! # current holder — passports are transferable
-  uri: String!
-  mintedAt: BigInt!
-  blockNumber: BigInt!
-  txHash: String!
+  trades: [Trade!]! @derivedFrom(field: "agent")
 }
 
 type Attestation {
@@ -47,6 +35,34 @@ type Attestation {
   protocol: String
   uri: String
   mintedAt: BigInt!
+  blockNumber: BigInt!
+  txHash: String!
+}
+
+# --- Lantern Market (docs/market.md) ---
+#   Pool.id  = pool contract address
+#   Trade.id = settlement tx hash (one executeSwap per tx in v1)
+
+type Pool {
+  id: ID!
+  token0: String!
+  token1: String!
+  reserve0: BigInt!
+  reserve1: BigInt!
+  updatedAtBlock: BigInt!
+}
+
+type Trade {
+  id: ID!
+  agent: Agent!
+  user: String!
+  tokenIn: String!
+  tokenOut: String!
+  amountIn: BigInt!
+  amountOut: BigInt!
+  fee: BigInt!
+  nonce: BigInt!
+  settledAt: BigInt!
   blockNumber: BigInt!
   txHash: String!
 }

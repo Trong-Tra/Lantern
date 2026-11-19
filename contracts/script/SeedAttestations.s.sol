@@ -5,12 +5,12 @@ import {Script, console} from "forge-std/Script.sol";
 import {Reputation} from "../src/Reputation.sol";
 
 /// @title SeedAttestations
-/// @notice Mints the fictional demo attestation history (script/seed/attestations.json)
-///         for agents 1-5 so the Explorer/Snap demo has realistic reputation data.
-///         Same quarantine rules as agents.json (docs/06): everything demo://.
+/// @notice Mints the fictional attestation history (script/seed/attestations.json)
+///         for agents 1-5 so the arena has realistic track-record data.
+///         Everything in the seed JSON uses the non-resolvable demo:// scheme.
 ///
 /// Usage (from contracts/, after the deployer is a minter — agent owner or executor):
-///   forge script script/SeedAttestations.s.sol:SeedAttestations --rpc-url $MONAD_TESTNET_RPC_URL --broadcast
+///   forge script script/SeedAttestations.s.sol:SeedAttestations --rpc-url $AVAX_FUJI_RPC_URL --broadcast
 ///
 /// The mint loop lives in {mintFromJson} so tests can exercise the exact same
 /// code path in-memory without broadcasting anything.
@@ -46,7 +46,7 @@ contract SeedAttestations is Script {
             Reputation(vm.envOr("REPUTATION_ADDRESS", address(0xb5A7CEB3195714e81082F8A8B0F8cd7470bB72f8)));
         string memory json = vm.readFile(SEED_PATH);
 
-        vm.startBroadcast(vm.envUint("MONAD_PRIVATE_KEY"));
+        vm.startBroadcast(vm.envUint("DEPLOYER_PRIVATE_KEY"));
         uint256[] memory tokenIds = mintFromJson(reputation, json);
         vm.stopBroadcast();
 

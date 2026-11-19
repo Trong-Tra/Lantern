@@ -1,37 +1,38 @@
-# @lantern/indexer — Envio HyperIndex on Monad testnet
+# @lantern/indexer — Envio HyperIndex on Avalanche Fuji
 
-Indexes the three Lantern identity contracts (docs/02) into a GraphQL API.
+Indexes the Lantern Finance identity + market contracts (docs/contracts.md) into a GraphQL API.
 
 ## What it indexes
 
 | Contract | Events | Entities written |
 | --- | --- | --- |
 | `AgentRegistry` | `AgentRegistered`, `AgentUpdated` | `Agent` |
-| `AgentPassport` (ERC-721) | `Transfer` | `Passport` (mint + holder updates) |
 | `Reputation` (ERC-5192) | `AttestationMinted` | `Attestation` |
+| `DemoPool` | `Sync` | `Pool` |
+| `LanternMarket` | `TradeSettled` | `Trade` |
 
-Entity ids = on-chain numeric ids as decimal strings (`Agent.id` = agentId,
-`Passport.id`/`Attestation.id` = tokenId).
+Entity ids: `Agent.id` = agentId, `Attestation.id` = tokenId (decimal strings),
+`Pool.id` = pool address, `Trade.id` = settlement tx hash.
 
 ## Design notes
 
-- **Chain**: Monad testnet, chain id 10143, native HyperSync (no RPC sync config).
+- **Chain**: Avalanche Fuji, chain id 43113, native HyperSync (no RPC sync config). Contract addresses in `config.yaml` are zero-address placeholders until the Fuji redeploy (Phase 0).
 - **Fields the events don't carry are resolved on-chain** via the Effect API
-  (`src/effects.ts`, cached + rate-limited): `Transfer` has no agentId/uri →
-  `agentOf`/`tokenURI`; `AttestationMinted` has no amount/protocol/uri →
-  `getAttestation`. This avoids a contract redeploy — if the contracts ever
-  gain richer events, drop the effects and read from `event.params`.
+  (`src/effects.ts`, cached + rate-limited): `AttestationMinted` has no
+  amount/protocol/uri → `getAttestation`; `DemoPool.Sync` has no token pair →
+  `token0()`/`token1()` once per pool (immutable, cached forever).
+- **`Sync` is the reserve source of truth** — it fires on `seed()` and after
+  every `swap()`, so `DemoPool.Swap` is not indexed (revisit for volume analytics).
 - **Enums** (`ActionType`, `ActionResult`) are stored as schema enums; uint8
   indices are mapped in `src/mappings.ts`.
-- **Tx entity** from the original docs/05 proposal is intentionally omitted
-  (KISS); revisit when the Snap needs raw transaction context.
 
 ## Env
 
 See `.env.example`. `ENVIO_API_TOKEN` (https://envio.dev/app/api-tokens) is
 required for HyperSync in V3 — both locally and on Envio Cloud (dashboard →
 Environment Variables, `ENVIO_` prefix only). RPC for effects falls back:
-`ENVIO_MONAD_RPC_URL` → `MONAD_TESTNET_RPC_URL` (root `.env`) → public HyperRPC.
+`ENVIO_AVAX_FUJI_RPC_URL` → `AVAX_FUJI_RPC_URL` (root `.env`) → public HyperRPC
+(`fuji.hypersync.xyz`).
 
 ## Commands
 
@@ -51,7 +52,7 @@ Hasura console opens automatically at `http://localhost:8080`.
 Git-based, no CLI login: install the **Envio Deployments** GitHub App →
 dashboard → Add Indexer → root directory `indexer/`, config `config.yaml`,
 branch `main` → push. Set `ENVIO_API_TOKEN` (and optionally
-`ENVIO_MONAD_RPC_URL`) in the dashboard. The public endpoint becomes
+`ENVIO_AVAX_FUJI_RPC_URL`) in the dashboard. The public endpoint becomes
 `https://indexer.dev.hyperindex.xyz/<deployment-id>/v1/graphql` → paste into
 root `.env` as `ENVIO_GRAPHQL_URL`.
 

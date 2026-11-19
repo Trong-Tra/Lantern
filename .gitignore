@@ -45,3 +45,5 @@ Thumbs.db
 
 # Local files
 *.local
+# Go (services/market)
+/services/market/market

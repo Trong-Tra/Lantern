@@ -1,5 +1,5 @@
-export const DEFAULT_API_PORT = 4000;
-export const DEFAULT_API_URL = "http://localhost:4000";
+export const DEFAULT_API_PORT = 8082;
+export const DEFAULT_API_URL = "http://localhost:8082";
 
 /**
  * Resolves the active API base URL.
@@ -7,66 +7,61 @@ export const DEFAULT_API_URL = "http://localhost:4000";
  * falling back to DEFAULT_API_URL.
  */
 export function getApiBaseUrl(): string {
-  const envUrl =
-    typeof globalThis !== "undefined"
-      ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.NEXT_PUBLIC_API_URL
-      : undefined;
-  return envUrl || DEFAULT_API_URL;
+  // Static access — Next/Turbopack inlines NEXT_PUBLIC_* at build time only
+  // for direct `process.env.X` member expressions (dynamic reads never inline).
+  return process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
 }
 
 export const API_ENDPOINTS = {
   HEALTH: "/",
   HELLO: "/api/hello",
   AGENTS: "/api/agents",
-  /** Registered BEFORE :id so "lookup" is not swallowed as an agent id. */
-  AGENT_LOOKUP: "/api/agents/lookup/:address",
   AGENT_BY_ID: "/api/agents/:id",
   AGENT_ATTESTATIONS: "/api/agents/:id/attestations",
-  AGENT_RISK: "/api/agents/:id/risk",
-  AGENT_CHAT: "/api/agents/:id/chat",
 } as const;
 
-/** Monad testnet explorer (official: monad.xyz/developers). Env-overridable. */
-export const DEFAULT_MONAD_EXPLORER_URL = "https://testnet.monadscan.com";
-
-export function getMonadExplorerUrl(): string {
-  const envUrl =
-    typeof globalThis !== "undefined"
-      ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
-          ?.NEXT_PUBLIC_MONAD_EXPLORER_URL
-      : undefined;
-  return envUrl || DEFAULT_MONAD_EXPLORER_URL;
-}
-
-/** Link to a transaction on the Monad testnet explorer. */
-export function buildExplorerTxUrl(txHash: string): string {
-  return `${getMonadExplorerUrl()}/tx/${txHash}`;
-}
+/** Display-feed paths on the market service (`GET`, CORS-open, no-store). */
+export const MARKET_ENDPOINTS = {
+  PRICES: "/market/prices",
+  GRAPH: "/market/graph",
+  CANDLES: "/market/candles",
+} as const;
 
 /**
- * Deployed AgentPassport (ERC-721) on Monad testnet (docs/02, MEMORY.md).
- * Env-overridable for future redeploys/mainnet.
+ * Base URL for the market display feed (`/market/*`).
+ * Prefers `NEXT_PUBLIC_MARKET_API_URL`, falls back to the main API base URL
+ * (the market service serves both on one origin).
  */
-export const DEFAULT_AGENT_PASSPORT_ADDRESS =
-  "0x5Df5E5FD5396e1387A982a7A7450D0c7CEaB40B8";
-
-export function getAgentPassportAddress(): string {
-  const envAddress =
-    typeof globalThis !== "undefined"
-      ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
-          ?.NEXT_PUBLIC_AGENT_PASSPORT_ADDRESS
-      : undefined;
-  return envAddress || DEFAULT_AGENT_PASSPORT_ADDRESS;
+export function getMarketApiBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_MARKET_API_URL || getApiBaseUrl();
 }
 
-/** Link to an Agent Passport token (ERC-721) on the Monad testnet explorer. */
-export function buildExplorerPassportUrl(tokenId: number): string {
-  return `${getMonadExplorerUrl()}/nft/${getAgentPassportAddress()}/${tokenId}`;
+/** Default origin for the quote-protocol WebSocket (raw JSON frames). */
+export const DEFAULT_QUOTE_WS_URL = "ws://localhost:8081/quotes";
+
+/**
+ * Resolves the quote-protocol WS URL.
+ * Prefers `NEXT_PUBLIC_QUOTE_WS_URL`, falling back to DEFAULT_QUOTE_WS_URL.
+ */
+export function getQuoteWsUrl(): string {
+  return process.env.NEXT_PUBLIC_QUOTE_WS_URL || DEFAULT_QUOTE_WS_URL;
+}
+
+/** Avalanche Fuji testnet explorer (Snowtrace). Env-overridable. */
+export const DEFAULT_EXPLORER_URL = "https://testnet.snowtrace.io";
+
+export function getExplorerUrl(): string {
+  return process.env.NEXT_PUBLIC_EXPLORER_URL || DEFAULT_EXPLORER_URL;
+}
+
+/** Link to a transaction on the Fuji testnet explorer. */
+export function buildExplorerTxUrl(txHash: string): string {
+  return `${getExplorerUrl()}/tx/${txHash}`;
 }
 
 export const APP_CONFIG = {
-  name: "Lantern",
+  name: "Lantern Finance",
   tagline: "Illuminate the agent economy",
   description:
-    "Trust shouldn't be a leap in the dark. Discover agent identity, reputation and history. Find a trusted path with Lattern.",
+    "Trust shouldn't be a leap in the dark. Discover agent identity, reputation and history. Find a trusted path with Lantern Finance.",
 } as const;
