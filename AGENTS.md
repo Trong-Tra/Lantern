@@ -15,6 +15,7 @@
 | Architecture / repo layout | `docs/architecture.md` |
 | **Graph + Market build plan (Go backend + contracts)** | `docs/market.md` |
 | Contracts | `docs/contracts.md` |
+| Deployment (free tier: Vercel + Render + Envio Cloud) | `docs/deploy.md` |
 | API / backend | `docs/api.md` (removed → Go API plan) |
 | Envio indexer | `docs/indexer.md` |
 

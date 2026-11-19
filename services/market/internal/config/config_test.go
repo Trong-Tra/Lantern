@@ -274,3 +274,49 @@ func TestLoad_DualRegistrationFileDefaultAndOverride(t *testing.T) {
 		t.Errorf("DualRegistrationFile = %q, want env value", cfg.DualRegistrationFile)
 	}
 }
+
+func TestLoad_APIAddrPORTFallback(t *testing.T) {
+	path := writeEnv(t, "AVAX_FUJI_RPC_URL=https://example.com/rpc\n")
+	t.Setenv("API_ADDR", "")
+
+	// PaaS hosts inject PORT (bare number) → API_ADDR follows it.
+	t.Setenv("PORT", "10000")
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.APIAddr != ":10000" {
+		t.Errorf("APIAddr = %q with PORT=10000, want %q", cfg.APIAddr, ":10000")
+	}
+
+	// An explicit API_ADDR wins over PORT, colon form accepted as-is.
+	t.Setenv("API_ADDR", ":6060")
+	cfg, err = Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.APIAddr != ":6060" {
+		t.Errorf("APIAddr = %q, want explicit :6060", cfg.APIAddr)
+	}
+
+	// PORT already colon-prefixed is not double-prefixed.
+	t.Setenv("API_ADDR", "")
+	t.Setenv("PORT", ":8083")
+	cfg, err = Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.APIAddr != ":8083" {
+		t.Errorf("APIAddr = %q, want %q", cfg.APIAddr, ":8083")
+	}
+
+	// Neither set → default.
+	t.Setenv("PORT", "")
+	cfg, err = Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.APIAddr != defaultAPIAddr {
+		t.Errorf("APIAddr = %q, want default %q", cfg.APIAddr, defaultAPIAddr)
+	}
+}

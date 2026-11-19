@@ -6,8 +6,8 @@
 
 | Concern | Where |
 | --- | --- |
-| Quote protocol WS, solver, settlement | `services/market/` — **built** (Phases 1–2, e2e passing on Fuji) |
-| Web-facing GraphQL (identity reads + market queries) | `services/market/internal/api` (gqlgen) — **built 2026-11-16** (Phase 3): `POST/GET /graphql` + `/healthz` on `:8082` (`API_ADDR`); schema = `internal/api/schema.graphqls` |
+| Quote protocol WS, solver, settlement | `services/market/` — **built** (Phases 1–2, e2e passing on Fuji); served on `:8081` (`MARKET_WS_ADDR`, local default) **and** as `WS /quotes` on the web API port (`API_ADDR`) so single-port hosts (Render/Railway) need only one public port — 503 there until the quote hub is up or when it's disabled |
+| Web-facing GraphQL (identity reads + market queries) | `services/market/internal/api` (gqlgen) — **built 2026-11-16** (Phase 3): `POST/GET /graphql` + `/healthz` on `:8082` (`API_ADDR`; falls back to PaaS-injected `PORT` when unset); schema = `internal/api/schema.graphqls` |
 | Graph snapshot feed | `GET /graph/snapshot` on `:8082` — **built 2026-11-16**, x402-paywalled (`internal/paywall` + `internal/graphfeed`; open while `X402_*` terms unset) |
 | Raw data | Envio indexer GraphQL (`indexer/`) |
 

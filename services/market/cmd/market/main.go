@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"sync"
 	"syscall"
 	"time"
 
@@ -38,6 +39,33 @@ const (
 	consistencyInterval = 30 * time.Second
 )
 
+// quoteGate serves the quote-protocol WebSocket on the web API port once the
+// chain hub is up, and answers 503 until then (or forever when the quote
+// protocol is disabled). Single-port hosts (Render, Railway) route only
+// API_ADDR, so /quotes rides the same mux as /graphql; the dedicated
+// MARKET_WS_ADDR listener keeps the local default URL working.
+type quoteGate struct {
+	mu sync.RWMutex
+	h  http.Handler
+}
+
+func (g *quoteGate) set(h http.Handler) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.h = h
+}
+
+func (g *quoteGate) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	g.mu.RLock()
+	h := g.h
+	g.mu.RUnlock()
+	if h == nil {
+		http.Error(w, "quote protocol disabled", http.StatusServiceUnavailable)
+		return
+	}
+	h.ServeHTTP(w, r)
+}
+
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 
@@ -55,16 +83,17 @@ func main() {
 
 	store := graph.NewStore()
 	checker := chaincheck.NewChecker(cfg.RPCURL)
+	quotes := &quoteGate{}
 
 	go ingestLoop(ctx, cfg, store)
 	go consistencyLoop(ctx, checker, store)
-	startAPI(ctx, cfg, store, startMarketData(ctx, cfg))
+	startAPI(ctx, cfg, store, startMarketData(ctx, cfg), quotes)
 
 	// Phase 2: quote protocol + reference solver. The verifier needs the
 	// deployed registry, so the hub (and solver) come up only once the
 	// Fuji redeploy has filled the addresses in (MEMORY §TBD).
 	if cfg.MarketAddress != "" && cfg.RegistryAddress != "" {
-		startQuoteProtocol(ctx, cfg, store)
+		startQuoteProtocol(ctx, cfg, store, quotes)
 	} else {
 		log.Print("quote protocol disabled: LANTERN_MARKET_ADDRESS / AGENT_REGISTRY_ADDRESS not set (Fuji redeploy pending)")
 	}
@@ -74,9 +103,11 @@ func main() {
 	log.Print("shutdown")
 }
 
-// startQuoteProtocol dials the contracts, serves the quote WS, and (when the
-// reference solver identity is configured) runs it against the live store.
-func startQuoteProtocol(ctx context.Context, cfg config.Config, store *graph.Store) {
+// startQuoteProtocol dials the contracts, serves the quote WS on both the
+// web API port (via the /quotes gate — single-port hosts) and the dedicated
+// MARKET_WS_ADDR listener (local default), and (when the reference solver
+// identity is configured) runs it against the live store.
+func startQuoteProtocol(ctx context.Context, cfg config.Config, store *graph.Store, quotes *quoteGate) {
 	client, err := chain.Dial(ctx, cfg.RPCURL,
 		common.HexToAddress(cfg.RegistryAddress), common.HexToAddress(cfg.MarketAddress))
 	if err != nil {
@@ -84,10 +115,12 @@ func startQuoteProtocol(ctx context.Context, cfg config.Config, store *graph.Sto
 		return
 	}
 	hub := protocol.NewHub(client, solver.QuoteTTL)
+	handler := protocol.Handler(hub, cfg.WSAllowedOrigins)
+	quotes.set(handler)
 
 	go func() {
 		mux := http.NewServeMux()
-		mux.Handle("/quotes", protocol.Handler(hub, cfg.WSAllowedOrigins))
+		mux.Handle("/quotes", handler)
 		srv := &http.Server{Addr: cfg.MarketWSAddr, Handler: mux}
 		go func() {
 			<-ctx.Done()
@@ -95,7 +128,7 @@ func startQuoteProtocol(ctx context.Context, cfg config.Config, store *graph.Sto
 			defer cancel()
 			srv.Shutdown(shutdown)
 		}()
-		log.Printf("quote protocol listening on %s", cfg.MarketWSAddr)
+		log.Printf("quote protocol listening on %s (and /quotes on the web API port)", cfg.MarketWSAddr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Printf("quote protocol: %v", err)
 		}
@@ -146,10 +179,12 @@ func startMarketData(ctx context.Context, cfg config.Config) http.Handler {
 
 // startAPI serves the web-facing GraphQL API (identity + market reads,
 // proxied from Hasura), the graph snapshot feed behind the x402 paywall,
-// the Phase 4 /market display feed (when configured), and a health endpoint.
+// the Phase 4 /market display feed (when configured), the quote-protocol
+// WebSocket at /quotes (via the gate — 503 until the hub is up, or when
+// the quote protocol is disabled), and a health endpoint.
 // It comes up regardless of chain wiring — queries fail with an upstream
 // error until the indexer is reachable, which is honest (docs/market.md §3).
-func startAPI(ctx context.Context, cfg config.Config, store *graph.Store, market http.Handler) {
+func startAPI(ctx context.Context, cfg config.Config, store *graph.Store, market http.Handler, quotes *quoteGate) {
 	mux := http.NewServeMux()
 	dualIDs, err := api.LoadDualRegistration(cfg.DualRegistrationFile)
 	if err != nil {
@@ -161,6 +196,7 @@ func startAPI(ctx context.Context, cfg config.Config, store *graph.Store, market
 		log.Printf("dual-registration: %d agents mapped (%s)", len(dualIDs), cfg.DualRegistrationFile)
 	}
 	mux.Handle("/graphql", api.NewHandler(api.NewHasuraSource(cfg.EnvioHTTPURL, cfg.EnvioAdminSecret, dualIDs)))
+	mux.Handle("/quotes", quotes)
 	pw := paywall.New(paywall.Config{
 		FacilitatorURL: cfg.X402FacilitatorURL,
 		Network:        cfg.X402Network,

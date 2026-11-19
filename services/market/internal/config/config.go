@@ -116,7 +116,18 @@ func Load(envPath string) (Config, error) {
 		cfg.MarketWSAddr = defaultMarketWSAddr
 	}
 	if cfg.APIAddr == "" {
-		cfg.APIAddr = defaultAPIAddr
+		// Single-port PaaS hosts (Render, Railway, Cloud Run) inject PORT;
+		// an explicit API_ADDR still wins, and both "8082" and ":8082" forms
+		// are accepted. The quote WS is additionally served as /quotes on
+		// this port (cmd/market), so one public port is enough.
+		if p := get("PORT"); p != "" {
+			if !strings.HasPrefix(p, ":") {
+				p = ":" + p
+			}
+			cfg.APIAddr = p
+		} else {
+			cfg.APIAddr = defaultAPIAddr
+		}
 	}
 	cfg.SolverSlippageBps = defaultSolverSlippageBps
 	if v := get("REFERENCE_SOLVER_SLIPPAGE_BPS"); v != "" {
