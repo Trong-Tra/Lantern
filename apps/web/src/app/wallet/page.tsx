@@ -7,7 +7,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { createPublicClient, http, type Address } from "viem";
 import Link from "next/link";
 import { monadTestnet } from "@/libs/chain";
-import { getMonadExplorerUrl } from "@lantern/config";
+import { getExplorerUrl } from "@lantern/config";
 import { NoticeCard } from "@/components/molecules";
 
 const STORAGE_KEY = "lantern.agentWallet.v1";
@@ -173,7 +173,7 @@ export default function WalletPage() {
                 {copied ? "copied ✓" : "copy"}
               </button>
               <a
-                href={`${getMonadExplorerUrl()}/address/${address}`}
+                href={`${getExplorerUrl()}/address/${address}`}
                 target="_blank"
                 rel="noreferrer"
                 className="font-mono text-xs text-lantern/80 underline transition-colors hover:text-lantern"

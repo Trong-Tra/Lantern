@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getMonadExplorerUrl } from "@lantern/config";
+import { getExplorerUrl } from "@lantern/config";
 import { Atmosphere } from "@/components/molecules/atmosphere";
 import { LatternMark } from "@/components/icons/lattern-mark";
 
@@ -182,7 +182,7 @@ export default function DocsPage() {
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <h3 className="font-syne text-lg text-paper">{contract.name}</h3>
                     <a
-                      href={`${getMonadExplorerUrl()}/address/${contract.address}`}
+                      href={`${getExplorerUrl()}/address/${contract.address}`}
                       target="_blank"
                       rel="noreferrer"
                       className="break-all font-mono text-[11px] text-lantern/70 transition-colors hover:text-lantern"

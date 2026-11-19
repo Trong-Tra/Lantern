@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { ContentSkeleton } from "@/components/loading-skeleton";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { API_ENDPOINTS, buildExplorerPassportUrl, getApiBaseUrl } from "@lantern/config";
+import { API_ENDPOINTS, getApiBaseUrl } from "@lantern/config";
 import { buildApiUrl, formatAddress } from "@lantern/utils";
 import { DemoBanner, NoticeCard, RiskBadge } from "@/components/molecules/explorer";
 import { ScoreGauge } from "@/components/molecules/score-gauge";
@@ -150,21 +150,6 @@ async function NetworkResults({ searchParams }: { searchParams: Promise<Record<s
                       </p>
                       <p className="mt-1.5 font-mono text-[10px] uppercase tracking-wide text-paper/30">
                         ERC-8004 identity
-                        {agent.passportTokenId ? (
-                          <>
-                            {" · "}
-                            <a
-                              href={buildExplorerPassportUrl(agent.passportTokenId)}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="relative z-10 text-lantern/70 transition-colors hover:text-lantern"
-                            >
-                              passport minted ↗
-                            </a>
-                          </>
-                        ) : (
-                          <span> · no passport yet</span>
-                        )}
                       </p>
                     </div>
                   </div>
