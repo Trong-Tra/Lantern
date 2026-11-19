@@ -1,4 +1,4 @@
-# Lantern — Contracts (Foundry)
+# Lantern Finance — Contracts (Foundry)
 
 > Layer doc: `../docs/contracts.md` (model, interfaces, decisions). Toolchain decision: `MEMORY.md`.
 

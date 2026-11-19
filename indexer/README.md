@@ -1,6 +1,6 @@
 # @lantern/indexer — Envio HyperIndex on Avalanche Fuji
 
-Indexes the Lantern identity + market contracts (docs/contracts.md) into a GraphQL API.
+Indexes the Lantern Finance identity + market contracts (docs/contracts.md) into a GraphQL API.
 
 ## What it indexes
 

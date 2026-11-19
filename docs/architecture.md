@@ -4,7 +4,7 @@
 
 ## Concept (pivot 3, 2026-11-14)
 
-Lantern is **Lantern Graph + Market** — Matcha-style aggregation, but the solver set is an open network of on-chain-identified agents buying the maintained graph and streaming quotes to users, instead of a closed/market-maker set. The user picks the quote; the protocol never crowns an algorithm.
+Lantern Finance is **Lantern Finance Graph + Market** — Matcha-style aggregation, but the solver set is an open network of on-chain-identified agents buying the maintained graph and streaming quotes to users, instead of a closed/market-maker set. The user picks the quote; the protocol never crowns an algorithm.
 
 The insight: every aggregator builds a graph of pools (assets = nodes, pools = edges) and searches it (BFS/DFS/Dijkstra variants). No single search wins always — the best answer depends on swap size, graph topology, and pool state at that moment, and on how the total amount is **sliced across routes** (a 3%-slice solver answers fast; a 1.2%-slice solver prices better but slower). So we don't crown one algorithm: we build the graph and let solvers **compete** on it. Users pick the best solution; winners earn the fee; outcomes are attested on-chain, so standing is earned from real wins.
 

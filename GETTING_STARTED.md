@@ -1,4 +1,4 @@
-# Lantern — Developer Guide
+# Lantern Finance — Developer Guide
 
 Source navigation, setup, and how to run every part of the monorepo.
 

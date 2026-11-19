@@ -77,8 +77,8 @@ export function buildExplorerTxUrl(txHash: string): string {
 }
 
 export const APP_CONFIG = {
-  name: "Lantern",
+  name: "Lantern Finance",
   tagline: "Illuminate the agent economy",
   description:
-    "Trust shouldn't be a leap in the dark. Discover agent identity, reputation and history. Find a trusted path with Lattern.",
+    "Trust shouldn't be a leap in the dark. Discover agent identity, reputation and history. Find a trusted path with Lantern Finance.",
 } as const;

@@ -1,14 +1,14 @@
-# Lantern Graph + Market — build plan (Go backend + market contracts)
+# Lantern Finance Graph + Market — build plan (Go backend + market contracts)
 
 > **Target design for pivot 3.** Decisions locked with owner 2026-11-14 (see MEMORY §Decisions). Current state stays in MEMORY §Current state — MEMORY wins on conflict.
-> Naming: NOT "arena". **Lantern Graph** = the x402-paid live pool-graph feed solvers buy. **Lantern Market** = the streaming-quote market where users pick the route they like.
+> Naming: NOT "arena". **Lantern Finance Graph** = the x402-paid live pool-graph feed solvers buy. **Lantern Finance Market** = the streaming-quote market where users pick the route they like.
 
 ## Concept
 
 Two product planes on **Avalanche Fuji testnet**:
 
-* **Lantern Graph** — we build and maintain the pool graph (assets = nodes, pools = edges) against live chain state. Solver agents **buy access via x402** instead of paying their own indexing/compute cost: paying Lantern is cheaper than rebuilding the graph. This is the data business.
-* **Lantern Market** — a user posts a swap intent; solvers on the graph compute route sets **plus split allocations** (which pools, which protocols, what fraction of the funds each) and reply with **signed quotes**. Quotes **stream in one by one** — every solver's algorithm and latency differs, so the user watches offers arrive in real time and picks whichever they like best. Quotes carry a **deadline** and solvers can **retract** them as pools shift; an unpicked quote simply dies.
+* **Lantern Finance Graph** — we build and maintain the pool graph (assets = nodes, pools = edges) against live chain state. Solver agents **buy access via x402** instead of paying their own indexing/compute cost: paying Lantern Finance is cheaper than rebuilding the graph. This is the data business.
+* **Lantern Finance Market** — a user posts a swap intent; solvers on the graph compute route sets **plus split allocations** (which pools, which protocols, what fraction of the funds each) and reply with **signed quotes**. Quotes **stream in one by one** — every solver's algorithm and latency differs, so the user watches offers arrive in real time and picks whichever they like best. Quotes carry a **deadline** and solvers can **retract** them as pools shift; an unpicked quote simply dies.
 
 No central algorithm is crowned — the market decides, one user pick at a time, and every settled trade mints an ERC-5192 attestation: standing is earned by being picked and executing, never claimed.
 
@@ -25,7 +25,7 @@ v1 scope decisions (owner, 2026-11-14):
 contracts/src/                 services/market/ (Go)            indexer/
 ┌──────────────┐    events   ┌────────────────────────┐  sub  ┌──────────────┐
 │ DemoPool ×N  │────────────▶│ ingest → graph store   │◀──────│ Envio        │
-│ LanternMarket│   (Envio)   │  └▶ Lantern Graph feed │  WS   │ (pools+market│
+│ LanternMarket│   (Envio)   │  └▶ Lantern Finance Graph feed │  WS   │ (pools+market│
 │ Registry/    │             │  (x402-gated, solvers) │       │  in config)  │
 │ Reputation   │◀────────────│ quote protocol (WS):   │       └──────────────┘
 └──────────────┘  execute    │  intent → quotes →     │
@@ -63,7 +63,7 @@ services/market/
 │   ├── config/              # env loading (same root .env; keys in .env.example)
 │   ├── ingest/              # Envio WS subscriptions → domain events
 │   ├── graph/               # pool graph: token nodes, pool edges, reserve store
-│   ├── graphfeed/           # Lantern Graph: GET /graph/snapshot (JSON), x402-gated (per-block diffs later)
+│   ├── graphfeed/           # Lantern Finance Graph: GET /graph/snapshot (JSON), x402-gated (per-block diffs later)
 │   ├── marketdata/          # Phase 4 display feed: Hyperliquid prices/candles + polled real-DEX graph → GET /market/*
 │   ├── solver/              # reference solver: route search + split allocation + runner (intent → sign → submit)
 │   ├── protocol/            # quote WS (ws.go): intent broadcast, signed quotes, retract, pick; hub.go = lifecycle

@@ -1,8 +1,8 @@
-# Lantern
+# Lantern Finance
 
-**Lantern Graph + Market** on Avalanche (Fuji testnet first).
+**Lantern Finance Graph + Market** on Avalanche (Fuji testnet first).
 
-Every aggregator searches the same kind of pool graph (assets = nodes, pools = edges) — but no single routing algorithm wins always, and the best **split allocation** across routes depends on swap size, graph topology, and pool state at that moment. Lantern builds and maintains that graph (**Lantern Graph**, x402-paid feed for solvers), then lets a network of solver agents — each with a verifiable **ERC-8004 identity** — stream signed quotes onto it (**Lantern Market**). The user picks the quote they like; only that route settles on-chain, its solver earns the fee, and every settlement is written to a soulbound **ERC-5192** track record: reputation is earned by being picked and executing, never claimed.
+Every aggregator searches the same kind of pool graph (assets = nodes, pools = edges) — but no single routing algorithm wins always, and the best **split allocation** across routes depends on swap size, graph topology, and pool state at that moment. Lantern Finance builds and maintains that graph (**Lantern Finance Graph**, x402-paid feed for solvers), then lets a network of solver agents — each with a verifiable **ERC-8004 identity** — stream signed quotes onto it (**Lantern Finance Market**). The user picks the quote they like; only that route settles on-chain, its solver earns the fee, and every settlement is written to a soulbound **ERC-5192** track record: reputation is earned by being picked and executing, never claimed.
 
 > Status: mid-rebuild (pivot 2026-11-14). The identity stack + market contracts are deployed on Fuji, the indexer points at them, and the Go market service (quote protocol + reference solver + settlement e2e) is through Phase 2; the x402 paywall, protocol hardening, gqlgen API, and new swap UI are not built yet (plan: `docs/market.md`). The pre-pivot frontend is frozen in place (see `MEMORY.md`). The old Express API (`apps/api`) was removed 2026-11-15 — the backend is `services/market/` (Go).
 
@@ -19,8 +19,8 @@ Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 ├── .env.example                  # root env template (copy to .env, never commit .env)
 ├── contracts/                    # Foundry (Solidity) — identity stack
 │   ├── src/                      # AgentRegistry (ERC-8004), Reputation (ERC-5192), utils/
-│   ├── test/                     # Forge tests (53 tests)
-│   ├── script/                   # Deploy + SeedAgents + SeedAttestations
+│   ├── test/                     # Forge tests (103 tests)
+│   ├── script/                   # Deploy + SeedAgents + SeedAttestations + DualRegister
 │   └── README.md
 ├── apps/web/                     # Next.js 16 — FROZEN pre-pivot (do not touch; rebuild pending)
 ├── packages/                     # shared workspace libs
@@ -33,7 +33,7 @@ Lantern/                          # pnpm monorepo (pnpm@12.4.2)
 
 ## Deployed contracts — Avalanche Fuji (chain 43113)
 
-Deployed 2026-11-15 by `0x7EA634e331CF7b503df2e224f77a7C589462F1F2` (`Deploy.s.sol` → `DeployMarket.s.sol` → `SeedAgents.s.sol`):
+Deployed 2026-11-15 by `0x7EA634e331CF7b503df2e224f77a7C589462F1F2` (`Deploy.s.sol` → `DeployMarket.s.sol` → `SeedAgents.s.sol`). The 15 agents were **dual-registered 2026-11-18** on the canonical ERC-8004 Fuji singleton `0x8004A818BFB912233c491871b3d84c89A494BD9e` (token ids **314–328**, `DualRegister.s.sol`) — that's what [8004scan](https://8004scan.io/agents/avalanche-fuji/314) indexes:
 
 | Contract | Address |
 | --- | --- |

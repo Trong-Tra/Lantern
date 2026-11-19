@@ -1,4 +1,4 @@
-# services/market — Lantern market service (Go)
+# services/market — Lantern Finance market service (Go)
 
 > Build plan: `docs/market.md` §3. **Phase 1 skeleton** — config, Envio ingest, in-memory graph store, on-chain consistency spot-checks. Solver, quote protocol, x402 paywall, and gqlgen API land in Phases 2–3.
 
