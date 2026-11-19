@@ -16,3 +16,11 @@ type Resolver struct {
 func NewResolver(source Source) *Resolver {
 	return &Resolver{source: source}
 }
+
+// Trades limit clamps (schema: default 50, max 200). Lives here — the
+// non-regenerated file — because gqlgen moves unknown consts out of
+// schema.resolvers.go on every `gqlgen generate`.
+const (
+	defaultTradesLimit = 50 // schema default
+	maxTradesLimit     = 200
+)

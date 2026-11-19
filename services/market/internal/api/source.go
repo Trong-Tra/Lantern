@@ -29,20 +29,24 @@ type Source interface {
 // HasuraSource reads through the Envio indexer's Hasura GraphQL endpoint —
 // the same one the ingest subscription uses (docs/market.md §2: no custom
 // indexing code). BigInt columns arrive as decimal strings; the model
-// structs decode them as-is.
+// structs decode them as-is. canonicalIDs (dual-registration, may be nil)
+// stamps Agent.canonicalTokenId — the id 8004scan indexes — after the fetch.
 type HasuraSource struct {
-	httpURL     string
-	adminSecret string
-	client      *http.Client
+	httpURL      string
+	adminSecret  string
+	client       *http.Client
+	canonicalIDs map[string]string
 }
 
 // NewHasuraSource builds a source against the given Hasura HTTP endpoint
 // (e.g. http://localhost:8080/v1/graphql). adminSecret may be empty.
-func NewHasuraSource(httpURL, adminSecret string) *HasuraSource {
+// canonicalIDs may be nil (no dual-registration mapping loaded).
+func NewHasuraSource(httpURL, adminSecret string, canonicalIDs map[string]string) *HasuraSource {
 	return &HasuraSource{
-		httpURL:     strings.TrimRight(httpURL, "/"),
-		adminSecret: adminSecret,
-		client:      &http.Client{Timeout: 10 * time.Second},
+		httpURL:      strings.TrimRight(httpURL, "/"),
+		adminSecret:  adminSecret,
+		client:       &http.Client{Timeout: 10 * time.Second},
+		canonicalIDs: canonicalIDs,
 	}
 }
 
@@ -214,6 +218,7 @@ func (s *HasuraSource) Agents(ctx context.Context) ([]*Agent, error) {
 		return nil, err
 	}
 	fillAgentIDs(resp.Agent)
+	s.stampCanonicalIDs(resp.Agent)
 	return resp.Agent, nil
 }
 
@@ -228,6 +233,7 @@ func (s *HasuraSource) Agent(ctx context.Context, id string) (*Agent, error) {
 		return nil, nil
 	}
 	fillAgentIDs(resp.Agent)
+	s.stampCanonicalIDs(resp.Agent)
 	return resp.Agent[0], nil
 }
 
@@ -275,6 +281,16 @@ func fillAgentIDs(agents []*Agent) {
 	for _, a := range agents {
 		for _, att := range a.Attestations {
 			att.AgentID = a.ID
+		}
+	}
+}
+
+// stampCanonicalIDs sets Agent.canonicalTokenId from the dual-registration
+// mapping; unmapped agents keep null (the FE hides the 8004scan button).
+func (s *HasuraSource) stampCanonicalIDs(agents []*Agent) {
+	for _, a := range agents {
+		if id, ok := s.canonicalIDs[a.ID]; ok {
+			a.CanonicalTokenID = &id
 		}
 	}
 }

@@ -35,12 +35,13 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Agent struct {
-		Attestations func(childComplexity int) int
-		ID           func(childComplexity int) int
-		Owner        func(childComplexity int) int
-		RegisteredAt func(childComplexity int) int
-		URI          func(childComplexity int) int
-		UpdatedAt    func(childComplexity int) int
+		Attestations     func(childComplexity int) int
+		CanonicalTokenID func(childComplexity int) int
+		ID               func(childComplexity int) int
+		Owner            func(childComplexity int) int
+		RegisteredAt     func(childComplexity int) int
+		URI              func(childComplexity int) int
+		UpdatedAt        func(childComplexity int) int
 	}
 
 	Attestation struct {
@@ -125,6 +126,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Agent.Attestations(childComplexity), true
+	case "Agent.canonicalTokenId":
+		if e.ComplexityRoot.Agent.CanonicalTokenID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Agent.CanonicalTokenID(childComplexity), true
 	case "Agent.id":
 		if e.ComplexityRoot.Agent.ID == nil {
 			break
@@ -474,6 +481,8 @@ func (ec *executionContext) childFields_Agent(ctx context.Context, field graphql
 		return ec.fieldContext_Agent_registeredAt(ctx, field)
 	case "updatedAt":
 		return ec.fieldContext_Agent_updatedAt(ctx, field)
+	case "canonicalTokenId":
+		return ec.fieldContext_Agent_canonicalTokenId(ctx, field)
 	case "attestations":
 		return ec.fieldContext_Agent_attestations(ctx, field)
 	}
@@ -913,6 +922,29 @@ func (ec *executionContext) _Agent_updatedAt(ctx context.Context, field graphql.
 }
 func (ec *executionContext) fieldContext_Agent_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("Agent", field, false, false, "String")
+}
+
+func (ec *executionContext) _Agent_canonicalTokenId(ctx context.Context, field graphql.CollectedField, obj *Agent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Agent_canonicalTokenId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CanonicalTokenID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOID2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Agent_canonicalTokenId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Agent", field, false, false, "ID")
 }
 
 func (ec *executionContext) _Agent_attestations(ctx context.Context, field graphql.CollectedField, obj *Agent) (ret graphql.Marshaler) {
@@ -2980,6 +3012,11 @@ func (ec *executionContext) _Agent(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
+		case "canonicalTokenId":
+			out.Values[i] = ec._Agent_canonicalTokenId(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
 		case "attestations":
 			out.Values[i] = ec._Agent_attestations(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -4002,6 +4039,24 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	_ = sel
 	_ = ctx
 	res := graphql.MarshalBoolean(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v any) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalID(*v)
 	return res
 }
 

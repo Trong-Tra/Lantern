@@ -25,7 +25,7 @@ Every solver agent = 1 × ERC-8004 identity : N × ERC-5192 attestations.
 
 ## ERC-5192 — Reputation
 
-* Locked soulbound history (`contracts/src/Reputation.sol`, name `Lantern Agent Reputation`, symbol `LREP`): `locked(tokenId)` = true; transfers revert (`Reputation: soulbound`).
+* Locked soulbound history (`contracts/src/Reputation.sol`, name `Lantern Finance Agent Reputation`, symbol `LREP`): `locked(tokenId)` = true; transfers revert (`Reputation: soulbound`).
 * **Minters**: the agent's owner + executors — `setExecutor(address, bool)` is contract-owner-only. The market contract will be an authorized executor once it exists.
 * Attestation struct:
   ```
@@ -50,8 +50,8 @@ Every solver agent = 1 × ERC-8004 identity : N × ERC-5192 attestations.
 
 * Location: `contracts/` at repo root (Foundry; not a pnpm workspace member).
 * Shared **in-house bases** in `contracts/src/utils/` (ERC721, Ownable) — no OpenZeppelin dep. `MockToken` carries its own minimal ERC-20.
-* Layout: `src/{AgentRegistry,Reputation,MockToken,DemoPool,LanternMarket}.sol`, `src/utils/*`, `test/*.t.sol`, `script/{Deploy,SeedAgents,SeedAttestations,DeployMarket}.s.sol`, `script/seed/{agents,attestations,market}.json`.
-* Tests required per contract. Run: `forge test` in `contracts/` (currently 93 green).
+* Layout: `src/{AgentRegistry,Reputation,MockToken,DemoPool,LanternMarket}.sol`, `src/utils/*`, `test/*.t.sol`, `script/{Deploy,SeedAgents,SeedAttestations,DeployMarket,DualRegister}.s.sol`, `script/seed/{agents,attestations,market,dual-registered}.json`.
+* Tests required per contract. Run: `forge test` in `contracts/` (currently 103 green).
 * Every contract change updates this file + the Envio schema in the same commit.
 
 ## Deploy + seed (Fuji — DEPLOYED 2026-11-15; legacy: Monad testnet, chain 10143)
@@ -70,4 +70,5 @@ Every solver agent = 1 × ERC-8004 identity : N × ERC-5192 attestations.
 * Deployment order: `Deploy.s.sol` (identity) → `DeployMarket.s.sol` (tokens + pools + market; reads `AGENT_REGISTRY_ADDRESS`/`REPUTATION_ADDRESS`, seeds 5 tokens / 9 pools from `script/seed/market.json`) → `SeedAgents`/`SeedAttestations` (optional).
 * All scripts take the key from `DEPLOYER_PRIVATE_KEY` env (never CLI args), RPC from `AVAX_FUJI_RPC_URL`. Chain ID read from RPC at run time.
 * `script/SeedAgents.s.sol` / `script/SeedAttestations.s.sol` seed fictional demo identities + histories from `script/seed/*.json` (all `demo://` URIs, `MAX_AGENTS`/`MAX_ATTESTATIONS` guards; the `*FromJson()` loops are unit-tested in-memory — `deployFromJson` too, incl. an end-to-end split-swap on the seeded topology).
+* `script/DualRegister.s.sol` **dual-registers the 15 seeded agents on the canonical ERC-8004 Fuji singleton** `0x8004A818BFB912233c491871b3d84c89A494BD9e` (MEMORY decision 2026-11-15, executed 2026-11-18) so 8004scan indexes them. Registered agentURI = EIP-8004 registration file as a base64 `data:` URI (type/name/description; neutral description cross-references our `AgentRegistry` id + address — the `demo://` seed URIs do not resolve off-chain). Writes `script/seed/dual-registered.json` (`ourId` → `canonicalTokenId`; broadcast gave **314–328** — ids are whatever the canonical registry allocates, never assumed contiguous). Idempotent (existing mapping entries are skipped) + orphan guard (canonical tokens held without a mapping file → revert). `run()`-side file IO is kept out of `registerFromJson()` so the loop is unit-tested in-memory against a mock canonical registry. Served by the Go API as `Agent.canonicalTokenId` (`DUAL_REGISTRATION_FILE`).
 * Seeded Monad data (15 agents, 120 attestations) stays on the legacy chain only — it does not carry to Fuji.

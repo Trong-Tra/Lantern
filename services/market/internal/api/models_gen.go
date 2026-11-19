@@ -15,6 +15,8 @@ type Agent struct {
 	URI          string  `json:"uri"`
 	RegisteredAt string  `json:"registeredAt"`
 	UpdatedAt    *string `json:"updatedAt,omitempty"`
+	// Canonical ERC-8004 singleton token id from dual-registration (null until registered).
+	CanonicalTokenID *string `json:"canonicalTokenId,omitempty"`
 	// ERC-5192 attestations earned by this agent (newest first).
 	Attestations []*Attestation `json:"attestations"`
 }

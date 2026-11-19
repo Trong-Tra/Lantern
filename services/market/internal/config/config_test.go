@@ -254,3 +254,23 @@ X402_AMOUNT=10000
 		}
 	}
 }
+
+func TestLoad_DualRegistrationFileDefaultAndOverride(t *testing.T) {
+	path := writeEnv(t, "AVAX_FUJI_RPC_URL=https://example.com/rpc\n")
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.DualRegistrationFile != defaultDualRegistrationFile {
+		t.Errorf("DualRegistrationFile = %q, want default %q", cfg.DualRegistrationFile, defaultDualRegistrationFile)
+	}
+
+	path = writeEnv(t, "AVAX_FUJI_RPC_URL=https://example.com/rpc\nDUAL_REGISTRATION_FILE=/tmp/mapping.json\n")
+	cfg, err = Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.DualRegistrationFile != "/tmp/mapping.json" {
+		t.Errorf("DualRegistrationFile = %q, want env value", cfg.DualRegistrationFile)
+	}
+}

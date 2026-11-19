@@ -25,6 +25,8 @@ type Agent {
   uri: String!
   registeredAt: String!
   updatedAt: String
+  "Canonical ERC-8004 singleton token id from dual-registration (null until registered)."
+  canonicalTokenId: ID
   "ERC-5192 attestations earned by this agent (newest first)."
   attestations: [Attestation!]!
 }

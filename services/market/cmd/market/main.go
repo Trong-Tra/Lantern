@@ -151,7 +151,16 @@ func startMarketData(ctx context.Context, cfg config.Config) http.Handler {
 // error until the indexer is reachable, which is honest (docs/market.md §3).
 func startAPI(ctx context.Context, cfg config.Config, store *graph.Store, market http.Handler) {
 	mux := http.NewServeMux()
-	mux.Handle("/graphql", api.NewHandler(api.NewHasuraSource(cfg.EnvioHTTPURL, cfg.EnvioAdminSecret)))
+	dualIDs, err := api.LoadDualRegistration(cfg.DualRegistrationFile)
+	if err != nil {
+		log.Fatalf("dual-registration: %v", err)
+	}
+	if len(dualIDs) == 0 {
+		log.Printf("dual-registration: no mapping at %s (canonicalTokenId null)", cfg.DualRegistrationFile)
+	} else {
+		log.Printf("dual-registration: %d agents mapped (%s)", len(dualIDs), cfg.DualRegistrationFile)
+	}
+	mux.Handle("/graphql", api.NewHandler(api.NewHasuraSource(cfg.EnvioHTTPURL, cfg.EnvioAdminSecret, dualIDs)))
 	pw := paywall.New(paywall.Config{
 		FacilitatorURL: cfg.X402FacilitatorURL,
 		Network:        cfg.X402Network,

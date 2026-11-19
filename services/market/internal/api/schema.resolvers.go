@@ -9,11 +9,6 @@ import (
 	"context"
 )
 
-const (
-	defaultTradesLimit = 50 // schema default
-	maxTradesLimit     = 200
-)
-
 // Agents is the resolver for the agents field.
 func (r *queryResolver) Agents(ctx context.Context) ([]*Agent, error) {
 	return r.source.Agents(ctx)

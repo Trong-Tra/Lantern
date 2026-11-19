@@ -14,7 +14,7 @@
 ## Rules for the frontend
 
 * **Do not** target `http://localhost:4000`, `/api/agents…`, or `API_ENDPOINTS` from `packages/config` — those paths belonged to the removed Express app and are stale.
-* The FE contract is the gqlgen API: generate/mocks from `services/market/internal/api/schema.graphqls` (Query `agents`, `agent(id)`, `attestations(agentId)`, `pools`, `trades`). GraphQL responses are standard `{ data, errors }` JSON — the `createApiResponse` envelope does not apply to `/graphql`.
+* The FE contract is the gqlgen API: generate/mocks from `services/market/internal/api/schema.graphqls` (Query `agents`, `agent(id)`, `attestations(agentId)`, `pools`, `trades`). GraphQL responses are standard `{ data, errors }` JSON — the `createApiResponse` envelope does not apply to `/graphql`. `Agent.canonicalTokenId` is the dual-registration mapping (`DUAL_REGISTRATION_FILE`, default `contracts/script/seed/dual-registered.json`): null until an agent is dual-registered; the FE builds `8004scan.io/agents/avalanche-fuji/{id}` from it.
 * Graph data for the pool visualizer: `GET /graph/snapshot` → `{ pools: [{ address, token0, token1, reserve0, reserve1, updatedAtBlock }], count }` (reserves are decimal strings). Paywalled only when the owner sets `X402_ASSET`/`X402_PAY_TO`/`X402_AMOUNT`; otherwise open.
 
 ## What the old API was (history)

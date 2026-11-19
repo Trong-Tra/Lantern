@@ -53,6 +53,10 @@ type Config struct {
 	// MarketDataFile is the Phase 4 display-feed config (marketdata.json).
 	// Missing file = feed disabled, never a startup failure.
 	MarketDataFile string
+	// DualRegistrationFile is the dual-registration mapping (our agent id →
+	// canonical ERC-8004 token id) written by contracts/script/DualRegister.s.sol.
+	// Missing file = Agent.canonicalTokenId stays null, never a startup failure.
+	DualRegistrationFile string
 }
 
 const defaultEnvioURL = "http://localhost:8080/v1/graphql"
@@ -150,6 +154,10 @@ func Load(envPath string) (Config, error) {
 	if cfg.MarketDataFile == "" {
 		cfg.MarketDataFile = defaultMarketDataFile
 	}
+	cfg.DualRegistrationFile = get("DUAL_REGISTRATION_FILE")
+	if cfg.DualRegistrationFile == "" {
+		cfg.DualRegistrationFile = defaultDualRegistrationFile
+	}
 	return cfg, nil
 }
 
@@ -202,6 +210,10 @@ const (
 	// Phase 4 display feed — CWD-relative (service runs from services/market);
 	// override with MARKETDATA_FILE when launched elsewhere.
 	defaultMarketDataFile = "marketdata.json"
+	// Dual-registration mapping — CWD-relative to services/market (the forge
+	// script writes it into contracts/script/seed/ at the repo root); override
+	// with DUAL_REGISTRATION_FILE when launched elsewhere.
+	defaultDualRegistrationFile = "../../contracts/script/seed/dual-registered.json"
 )
 
 // httpToWS converts an http(s) URL to its ws(s) equivalent.

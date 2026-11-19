@@ -53,7 +53,37 @@ func newHasura(t *testing.T, fh *fakeHasura) (*HasuraSource, *httptest.Server) {
 	t.Helper()
 	srv := httptest.NewServer(http.HandlerFunc(fh.handler))
 	t.Cleanup(srv.Close)
-	return NewHasuraSource(srv.URL+"/v1/graphql", "secret"), srv
+	return NewHasuraSource(srv.URL+"/v1/graphql", "secret", nil), srv
+}
+
+func TestHasuraSource_StampsCanonicalTokenIDs(t *testing.T) {
+	fh := &fakeHasura{t: t, body: `{
+		"Agent": [
+			{"id": "1", "owner": "0x1", "uri": "demo://a", "registeredAt": "10", "updatedAt": null, "attestations": []},
+			{"id": "2", "owner": "0x2", "uri": "demo://b", "registeredAt": "11", "updatedAt": null, "attestations": []},
+			{"id": "99", "owner": "0x3", "uri": "demo://c", "registeredAt": "12", "updatedAt": null, "attestations": []}
+		]
+	}`}
+	srv := httptest.NewServer(http.HandlerFunc(fh.handler))
+	t.Cleanup(srv.Close)
+	src := NewHasuraSource(srv.URL+"/v1/graphql", "secret", map[string]string{"1": "314", "2": "315"})
+
+	agents, err := src.Agents(context.Background())
+	if err != nil {
+		t.Fatalf("Agents: %v", err)
+	}
+	if len(agents) != 3 {
+		t.Fatalf("len = %d", len(agents))
+	}
+	if agents[0].CanonicalTokenID == nil || *agents[0].CanonicalTokenID != "314" {
+		t.Fatalf("agent 1 canonicalTokenId = %v, want 314", agents[0].CanonicalTokenID)
+	}
+	if agents[1].CanonicalTokenID == nil || *agents[1].CanonicalTokenID != "315" {
+		t.Fatalf("agent 2 canonicalTokenId = %v, want 315", agents[1].CanonicalTokenID)
+	}
+	if agents[2].CanonicalTokenID != nil {
+		t.Fatalf("unmapped agent canonicalTokenId = %v, want null", *agents[2].CanonicalTokenID)
+	}
 }
 
 func TestHasuraSource_AgentsNestedAndIDsFilled(t *testing.T) {
