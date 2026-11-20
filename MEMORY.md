@@ -67,11 +67,47 @@ The cached sky has layered gas clouds, a darker exposure behind the title, and a
 
 ## Log (newest on top; older entries were pruned)
 
+* 2026-11-20: Split the latest App changes into commits for black-hole effects, solver cards, and globe holograms. All 148 web tests passed.
+
+* 2026-11-20: Globe podium holograms stand upright with transparent faces and layered outlines.
+
+* 2026-11-20: Clicking or tapping outside an open solver ID dismisses it. Selecting another solver switches cards.
+
+* 2026-11-20: Globe podium badges use thicker ridged medallions with raised rank emblems.
+
+* 2026-11-20: Fixed podium holograms 34px above their globe pins so the beams keep their length during rotation.
+
+* 2026-11-20: Removed the three rank shortcut buttons below the globe. On-globe badges still open solver IDs.
+
+* 2026-11-20: Globe podium badges sit tighter to the rim with tilted, layered medallion faces.
+
+* 2026-11-20 - Podium emblems project above the globe silhouette with a colored beam anchored to each visible solver.
+
+* 2026-11-20 - Replaced numbered podium pins and shortcuts with crown, gem, and star emblems. Their card seals now use distinct ornamental frames and an iridescent finish.
+
+* 2026-11-20 - Podium card stamps use holographic scan lines, glowing artwork, and a light sweep when reduced motion is off.
+
+* 2026-11-20 - Lowered the solver card stamp by 4px within the existing identity row.
+
+* 2026-11-20 - Added numbered podium pins and fixed top-three shortcuts to the globe. All ten card ranks now have distinct stamp colors.
+
+* 2026-11-20 - Soft-gradient polar jets now fire after the debris and charge glow clear.
+
+* 2026-11-20 - Centered the solver stamp in the rank row and added eight rank-based illustrations, including larger gold, silver, and bronze seals for the first three.
+
+* 2026-11-20 - Black-hole debris gathers before both polar jets fire in a fast, smooth burst without center streaks.
+
+* 2026-11-20 - Replaced solver badge labels with round illustrated stamps. Fuji uses a mountain, ERC-8004 uses an identity shield, and Demo uses a ringed planet.
+
+* 2026-11-20 - The black-hole click now pulls glowing debris inward and fires two polar jets behind the solver globe.
+
+* 2026-11-20 - The globe ID card shows Fuji and canonical ERC-8004 badges at the right of the rank row. Fictional solver cards show a Demo badge.
+
 * 2026-11-20 - Grouped the solver globe, archived solar preview, text motion, and design tooling for frontend-Tai. Web tests: 148 passed. Typecheck still reports legacy agent/explorer errors.
 
 - 2026-11-20: Updated the App card button label to flip one full word at a time.
 
-* 2026-11-20 — Clicking the black hole on `/app` cycles through three fictional transmissions in a keyboard-dismissible dialog.
+* 2026-11-20 — Clicking the black hole on `/app` sends fading amber ripples behind the globe, with motion suppressed for reduced-motion users.
 
 - 2026-11-20: Reduced the App card button text reveal to one flip per character.
 

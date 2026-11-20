@@ -1,15 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, type PointerEvent } from "react";
 import { AppNetwork, type SolverMapProps } from "./app-network";
+import { PodiumEmblem } from "./solver-stamp";
 import { globePoint, globeProjection, globeRadius, loadLand, makeFlight, paintGlobe } from "./globe-scene";
-import { diskGeometry, paintAccretion, paintGlobeBackdrop } from "./globe-backdrop";
-
-const transmissions = [
-  "If you can read this, the lantern is still lit.",
-  "We threw a stopwatch in here. It’s still thinking about it.",
-  "A solver found a shortcut through spacetime. The return route is still pending.",
-];
+import { diskGeometry, paintAccretion, paintGlobeBackdrop, paintBlackHoleBurst } from "./globe-backdrop";
 
 const locations = [
   [103.8, 12], [36.8, -1.3], [13.4, 52.5], [139.7, 35.7],
@@ -33,8 +28,7 @@ function GlobeMap({ agents, selection, onSelect, onDismiss }: SolverMapProps) {
   const sky = useRef<HTMLCanvasElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const blackHole = useRef<HTMLButtonElement>(null);
-  const transmissionDialog = useRef<HTMLDialogElement>(null);
-  const [transmission, setTransmission] = useState(-1);
+  const burstStart = useRef(-Infinity);
   const markers = useRef(new Map<string, HTMLButtonElement>());
   const camera = useRef({ yaw: -91 * rad, zoom: 1, centerY: 0.51 });
   const velocity = useRef(0);
@@ -45,11 +39,11 @@ function GlobeMap({ agents, selection, onSelect, onDismiss }: SolverMapProps) {
   } | null>(null);
   const suppressClick = useRef(false);
   const roster = useMemo(
-    () => agents.slice(0, locations.length).map(({ id }, index) => {
+    () => agents.slice(0, locations.length).map(({ id, rank }, index) => {
       const [longitude, latitude] = locations[index];
       const yaw = -longitude * rad;
       const point = globePoint(longitude, latitude);
-      return { id, yaw, point, focusY: globeProjection(yaw)(point).y };
+      return { id, rank, yaw, point, focusY: globeProjection(yaw)(point).y };
     }),
     [agents],
   );
@@ -107,7 +101,7 @@ function GlobeMap({ agents, selection, onSelect, onDismiss }: SolverMapProps) {
       view.yaw = wrapAngle(view.yaw);
       const targetZoom = zoom.current * (selected ? (width < 600 ? 1.232 : 1.342) : 1);
       // Leave room for the portrait card above and the globe controls below the pin.
-      const pinClearance = height < 380 ? 38 : 58;
+      const pinClearance = 86;
       const restingPinY = clamp(530, height * 0.69, height - pinClearance);
       let focusPinY = restingPinY;
       const card = selected && panel?.querySelector<HTMLElement>(".app-agent-overlay");
@@ -140,19 +134,28 @@ function GlobeMap({ agents, selection, onSelect, onDismiss }: SolverMapProps) {
       const { project, cx, cy, radius } = paintGlobe(
         context, width, height, view.yaw, land, flights, elapsed, still,
         view.zoom, view.centerY,
-        () => { if (!still) paintAccretion(context, width, height, elapsed); },
+        () => {
+          if (still) return;
+          paintAccretion(context, width, height, elapsed);
+          paintBlackHoleBurst(context, width, height, time - burstStart.current);
+        },
       );
 
-      for (const { id, point } of nodes) {
+      for (const { id, rank, point } of nodes) {
         const marker = markers.current.get(id);
         if (!marker) continue;
         const projected = project(point);
         const x = cx + projected.x * radius;
         const y = cy - projected.y * radius;
         const visible = projected.z > 0.06 && x >= 0 && x <= width && y >= 0 && y <= height;
-        marker.hidden = !visible;
-        marker.style.transform = `translate3d(${x - 22}px, ${y - 22}px, 0)`;
-        marker.style.zIndex = id === selectedId ? "2" : "1";
+        let markerY = y;
+        if (visible && rank <= 3) {
+          markerY -= 34;
+          marker.style.setProperty("--badge-yaw", `${projected.x * 44}deg`);
+        }
+        marker.hidden = !visible || (rank <= 3 && markerY < 22);
+        marker.style.transform = `translate3d(${x - 22}px, ${markerY - 22}px, 0)`;
+        marker.style.zIndex = id === selectedId ? "3" : rank <= 3 ? "2" : "1";
         if (id === selectedId) {
           panel?.style.setProperty("--pin-x", x + "px");
           panel?.style.setProperty("--pin-y", y + "px");
@@ -292,15 +295,14 @@ function GlobeMap({ agents, selection, onSelect, onDismiss }: SolverMapProps) {
           className="app-black-hole-trigger"
           type="button"
           hidden
-          aria-label="Investigate the black hole"
-          aria-haspopup="dialog"
+          aria-label="Activate the black hole"
           onClick={(event) => {
             if (suppressClick.current && event.detail !== 0) return;
-            setTransmission((previous) => (previous + 1) % transmissions.length);
-            transmissionDialog.current?.showModal();
+            burstStart.current = performance.now();
+            wake.current();
           }}
         />
-        {agents.map(({ id, label }) => (
+        {agents.map(({ id, label, rank }) => (
           <button
             key={id}
             ref={(marker) => {
@@ -308,33 +310,21 @@ function GlobeMap({ agents, selection, onSelect, onDismiss }: SolverMapProps) {
               else markers.current.delete(id);
             }}
             className="app-globe-pin"
+            data-rank={rank <= 3 ? rank : undefined}
             hidden
             type="button"
-            aria-label={`Show ${label} details`}
+            aria-label={`Show rank ${rank}, ${label}`}
             aria-pressed={selection.id === id}
             onClick={(event) => {
               if (!suppressClick.current || event.detail === 0) onSelect(id);
             }}
           >
-            <span aria-hidden="true" />
+            <span aria-hidden="true">
+              {rank <= 3 && <PodiumEmblem rank={rank} />}
+            </span>
           </button>
         ))}
       </div>
-      <dialog
-        ref={transmissionDialog}
-        className="app-transmission"
-        aria-labelledby="app-transmission-title"
-        aria-describedby="app-transmission-message"
-        onKeyDown={(event) => {
-          if (event.key === "Escape") event.stopPropagation();
-        }}
-      >
-        <h2 id="app-transmission-title">Signal from the event horizon</h2>
-        <p id="app-transmission-message">{transmissions[transmission]}</p>
-        <form method="dialog">
-          <button type="submit">Return to the globe</button>
-        </form>
-      </dialog>
       <div className="app-globe-toolbar">
         <p id="solver-globe-caption">Solver locations and flight paths are illustrative.</p>
       </div>

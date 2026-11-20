@@ -254,6 +254,8 @@ First circle-to-lanes handoff (2026-11-16): circle exit spans the first 36% of t
 
 ## Solver globe (2026-11-19)
 
+The three podium badges sit 34px directly above their rotating globe pins with a fixed-length hologram beam. The upright badges use transparent faces and layered outlines that turn left and right with the globe. They retain 44px hit areas. The existing 390px phone and 1440px desktop placement review applies.
+
 The solver ID footer uses its existing 44px action slot for the canonical Fuji 8004scan profile. Sample cards use the slot to open the live roster. Placement uses the target-size research above and assumes a 390px phone and 1440px desktop. The action stays inside the card alongside the identity details and preserves the shared navigation position. Responsive browser verification is pending.
 
 The App page shows the five leading solvers by earned attestations. The local land atlas provides the globe's geography. Agent positions and randomized elevated paths are illustrative. The selected solver's registry details and canonical 8004scan link sit next to the globe on desktop and directly below it on mobile.
@@ -268,7 +270,7 @@ Production `/app` pre-renders the top ten solvers from the Lantern Go GraphQL AP
 
 Selecting an agent from a globe dot or standings row centers the globe on that agent with a brief camera push-in. A scan reveal runs in the existing inspector position. Reduced motion centers immediately and shows the card without a reveal. The globe uses solid markers and crisp flight paths.
 
-The globe now displays up to ten ranked agents, with ten fictional agents in demo mode. The hologram overlays the globe near the centered marker and replaces the standings panel. On compact screens the card anchors above the globe controls. Drag, rotate, close, or press Escape to dismiss. Placement follows the existing mobile and desktop reach guidance above.
+The globe now displays up to ten ranked agents, with ten fictional agents in demo mode. The hologram overlays the globe near the centered marker and replaces the standings panel. On compact screens the card anchors above the globe controls. Click or tap outside, drag, rotate, use the close button, or press Escape to dismiss. Selecting another solver switches cards. Placement follows the existing mobile and desktop reach guidance above.
 
 The App shell fits the dynamic viewport. Its globe stage takes the space left by the header, introduction, and control row. Opening the card keeps the stage height fixed. Short screens can scroll within a long agent card while the page stays fixed. Shared navigation and the existing touch targets retain their placement.
 
@@ -276,7 +278,7 @@ The hologram uses a solver ID layout with a credential header, identity tile, gr
 
 The solver globe uses an amber accretion disk, wheel and button zoom, and a vertical leader from the selected marker to a screen-resolution identity card. Card height follows available space on short screens.
 
-The black hole hides three transmissions that play in sequence on repeat visits to its dialog. Following the existing 390px phone and 1440px desktop placement review, its circular touch target stays on the painted core with a 44px minimum. The centered dialog fits within viewport margins and places the return button directly below the message. Shared navigation and the globe stage keep their positions.
+Clicking the black hole draws glowing debris into its accretion disk and fires two brief jets perpendicular to the disk. The animation stays behind the globe. Following the existing 390px phone and 1440px desktop placement review, the circular touch target follows the painted core with a 44px minimum.
 
 The desktop solver title sits inside the observation field. On narrow screens it sits above the canvas. A separate high-DPI canvas draws the star field and lensed accretion disk on resize; the moving globe uses matching upper-right lighting.
 
@@ -310,4 +312,10 @@ The identity row puts the large teal rank on the left and the name on the right.
 
 The globe credential uses Geist. Its height follows the visible fields and footer, with tighter vertical spacing and the existing 44px action targets.
 
+The globe ID card centers one circular stamp vertically at the right of the identity row. The top three get larger metallic seals, and ranks four through eight each get a different illustration. Ranks nine and ten reuse standard designs. Using the existing reflow guidance for assumed 390px phone and 1440px desktop widths, the stamps scale down on compact screens and stay outside the close button's touch target. The rank itself remains available as text.
+
 App ID card (2026-11-20): Flat translucent dark gray glass with a subtle border and blurred backdrop, ivory serif name, copper rank, and the canonical registration description directly under the name. Following [WCAG Reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html) and the existing target-size guidance, the card uses responsive bounds for assumed 390px phone and 1440px desktop widths. Selecting a marker raises the globe and card together by up to 25% of the stage height. The card keeps its marker spacing and top inset. Long descriptions are visually shortened on compact screens so the profile link and close targets remain reachable without an internal scrollbar.
+
+The globe labels the first three pins by rank and keeps matching shortcuts in the bottom toolbar. The shortcuts focus those solvers from any angle and use 44px targets per the existing touch guidance. At the assumed 390px phone width they share one row and truncate long names visually while retaining full accessible labels. Desktop uses the same placement beside the existing scene caption. All ten card ranks have distinct stamp colors.
+
+The crown, gem, and star project above the globe with beams pointing back to their surface positions. Each floating badge keeps its 44px target. If the projection would clip at the top of the stage, the bottom shortcut remains available.

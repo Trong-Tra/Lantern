@@ -12,57 +12,9 @@
   box-shadow: inset 0 0 18px rgb(243 180 119 / 23%);
 }
 
-.app-black-hole-trigger:focus-visible,
-.app-transmission button:focus-visible {
+.app-black-hole-trigger:focus-visible {
   outline: 2px solid #f3b477;
   outline-offset: 3px;
-}
-
-.app-transmission {
-  position: fixed;
-  inset: 0;
-  margin: auto;
-  width: min(380px, calc(100% - 32px));
-  height: fit-content;
-  max-height: calc(100dvh - 32px);
-  padding: 24px;
-  border: 1px solid #805437;
-  border-radius: 16px;
-  background: radial-gradient(ellipse at top, #2c1b16, #110f15 72%);
-  color: #f9eee3;
-}
-
-.app-transmission::backdrop {
-  background: rgb(4 4 8 / 72%);
-}
-
-.app-transmission h2 {
-  color: #f3b477;
-  font-size: 1.125rem;
-}
-
-.app-transmission p {
-  margin-block: 12px 20px;
-}
-
-.app-transmission button {
-  min-height: 44px;
-  padding-inline: 14px;
-  border: 1px solid #805437;
-  border-radius: 8px;
-  background: #35231c;
-  cursor: pointer;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .app-transmission[open] {
-    animation: app-transmission-reveal 240ms ease-out both;
-  }
-}
-
-@keyframes app-transmission-reveal {
-  from { opacity: 0; transform: scale(.96); }
-  to { opacity: 1; transform: scale(1); }
 }
 
 .app-headline-flip {
@@ -98,6 +50,64 @@
 
 .app-globe-page .app-globe-toolbar {
   padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+.app-podium-emblem {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: var(--solver-rank-color);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.app-globe-page .app-globe-pin[data-rank] > span {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 35px;
+  background: transparent;
+  transform: perspective(140px) rotateY(var(--badge-yaw, 0deg));
+  transform-style: preserve-3d;
+}
+
+.app-globe-page .app-globe-pin[data-rank] > span::before,
+.app-globe-page .app-globe-pin[data-rank] > span::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid var(--solver-rank-color);
+  content: "";
+}
+
+.app-globe-page .app-globe-pin[data-rank] > span::before {
+  border-color: color-mix(in srgb, var(--solver-rank-color) 32%, transparent);
+  transform: translateZ(-5px);
+}
+
+.app-globe-page .app-globe-pin[data-rank] > span::after {
+  box-shadow: 0 0 5px color-mix(in srgb, var(--solver-rank-color) 42%, transparent);
+}
+
+.app-globe-page .app-globe-pin[data-rank]::before {
+  position: absolute;
+  top: 50%;
+  left: calc(50% - 17px);
+  width: 34px;
+  height: 34px;
+  clip-path: polygon(0 0, 100% 0, 53% 100%, 47% 100%);
+  background: linear-gradient(color-mix(in srgb, var(--solver-rank-color) 22%, transparent), color-mix(in srgb, var(--solver-rank-color) 55%, transparent));
+  pointer-events: none;
+  content: "";
+}
+
+.app-globe-page .app-globe-pin[data-rank] svg {
+  width: 23px;
+  height: 23px;
+  transform: translateZ(2px);
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--solver-rank-color) 50%, transparent));
 }
 
 .app-globe-page .app-globe-stage:focus-visible {
@@ -161,10 +171,108 @@
 
 .app-globe-page .app-id-identity {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   gap: 12px;
-  padding: 0 32px 12px 0;
+  padding: 0 36px 12px 0;
+}
+
+.app-globe-page .app-id-badge {
+  position: relative;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  align-self: center;
+  translate: 0 4px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  color: var(--solver-rank-color);
+  background: radial-gradient(circle at 32% 25%, color-mix(in srgb, currentColor 20%, transparent), transparent 85%);
+  pointer-events: none;
+}
+
+.app-globe-page .app-id-badge::before {
+  position: absolute;
+  inset: 2px;
+  border: 1px dotted currentColor;
+  border-radius: inherit;
+  opacity: .55;
+  content: "";
+}
+
+.app-globe-page .app-id-badge svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.app-globe-page [data-rank="1"] { --solver-rank-color: #ffe1a0; }
+.app-globe-page [data-rank="2"] { --solver-rank-color: #e1e9f4; }
+.app-globe-page [data-rank="3"] { --solver-rank-color: #edb391; }
+.app-globe-page [data-rank="4"] { --solver-rank-color: #9ed9d7; }
+.app-globe-page [data-rank="5"] { --solver-rank-color: #d0b8eb; }
+.app-globe-page [data-rank="6"] { --solver-rank-color: #dfaaa6; }
+.app-globe-page [data-rank="7"] { --solver-rank-color: #abc7ef; }
+.app-globe-page [data-rank="8"] { --solver-rank-color: #b5cfa1; }
+.app-globe-page [data-rank="9"] { --solver-rank-color: #eaa5c9; }
+.app-globe-page [data-rank="10"] { --solver-rank-color: #ded49d; }
+
+.app-globe-page .app-id-badge[data-podium="true"] {
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 2px, color-mix(in srgb, currentColor 13%, transparent) 2px 3px),
+    conic-gradient(from 30deg, #739bee38, transparent, #bd85e544, transparent, #70d9d144, #739bee38),
+    radial-gradient(ellipse at 30% 20%, color-mix(in srgb, currentColor 24%, transparent), transparent 75%);
+  box-shadow: inset 0 0 9px color-mix(in srgb, currentColor 18%, transparent),
+    0 0 12px color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.app-globe-page .app-id-badge[data-podium="true"]::before {
+  inset: 3px;
+  border-style: dashed;
+}
+
+.app-globe-page .app-id-badge[data-podium="true"] .app-podium-emblem {
+  width: 83%;
+  height: 83%;
+  filter: drop-shadow(0 0 3px currentColor);
+}
+
+.app-podium-frame {
+  fill: color-mix(in srgb, currentColor 17%, transparent);
+  stroke-width: .85;
+}
+
+.app-podium-beading {
+  opacity: .7;
+  stroke-width: 1;
+  stroke-dasharray: .2 2.15;
+}
+
+.app-id-badge[data-podium="true"] .app-podium-glyph {
+  fill: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-globe-page .app-id-badge[data-podium="true"]::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(transparent 39%, color-mix(in srgb, currentColor 34%, transparent) 50%, transparent 61%);
+    content: "";
+    animation: app-stamp-scan 3.6s ease-in-out infinite;
+  }
+}
+
+@keyframes app-stamp-scan {
+  0%, 18% { transform: translateY(-100%); }
+  65%, 100% { transform: translateY(100%); }
 }
 
 .app-globe-page .app-id-rank {
@@ -448,6 +556,25 @@
 
   .app-globe-page .app-id-rank {
     font-size: 46px;
+  }
+
+  .app-globe-page .app-id-identity {
+    column-gap: 8px;
+  }
+
+  .app-globe-page .app-id-badge {
+    width: 28px;
+    height: 28px;
+  }
+
+  .app-globe-page .app-id-badge[data-podium="true"] {
+    width: 40px;
+    height: 40px;
+  }
+
+  .app-globe-page .app-id-badge svg {
+    width: 17px;
+    height: 17px;
   }
 
   .app-globe-page .app-hologram h2 {
