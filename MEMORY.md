@@ -27,10 +27,18 @@
 * **API: REMOVED 2026-11-15** — `apps/api` (Express 5, port 4000) deleted on owner's call so the concurrent frontend rebuild targets the Go API instead of the old routes (which were never the plan post-pivot). Backend = `services/market/` (Go). Web-facing identity reads = the gqlgen API (`services/market/internal/api`) — **built 2026-11-16** (`POST|GET /graphql` + `/healthz` on `:8082`; schema = `internal/api/schema.graphqls`, see `docs/api.md`). Old routes/types in git history; `docs/api.md` documents the new contract.
 * **Indexer** (`indexer/`, Envio HyperIndex v3): Fuji 43113 with **real addresses** in `config.yaml` (Registry, Reputation, LanternMarket, all 9 pools via one `DemoPool` entry with an `address:` list — repeating `- name: DemoPool` breaks simulate routing). Indexes Registry + Reputation + `DemoPool.Sync` (→ `Pool` reserves) + `LanternMarket.TradeSettled` (→ `Trade`). 7/7 vitest + tsc clean.
 * **Market service** (`services/market/`, Go 1.23+ own module): **Phases 1–3 done** — config (root `.env`, incl. Phase 2 + x402 keys), Hasura WS subscription ingest (`internal/ingest`), in-memory pool-graph store (`internal/graph`), on-chain reserve spot-check (`internal/chaincheck`), **`internal/chain`** (abigen bindings for Registry/DemoPool/LanternMarket/MockToken/Reputation, quote digest/sign/verify mirroring `quoteDigest`, `VerifyQuote` = ecrecover + registry ownership (returns the signer), `SettleSwap` = executeSwap tx + receipt), **`internal/solver`** (DFS route search + grid split allocation + runner that answers hub intents with signed quotes), **`internal/protocol`** (quote lifecycle hub + raw-WS handler: intent/quote/retract/pick/subscribe_intents frames; signed retractions EIP-191 `lantern:retract:`, connection-bound pick, `WS_ALLOWED_ORIGINS` origin policy), **`internal/api`** (gqlgen `/graphql` on `:8082` — agents/agent/attestations/pools/trades, + `Agent.canonicalTokenId` from the dual-registration mapping), **`internal/paywall` + `internal/graphfeed`** (x402 v2 402 challenge → PayAI `/settle` → serve `GET /graph/snapshot`; open while `X402_ASSET`/`X402_PAY_TO`/`X402_AMOUNT` unset).   `cmd/market` wires ingest + consistency + quote WS (`MARKET_WS_ADDR`, default `:8081`, **also served as `WS /quotes` on the API port** via a `quoteGate` — 503 until the hub is up; single-port PaaS hosts need only one public port) + reference solver (enabled only when `REFERENCE_SOLVER_KEY`/`REFERENCE_SOLVER_AGENT_ID` set) + web API/graph feed (`API_ADDR`, default `:8082`, **falls back to PaaS-injected `PORT`** when unset). `go test ./...` (+ `-race`) green. **Phase 2 on-chain e2e PASSED on live Fuji 2026-11-15** — `go run ./cmd/e2e` (from `services/market/`): intent → quote → pick → `executeSwap` (block 61126719) → `TradeSettled` + SWAP/SUCCESS attestation verified in the receipt, fee = 20 bps. **Live feed verified 2026-11-16** — local `envio dev` fully indexed (15 agents / 122 attestations / 9 pools), ingest replays them, 30s `consistency: ok` on all 9 pools vs chain. **Phase 4 M1 done 2026-11-17** — `internal/marketdata` display feed: Hyperliquid WS (`allMids` + candle, boot via `/info` `candleSnapshot`/`metaAndAssetCtxs`) + real-DEX V2 poller boot-verified on publicnode RPCs (6 pools: Ethereum WBTC/WETH/USDC, BSC BTCB/WBNB/USDT), `GET /market/{prices,graph,candles}` on `:8082` (CORS `*`, no-store), config `services/market/marketdata.json` + key `MARKETDATA_FILE` (missing file = feed off, never kills the service). Stables have no HL mid — FE values USDC/USDT at $1 peg.
-* **Web** (`apps/web`): frontend push **merged 2026-11-16** (`56ad9eb`); **Phase 4 M3+M4 done 2026-11-17**; **`/app` built 2026-11-18** — agent-network showcase: react-simple-maps world with illustrative pins (deterministic per agent id, never geolocation claims), standing cards from gqlgen `agents` ranked by earned attestations (no derived score), each with a 44px "Verify on 8004scan" link (`8004scan.io/agents/avalanche-fuji/{canonicalTokenId}` — slug + canonical singleton id, rendered only when `Agent.canonicalTokenId` is non-null); pure helpers `src/libs/app/{network,graphql}.ts` + 8 tests; map `ssr:false`. **Brand relabel 2026-11-18** (owner): display/docs "Lantern"/"Lattern"/"LATTERN" → **"Lantern Finance" / "LANTERN FINANCE"** — package names (`@lantern/*`), contract `LanternMarket`, env `LANTERN_*`, file paths (`lattern.css`, `lattern/`), and identifiers (`LatternMark`, `LATTERN_SCENES`) unchanged. **`/exchange` is live-data:** Hyperliquid chart/header/fiat via `GET /market/*` (per-period react-query polls; periods 5m/1H/1D/1W/1M are **native HL candle sizes** (72/72/72/24/12 closed bars + the forming bar → limits 73/73/73/25/13, served by `candleSpecs`), no synthetic candles; live candles glide between polls), quote-protocol WS client (`src/libs/market/quote-ws.ts`: debounced intent → streaming signed solver quotes → bps slippage filter → Select/pick status), Fuji mock-token registry `src/libs/market/tokens.ts` (mUSDC/mUSDT/mWAVAX/mWETH/mWBTC, 18dp, stables $1 peg, majors ← HL coins), Advanced tab = Fuji + display-only real-DEX pools, nav token search switched to Fuji tokens, `mock-data.ts` deleted, `providers.tsx` mounts QueryClientProvider **+ wagmi on Avalanche Fuji** (public RPC default via `NEXT_PUBLIC_FUJI_RPC_URL`, no Monad env gate — wallet button says "Switch to Avalanche Fuji"). Clicking a solver quote opens its **route breakdown** (`src/libs/market/routes.ts` = 9-pool Fuji registry + per-hop token walk, pure/tested; `app/exchange/quote-routes.tsx` = split % → pool chips → next hop; unknown pool/pair renders `?`). **Display = Hyperliquid, execution quotes = Fuji mock pools — HL is never in the execution path.** Tests **122/122**; tsc **23 errors = HEAD baseline (0 new)**; eslint 0 errors (2 pre-existing warnings). Explorer/agent/network/wallet/docs/chat pages still reference removed API/types/config exports (known-broken, fixed piecemeal in Phase 4; do not patch elsewhere). Landing style/vibe/name stay.
+* **Web** (`apps/web`): frontend push **merged 2026-11-16** (`56ad9eb`); **Phase 4 M3+M4 done 2026-11-17**; **`/app` built 2026-11-18** — agent-network showcase: the official Earth globe displays up to ten ranked solvers with amber flight paths and pin-anchored IDs. Development defaults to fictional solvers. Production opens live data. **Brand relabel 2026-11-18** (owner): display/docs "Lantern"/"Lattern"/"LATTERN" → **"Lantern Finance" / "LANTERN FINANCE"** — package names (`@lantern/*`), contract `LanternMarket`, env `LANTERN_*`, file paths (`lattern.css`, `lattern/`), and identifiers (`LatternMark`, `LATTERN_SCENES`) unchanged. **`/exchange` is live-data:** Hyperliquid chart/header/fiat via `GET /market/*` (per-period react-query polls; periods 5m/1H/1D/1W/1M are **native HL candle sizes** (72/72/72/24/12 closed bars + the forming bar → limits 73/73/73/25/13, served by `candleSpecs`), no synthetic candles; live candles glide between polls), quote-protocol WS client (`src/libs/market/quote-ws.ts`: debounced intent → streaming signed solver quotes → bps slippage filter → Select/pick status), Fuji mock-token registry `src/libs/market/tokens.ts` (mUSDC/mUSDT/mWAVAX/mWETH/mWBTC, 18dp, stables $1 peg, majors ← HL coins), Advanced tab = Fuji + display-only real-DEX pools, nav token search switched to Fuji tokens, `mock-data.ts` deleted, `providers.tsx` mounts QueryClientProvider **+ wagmi on Avalanche Fuji** (public RPC default via `NEXT_PUBLIC_FUJI_RPC_URL`, no Monad env gate — wallet button says "Switch to Avalanche Fuji"). Clicking a solver quote opens its **route breakdown** (`src/libs/market/routes.ts` = 9-pool Fuji registry + per-hop token walk, pure/tested; `app/exchange/quote-routes.tsx` = split % → pool chips → next hop; unknown pool/pair renders `?`). **Display = Hyperliquid, execution quotes = Fuji mock pools — HL is never in the execution path.** Tests **122/122**; tsc **23 errors = HEAD baseline (0 new)**; eslint 0 errors (2 pre-existing warnings). Explorer/agent/network/wallet/docs/chat pages still reference removed API/types/config exports (known-broken, fixed piecemeal in Phase 4; do not patch elsewhere). Landing style/vibe/name stay.
 * **Gone:** AgentPassport, AgentVault, DemoFXPool + mock tokens, MetaMask Snap (`packages/snap`), OpenRouter chat, Lumen score/risk, quarantined mock data, all FinTechathon hackathon artifacts (docs/08, docs/09, EXECUTION_EVIDENCE, SECURITY, TEST_CASE).
 
 **Missing / next (build plan: `docs/market.md`):** Phase 4 in progress — **M1 (display feed) + M3 (FE wiring) + M4 (live `/exchange`) done 2026-11-17**; next **M2** multi-agent mock solvers (deployer key owns all 15 seeded agents → generalize `solver.Runner` to 4–6 strategy agents), then **M5** `/profile` portfolio, **M6** e2e demo (FE stops at `picked` — on-chain `executeSwap` from the web app needs wagmi Fuji chain wiring). Frontend rebuild continues against `services/market/internal/api/schema.graphqls` + `/market/*` + quote WS (`packages/config` `API_ENDPOINTS` old `/api/*` paths still stale; `DEFAULT_API_URL` now `:8082`). Envio **cloud** deploy: **live 2026-11-19** — `lantern` indexer on `main`/`indexer/` (auto-deploy), Hasura `https://indexer.dev.hyperindex.xyz/ca4e4f0/v1/graphql` (public, no admin secret) → Render `ENVIO_GRAPHQL_URL`; e2e verified: WS 101/403/101, `/graphql` 15 agents + pools. Do not build on deleted code (git history has it if ever needed).
+
+The archived solar preview Sun has a cached amber photosphere, a copper corona, and plasma loops. It scales with camera zoom, and nearby planet labels can move above their planets to clear the solar disk.
+
+**Solver globe** (`/app`): the official view shows an Earth globe that spins on a fixed, tilted north–south axis, with ten ranked solvers, amber flight paths, a cinematic sky, and pin-anchored IDs. Its idle headline flips upward between phrases. `/app2` redirects to `/app`, and the solar system is preserved in `apps/web/src/app/app-solar` with a development-only preview.
+
+The official solver ID is a slate credential with a large teal rank to the left of the name and registry details below. It uses Geist and sizes to its content without internal scrolling. Production `/app` serves pre-rendered standings from the Lantern Go API with 60-second request-driven revalidation. 8004scan is an outbound verification link.
+
+Selecting a solver planet zooms into a viewport-sized close-up below its ID card. Closing the card restores the previous overview zoom.
 
 ## Decisions (locked unless owner reopens)
 
@@ -53,7 +61,229 @@
 
 * [2026-11-14] **Market parameters locked (owner):** solver fee 20 bps, quote TTL ~45s (off-chain guidance; contract enforces `deadline` only), v1 `executeSwap` submitter = user wallet, failures mint nothing. Demo pool topology: 5 tokens / 9 pools (`script/seed/market.json`).
 
+**Solver globe backdrop (2026-11-20):** Distant shooting particles, star flares, drifting dust and orbiting amber streams animate on the globe's existing clock. Pause freezes the sky, and reduced-motion mode uses the cached backdrop.
+
+The cached sky has layered gas clouds, a darker exposure behind the title, and a larger black hole with a directional copper rim.
+
 ## Log (newest on top; older entries were pruned)
+
+* 2026-11-20: Removed the demo preview sentence from the App globe introduction.
+
+* 2026-11-20: Split the latest App changes into commits for black-hole effects, solver cards, and globe holograms. All 148 web tests passed.
+
+* 2026-11-20: Globe podium holograms stand upright with transparent faces and layered outlines.
+
+* 2026-11-20: Clicking or tapping outside an open solver ID dismisses it. Selecting another solver switches cards.
+
+* 2026-11-20: Globe podium badges use thicker ridged medallions with raised rank emblems.
+
+* 2026-11-20: Fixed podium holograms 34px above their globe pins so the beams keep their length during rotation.
+
+* 2026-11-20: Removed the three rank shortcut buttons below the globe. On-globe badges still open solver IDs.
+
+* 2026-11-20: Globe podium badges sit tighter to the rim with tilted, layered medallion faces.
+
+* 2026-11-20 - Podium emblems project above the globe silhouette with a colored beam anchored to each visible solver.
+
+* 2026-11-20 - Replaced numbered podium pins and shortcuts with crown, gem, and star emblems. Their card seals now use distinct ornamental frames and an iridescent finish.
+
+* 2026-11-20 - Podium card stamps use holographic scan lines, glowing artwork, and a light sweep when reduced motion is off.
+
+* 2026-11-20 - Lowered the solver card stamp by 4px within the existing identity row.
+
+* 2026-11-20 - Added numbered podium pins and fixed top-three shortcuts to the globe. All ten card ranks now have distinct stamp colors.
+
+* 2026-11-20 - Soft-gradient polar jets now fire after the debris and charge glow clear.
+
+* 2026-11-20 - Centered the solver stamp in the rank row and added eight rank-based illustrations, including larger gold, silver, and bronze seals for the first three.
+
+* 2026-11-20 - Black-hole debris gathers before both polar jets fire in a fast, smooth burst without center streaks.
+
+* 2026-11-20 - Replaced solver badge labels with round illustrated stamps. Fuji uses a mountain, ERC-8004 uses an identity shield, and Demo uses a ringed planet.
+
+* 2026-11-20 - The black-hole click now pulls glowing debris inward and fires two polar jets behind the solver globe.
+
+* 2026-11-20 - The globe ID card shows Fuji and canonical ERC-8004 badges at the right of the rank row. Fictional solver cards show a Demo badge.
+
+* 2026-11-20 - Grouped the solver globe, archived solar preview, text motion, and design tooling for frontend-Tai. Web tests: 148 passed. Typecheck still reports legacy agent/explorer errors.
+
+- 2026-11-20: Updated the App card button label to flip one full word at a time.
+
+* 2026-11-20 — Clicking the black hole on `/app` sends fading amber ripples behind the globe, with motion suppressed for reduced-motion users.
+
+- 2026-11-20: Reduced the App card button text reveal to one flip per character.
+
+- 2026-11-20: Restored the footer animation effect's cleanup and verified that the edited TSX files parse.
+
+- 2026-11-20: Applied staggered flips through two intermediate letters to the card footer label and kept the headline's whole-phrase animation.
+
+- 2026-11-20: Kept the App headline visible and cycling independently of agent card selection.
+
+- 2026-11-20: Added a hover label reveal to the demo card action so it changes from View live agents to Open live roster.
+
+- 2026-11-20: Clipped the App footer glow to the button shape and added a lit label reveal for the 8004scan action.
+
+- 2026-11-20: Added a separate gold light pulse that follows the footer stroke and fades into the arrowhead.
+
+- 2026-11-20: Shortened the footer glide to 420ms and debounced hover and focus changes by 200ms to prevent rapid animation reversals.
+
+- 2026-11-20: Added a warm light trail that follows the App footer's gold line as it forms the arrow.
+
+- 2026-11-20: Replaced the App footer arrow's spin with a slower glide that stretches and blurs before the arrow settles.
+
+- 2026-11-20: Updated the card action so the gold edge splits, spins during travel, forms the arrowhead, and then grows the shaft.
+
+- 2026-11-20: Added ease-in-out timing and a brief blur to the App footer's gold line-to-arrow morph.
+
+- 2026-11-20: Matched the footer hover arrow to the earlier open-arrow style while retaining the gold-line morph.
+
+- 2026-11-20: Replaced the App footer's static arrow with a gold edge that moves right and morphs into an arrow on hover or keyboard focus.
+
+- 2026-11-20: Stretched the App card action across its footer row with the label on the left and arrow on the right.
+
+- 2026-11-20: Restyled the App footer action with a charcoal cut corner and a copper edge.
+
+- 2026-11-20: Restyled the right-aligned App footer action in dark teal, with its label to the right of the animated arrow.
+
+- 2026-11-20: Anchored the App card footer link and its hit area to the right edge.
+
+- 2026-11-20: Aligned the App card footer label next to its arrow on the right, removed the divider, and limited hover animation to the arrow.
+
+- 2026-11-20: Changed the App solver card action to a full-width footer link with a divider and copper arrow.
+
+- 2026-11-20: Restyled the App card action as an ivory pill with a charcoal arrow circle.
+
+- 2026-11-20: Moved the App card footer action down by 20% of its previous bottom gap and added a copper-accented arrow treatment.
+
+- 2026-11-20: Simplified App card details to Attestations above Owner and the canonical Registered ID.
+
+- 2026-11-20: Reduced the solver card footer gap by 10%, from 40px to 36px on desktop.
+
+- 2026-11-20: Used the screenshot's white measurement mark as the reference for the solver card footer gap, setting it to 40px on desktop.
+
+- 2026-11-20: Matched the solver card's top inset above the agent name with the bottom inset below the 8004scan button at all breakpoints.
+
+- 2026-11-20: Increased the padding below the App ID card's footer button and restored the prior globe positioning.
+
+- 2026-11-20: Increased selected-agent zoom by 10%. Live App cards fall back to the recorded Fuji seed description on RPC failure, and demo cards identify fictional solvers.
+
+- 2026-11-20: Agent selection pans the globe and ID card upward together by up to 25% of the stage height, using the original leader spacing and keeping the card within the stage where space permits.
+
+- 2026-11-20: Changed the App solver ID card to dark gray glass and raised it above the selected marker with a longer leader.
+
+- 2026-11-20: Switched the official App solver ID card to a flat translucent tint with a blurred backdrop.
+
+- 2026-11-20: Verified the App card changes with the web test suite and restricted TextMorph's wrapper to its supported tags to resolve its JSX type error. Legacy explorer types still block full web typecheck.
+
+- 2026-11-20: Refined the App ID card and added decoded ERC-8004 About text via the existing server-rendered standings.
+
+* 2026-11-20 - Moved official globe standings to server-side rendering with 60-second ISR. The browser receives up to ten ranked records and the existing demo URLs still resolve.
+
+* 2026-11-20 - Switched the globe credential to Geist and removed excess vertical spacing.
+
+* 2026-11-20 - Simplified the globe credential typography, registry details, and footer action.
+
+* 2026-11-20 - Moved solver rank and name into a two-column identity row above the registry details.
+
+* 2026-11-20 — Solver ID footer links to the canonical Fuji profile on `testnet.8004scan.io`; sample IDs link to the live roster.
+
+* 2026-11-20 - Redesigned the /app solver ID as a taller, minimal credential with responsive, scroll-free details.
+
+### 2026-11-20 - Heavier App globe spin
+Reduced drag sensitivity and flick speed, smoothed momentum buildup, and lengthened the fixed-axis coast on `/app`.
+
+* 2026-11-20 - Hid the /app solver ID scrollbar during the reveal and retained scrolling for cards that exceed the available height.
+
+* 2026-11-20 - Locked /app globe rotation to a fixed axis for drag, keyboard, and solver focus.
+
+* 2026-11-20 - Promoted the Earth globe to /app, redirected /app2, and archived the solar system at the development-only /app-solar preview.
+
+* 2026-11-20 - Changed the /app2 headline to a bottom-up flip between phrases.
+
+* 2026-11-20 - Restored the Earth globe at /app2 using the existing globe renderer, shared solver feed and identity card, and a reconstructed accretion disk.
+
+* 2026-11-20 - Added animated planet close-ups on /app, with immediate focus for reduced motion and overview restoration on dismissal.
+
+* 2026-11-20 - Refined the /app Sun with a textured amber photosphere, a darkened limb, and a copper corona with plasma loops.
+
+* 2026-11-20 - Fixed the planets in place on matching spaced tracks and added manual camera orbit.
+
+* 2026-11-20 - Preserved relative orbital rates with one accelerated clock, lowered the view to 15 degrees, and refined the planet textures and rings.
+
+* 2026-11-20 - Added perspective depth, accelerated orbital motion, and more visible axial rotation to the /app solar map.
+
+* 2026-11-20 - Added rotating Three.js planets, a flat XY orbit plane viewed from 45 degrees toward +Z, and fading dashed signal trails on /app.
+
+* 2026-11-20 - Set the /app solar map camera to 45 degrees above the orbital plane.
+
+* 2026-11-20 - Matched the proportions and sweep direction of the planet-to-planet paths on /app.
+
+* 2026-11-20 - Removed the black hole and accretion disk from /app and matched planet surfaces to Lantern Finance's black-and-gold palette.
+
+* 2026-11-20 - Replaced the /app Earth globe with a solar map using JPL approximate positions, bounded pan, axial planet rotation, and elliptical links between solver-labeled planets.
+
+### 2026-11-20 - App globe satellites
+- Removed decorative satellites and their canvas render pass.
+
+### 2026-11-20 - App headline letter morph
+- Shared letters slide into position and new letters fade in on the existing three-second cycle. TextMorph uses browser animations while npm is unreachable.
+
+### 2026-11-20 - App HyperText headline
+- App phrases now resolve letter by letter every three seconds. The reusable component runs with React and CSS because the npm registry was unreachable.
+
+### 2026-11-20 - App headline focus pull
+- Each phrase softens out and the next resolves into focus in the same position. The three-second cadence and reduced-motion fallback are retained.
+
+### 2026-11-20 - App headline wipe
+- The App headline switches phrases with a left-to-right wipe on the existing three-second cadence.
+
+### 2026-11-20 - App headline rotation
+- The full App headline cycles through three phrases at the Exchange's three-second cadence, with a fixed text area and a static title for reduced motion.
+
+* **2026-11-20 App**: removed the buttons below the solver globe. Drag rotation and wheel zoom remain.
+
+### 2026-11-20 - App title idle motion
+- The solver network title catches a soft warm light at idle. Opening a solver card, pausing ambient motion, or enabling reduced motion keeps it still.
+
+- 2026-11-20: Matched the App's shooting particles to the Exchange backdrop with faint, short trails on small curved paths.
+
+- 2026-11-20: Added depth to the App sky with layered gas clouds, a directional lensed rim and slower disk motion.
+
+- 2026-11-20: Added shooting stars, brighter star flares and drifting dust to the App sky.
+
+- 2026-11-20: Animated the App backdrop with star twinkles and glowing streams across the accretion disk.
+
+- 2026-11-19: Reframed the solver page as an orbital observation field with high-DPI procedural sky, finer land sampling and directional brass lighting.
+
+- 2026-11-19: Solver globe gained bounded zoom, an eclipsed amber disk and an animated registry card anchored above the selected dot.
+
+* `2026-11-19` - Styled App satellites with brass lantern bodies and charcoal wings, and layered the aurora behind the globe.
+
+* `2026-11-19` - Replaced orbiting solver labels with decorative satellites and added a surface light wave and muted aurora.
+
+* `2026-11-19` - Removed the visible orbit line from the App globe. Agent labels still move around it.
+
+* `2026-11-19` - Restyled the globe hologram as a Lantern Finance solver ID, with labeled sample credentials and the live verification link.
+
+* `2026-11-19` - Fit the App globe and controls within the viewport and removed page scrolling.
+
+* `2026-11-19` - Smoothed App globe dragging and lengthened momentum decay to match the feel of page scrolling.
+
+* `2026-11-19` - Expanded the App globe to ten agents and moved detail cards onto the globe. Removed the side panel.
+
+* `2026-11-19` - App solver selection pushes the globe camera toward the selected dot and reveals a holographic inspector. Globe halo and marker bloom removed.
+
+* `2026-11-19` - The local development App opens with five fictional solvers by default. View live network switches to real standings. Production defaults to live data.
+
+* `2026-11-19` - Added an eased idle spin, drag momentum, and orbiting attestation labels to the App globe. Open `/app?demo=1` for five fictional solvers without a registry connection. Verified the desktop preview, dot selection, standings, and pause/resume in Edge.
+
+* `2026-11-19` - Replaced the flat App map with a cinematic interactive globe and five live-ranked solver dots. Added animated illustrative arcs, pause and reduced-motion handling, and a registry inspector with 8004scan links. Web tests and touched-file lint passed. Local browser preview timed out.
+
+* `2026-11-19` - Confirmed the Windows frontend startup command `pnpm.cmd dev:web` from the repository root.
+
+* `2026-11-19` - Created a standalone Solver Constellation showcase with five selectable beacons, attestation-based heights and reduced-motion support. Node interaction and coordinate checks passed. Browser visual check pending.
+
+* `2026-11-19` - Standalone App design preview compares Spotlight and Rank board for five sample solvers, ranked by earned attestations. Node interaction checks passed. Browser layout and shared navigation integration remain unverified.
 
 * `2026-11-19` — agent: **prod FE pointed at localhost — `packages/config` env reads were dynamic, Next never inlined them** — `globalThis.process?.env?.NEXT_PUBLIC_*` (and any non-static access) skips build-time replacement, so Vercel always fell back to `DEFAULT_API_URL=localhost` despite correct Config keys; fixed all four getters to static `process.env.NEXT_PUBLIC_*` (+ `@types/node` in `@lantern/config`, `apps/web/.env` stale `:4000`→`:8082`), canary build proved inlining, pushed `e806891`, deployed bundle verified: `https://lantern-2ikh.onrender.com` + `wss://…/quotes` inlined, zero localhost. Also: local `:8082` market service had died mid-session (restart from `services/market` CWD, pid `/tmp/lantern-market.pid`) — localhost page errors were just the dead backend, FE paths (`/graphql`, `/market/*`) were correct.
 

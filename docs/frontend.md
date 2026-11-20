@@ -251,3 +251,71 @@ Landing chapter mapping (2026-11-16): filtered story panels retain authored anim
 Artwork continuity (2026-11-16): LivingLight uses the shared R3F clock so neighboring precompute requests agree. The worker cache retains the last completed pose per artwork across eviction and clears it on teardown. Existing frontend-Tai spatial handoffs remain; missing worker frames no longer hide previously prepared artwork. Layout/controls unchanged; browser visual QA pending.
 
 First circle-to-lanes handoff (2026-11-16): circle exit spans the first 36% of the handoff before ribbon widening. Original line strands stay visible through surface formation instead of being faded by the incoming chapter weight or hidden at full ribbon weight. Destination network reveal is delayed to 88-100%, overlapping the outgoing lines at 92-100%. Existing placement/reach research applies; layout, scrolling and controls unchanged. Browser visual QA pending.
+
+## Solver globe (2026-11-19)
+
+The three podium badges sit 34px directly above their rotating globe pins with a fixed-length hologram beam. The upright badges use transparent faces and layered outlines that turn left and right with the globe. They retain 44px hit areas. The existing 390px phone and 1440px desktop placement review applies.
+
+The solver ID footer uses its existing 44px action slot for the canonical Fuji 8004scan profile. Sample cards use the slot to open the live roster. Placement uses the target-size research above and assumes a 390px phone and 1440px desktop. The action stays inside the card alongside the identity details and preserves the shared navigation position. Responsive browser verification is pending.
+
+The App page shows the five leading solvers by earned attestations. The local land atlas provides the globe's geography. Agent positions and randomized elevated paths are illustrative. The selected solver's registry details and canonical 8004scan link sit next to the globe on desktop and directly below it on mobile.
+
+Placement research used [W3C's dragging alternatives](https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements) and [MDN's touch-action guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/touch-action). Design assumptions were a 1440px desktop and a 390px phone without project analytics. Touch swipes rotate horizontally while vertical swipes continue scrolling the page. The 44px rotation controls and standings rows provide pointer and keyboard alternatives. Shared navigation keeps its existing position.
+
+The globe turns slowly at idle and coasts after a drag. An amber light wave sweeps the land dots against a layered teal aurora with a faint brass edge. The pause control stops idle rotation, flights, and orbiting labels. Reduced-motion mode presents all three as still. The demo link sits with the page introduction, and `/app?demo=1` shows five labeled fictional solvers without polling the registry.
+
+In development, `/app` opens in demo mode by default. Production opens the live network. The page links switch explicitly between `?demo=0` for live data and `?demo=1` for samples.
+
+Production `/app` pre-renders the top ten solvers from the Lantern Go GraphQL API. After 60 seconds, the next visit receives the cached page while Next.js regenerates it. If regeneration fails, the previous page remains cached. The official globe sends no standings requests from the browser. 8004scan is an outbound profile link.
+
+Selecting an agent from a globe dot or standings row centers the globe on that agent with a brief camera push-in. A scan reveal runs in the existing inspector position. Reduced motion centers immediately and shows the card without a reveal. The globe uses solid markers and crisp flight paths.
+
+The globe now displays up to ten ranked agents, with ten fictional agents in demo mode. The hologram overlays the globe near the centered marker and replaces the standings panel. On compact screens the card anchors above the globe controls. Click or tap outside, drag, rotate, use the close button, or press Escape to dismiss. Selecting another solver switches cards. Placement follows the existing mobile and desktop reach guidance above.
+
+The App shell fits the dynamic viewport. Its globe stage takes the space left by the header, introduction, and control row. Opening the card keeps the stage height fixed. Short screens can scroll within a long agent card while the page stays fixed. Shared navigation and the existing touch targets retain their placement.
+
+The hologram uses a solver ID layout with a credential header, identity tile, grouped fields, and a verification footer. The panel keeps its existing overlay bounds and close target. Demo cards are labeled as samples.
+
+The solver globe uses an amber accretion disk, wheel and button zoom, and a vertical leader from the selected marker to a screen-resolution identity card. Card height follows available space on short screens.
+
+Clicking the black hole draws glowing debris into its accretion disk and fires two brief jets perpendicular to the disk. The animation stays behind the globe. Following the existing 390px phone and 1440px desktop placement review, the circular touch target follows the painted core with a 44px minimum.
+
+The desktop solver title sits inside the observation field. On narrow screens it sits above the canvas. A separate high-DPI canvas draws the star field and lensed accretion disk on resize; the moving globe uses matching upper-right lighting.
+
+Tiny shooting particles follow curved paths with short trails inspired by the Exchange backdrop. Brighter stars flare at different rates, dust drifts through the star band, and amber streams travel across the disk. All effects use the globe's animation clock. The pause control holds the current frame, and reduced-motion mode displays the cached sky.
+
+The sky layers cool gas clouds and copper dust under the star band. Exposure drops behind the desktop title, while the eclipse has a directional copper rim and slower disk motion. The artwork fits the existing viewport and keeps pointer and touch targets in place.
+
+The App footer now shows only the illustrative-location caption. Drag rotation and wheel zoom remain available. Reviewed the existing desktop and phone reach guidance; removing the controls shortens the footer at both widths.
+
+## Archived solar system solver map (2026-11-20)
+
+The solar system source lives in `apps/web/src/app/app-solar`. Open `/app-solar?demo=1` on the development server to preview it. Production serves the official globe at `/app`.
+
+The eight highest-ranked solvers occupy fixed positions on evenly spaced, stylized elliptical tracks in Mercury-to-Neptune order. Drag sideways or use the left and right arrow keys to orbit the view around the Sun at 15 degrees above the orbital plane. Click, tap, or activate a planet with the keyboard to zoom into it and open its solver card above the close-up. The close-up scales to the viewport and keeps the planet in view while orbiting. Wheel and keyboard zoom adjust the close-up. Closing the card or pressing Escape restores the overview at its previous zoom. Reduced motion applies the camera change immediately.
+
+The planets have fixed surface orientations and use brass-lit Three.js meshes, with a canvas fallback. The camera reveals different sides as it orbits. Projected planet sizes adjust when bodies draw close on screen, including Saturn's rings. Gold signal dots still travel between planets with fading dashed trails and respect reduced-motion preferences.
+
+The Sun uses a cached canvas texture with amber granulation, limb darkening, and plasma loops in a copper corona. Its size follows the stage and camera zoom. Nearby labels can move above their planets to keep the solar disk readable.
+
+## Official solver globe at /app (2026-11-20)
+
+`/app` shows the Earth globe with the land atlas, drifting star field, copper accretion disk, and up to ten ranked solver markers. Drag horizontally or use the left and right arrow keys to spin around its fixed, tilted north–south axis. Selecting a marker turns it toward the front and pans and zooms to make room for the solver ID card above its vertical leader. Use the wheel or keyboard to zoom and press Escape to dismiss the ID. Demo and live links stay on `/app`. Old `/app2` links redirect to `/app` with their query parameters.
+
+The existing dragging and touch-action research above informed the placement. The desktop intro overlays the left of the sky, while the compact intro sits above the globe and short windows can scroll to reach it. The shared header keeps its position. Desktop Edge verification covered the globe, ID card, Escape dismissal, and navigation to the solar view. Mobile touch interaction remains unverified.
+
+The headline flips whole phrases upward every three seconds. The card footer label flips one whole word at a time when its arrow animation starts. The headline reserves the same space at desktop and mobile widths, and reduced motion displays a static heading.
+
+The globe's solver ID uses a taller slate credential with teal rank, violet attestations, and a compact layout for short viewports. The card fits inside the stage without internal scrolling. The compact intro stays visible while a solver card is open. The W3C [reflow guidance](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html) informed the narrow layout. The close target is 44px, and shared navigation keeps its existing placement.
+
+The identity row puts the large teal rank on the left and the name on the right. Registry details use aligned, neutral text below the divider, with a quiet verification action at the bottom. Compact viewports use smaller rank typography to give two-digit ranks and long names room to fit.
+
+The globe credential uses Geist. Its height follows the visible fields and footer, with tighter vertical spacing and the existing 44px action targets.
+
+The globe ID card centers one circular stamp vertically at the right of the identity row. The top three get larger metallic seals, and ranks four through eight each get a different illustration. Ranks nine and ten reuse standard designs. Using the existing reflow guidance for assumed 390px phone and 1440px desktop widths, the stamps scale down on compact screens and stay outside the close button's touch target. The rank itself remains available as text.
+
+App ID card (2026-11-20): Flat translucent dark gray glass with a subtle border and blurred backdrop, ivory serif name, copper rank, and the canonical registration description directly under the name. Following [WCAG Reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html) and the existing target-size guidance, the card uses responsive bounds for assumed 390px phone and 1440px desktop widths. Selecting a marker raises the globe and card together by up to 25% of the stage height. The card keeps its marker spacing and top inset. Long descriptions are visually shortened on compact screens so the profile link and close targets remain reachable without an internal scrollbar.
+
+The globe labels the first three pins by rank and keeps matching shortcuts in the bottom toolbar. The shortcuts focus those solvers from any angle and use 44px targets per the existing touch guidance. At the assumed 390px phone width they share one row and truncate long names visually while retaining full accessible labels. Desktop uses the same placement beside the existing scene caption. All ten card ranks have distinct stamp colors.
+
+The crown, gem, and star project above the globe with beams pointing back to their surface positions. Each floating badge keeps its 44px target. If the projection would clip at the top of the stage, the bottom shortcut remains available.

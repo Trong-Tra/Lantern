@@ -3,41 +3,31 @@ import assert from "node:assert/strict";
 import { loadSource } from "./helpers/load-source.mjs";
 
 const {
-  agentPin,
-  agentPins,
   agentVerifyUrl,
   build8004scanAgentUrl,
   FUJI_8004SCAN_SLUG,
   numericAgentId,
   rankAgents,
+  readRegistrationAbout,
   shortAddress,
 } = loadSource("src/libs/app/network.ts");
+
+test("canonical registration About extracts text and skips missing or encoded descriptions", () => {
+  const registration = (metadata) =>
+    `data:application/json;base64,${Buffer.from(JSON.stringify(metadata)).toString("base64")}`;
+  const description = "Lantern Finance solver agent on Avalanche Fuji";
+  assert.equal(readRegistrationAbout(registration({ description: ` ${description} ` })), description);
+  assert.equal(readRegistrationAbout(registration({ name: "Aster" })), null);
+  assert.equal(readRegistrationAbout(registration({ description: "data:text/plain;base64,SGVsbG8=" })), null);
+  assert.equal(readRegistrationAbout(registration({ description: "0x48656c6c6f" })), null);
+  assert.equal(readRegistrationAbout("data:application/json;base64,broken"), null);
+});
 
 test("numericAgentId parses ids and falls back to 0", () => {
   assert.equal(numericAgentId("7"), 7);
   assert.equal(numericAgentId("15"), 15);
   assert.equal(numericAgentId("not-a-number"), 0);
   assert.equal(numericAgentId(""), 0);
-});
-
-test("agentPin cycles illustrative cities by id", () => {
-  const a = agentPin("1");
-  const b = agentPin("1");
-  assert.deepEqual(a, b);
-  assert.equal(typeof a.longitude, "number");
-  assert.equal(typeof a.latitude, "number");
-  assert.ok(a.label.length > 0);
-  // id 1 and id 13 share the same slot (12 cities)
-  assert.deepEqual(agentPin("13"), { ...a, agentId: "13" });
-});
-
-test("agentPins maps every id and keeps order", () => {
-  const pins = agentPins(["3", "1", "2"]);
-  assert.equal(pins.length, 3);
-  assert.deepEqual(
-    pins.map((p) => p.agentId),
-    ["3", "1", "2"],
-  );
 });
 
 test("build8004scanAgentUrl uses chain slug + canonical token id", () => {
@@ -47,13 +37,13 @@ test("build8004scanAgentUrl uses chain slug + canonical token id", () => {
   assert.equal(FUJI_8004SCAN_SLUG, "avalanche-fuji");
   assert.equal(
     build8004scanAgentUrl("314"),
-    "https://8004scan.io/agents/avalanche-fuji/314",
+    "https://testnet.8004scan.io/agents/avalanche-fuji/314",
   );
-  assert.equal(build8004scanAgentUrl("328"), "https://8004scan.io/agents/avalanche-fuji/328");
+  assert.equal(build8004scanAgentUrl("328"), "https://testnet.8004scan.io/agents/avalanche-fuji/328");
 });
 
 test("agentVerifyUrl needs a dual-registration mapping", () => {
-  assert.equal(agentVerifyUrl({ canonicalTokenId: "315" }), "https://8004scan.io/agents/avalanche-fuji/315");
+  assert.equal(agentVerifyUrl({ canonicalTokenId: "315" }), "https://testnet.8004scan.io/agents/avalanche-fuji/315");
   assert.equal(agentVerifyUrl({ canonicalTokenId: null }), null);
   assert.equal(agentVerifyUrl({ canonicalTokenId: "" }), null);
 });
