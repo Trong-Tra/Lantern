@@ -67,6 +67,8 @@ The cached sky has layered gas clouds, a darker exposure behind the title, and a
 
 ## Log (newest on top; older entries were pruned)
 
+* 2026-11-20: Removed the demo preview sentence from the App globe introduction.
+
 * 2026-11-20: Split the latest App changes into commits for black-hole effects, solver cards, and globe holograms. All 148 web tests passed.
 
 * 2026-11-20: Globe podium holograms stand upright with transparent faces and layered outlines.
