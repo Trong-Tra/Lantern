@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ComponentType, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type CSSProperties } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRightIcon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -12,9 +12,10 @@ import {
   type FetchLike,
 } from "@/libs/app/graphql";
 import { agentVerifyUrl, rankAgents, shortAddress, type AgentRecord } from "@/libs/app/network";
+import { SolverStamp } from "./solver-stamp";
 
 export type SolverMapProps = Readonly<{
-  agents: readonly Readonly<{ id: string; label: string }>[];
+  agents: readonly Readonly<{ id: string; label: string; rank: number }>[];
   selection: Readonly<{ id: string; turn: number }>;
   onSelect: (id: string) => void;
   onDismiss: () => void;
@@ -140,6 +141,7 @@ export function AppNetwork({
     enabled: !demo && standings === undefined,
   });
   const [selection, setSelection] = useState({ id: "", turn: 0 });
+  const cardRef = useRef<HTMLElement>(null);
   const ranked = useMemo(
     () =>
       demo
@@ -159,9 +161,22 @@ export function AppNetwork({
     setSelection(({ turn }) => ({ id, turn: turn + 1 }));
   }
 
-  function closeCard() {
-    setSelection(({ turn }) => ({ id: "", turn }));
-  }
+  const closeCard = useCallback(() => {
+    setSelection((current) => current.id ? { id: "", turn: current.turn } : current);
+  }, []);
+
+  const cardOpen = Boolean(active);
+  useEffect(() => {
+    if (!cardOpen) return;
+
+    function dismissOnOutsideClick(event: MouseEvent) {
+      const card = cardRef.current;
+      if (card && !event.composedPath().includes(card)) closeCard();
+    }
+
+    document.addEventListener("click", dismissOnOutsideClick, true);
+    return () => document.removeEventListener("click", dismissOnOutsideClick, true);
+  }, [cardOpen, closeCard]);
 
   const verifyUrl = active ? agentVerifyUrl(active) : null;
   return (
@@ -181,6 +196,7 @@ export function AppNetwork({
 
       {active ? (
         <section
+          ref={cardRef}
           className="app-agent-overlay"
           aria-labelledby="app-agent-title"
         >
@@ -216,6 +232,7 @@ export function AppNetwork({
                   {rankFirst && demo && <p className="app-id-about">Fictional solver</p>}
                   {!rankFirst && <p>{demo ? "Fictional solver" : "Avalanche Fuji"}</p>}
                 </div>
+                {rankFirst && <SolverStamp rank={active.rank} />}
               </div>
               <button
                 className="app-hologram-close"
