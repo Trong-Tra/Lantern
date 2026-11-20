@@ -66,6 +66,7 @@ Selecting a solver planet zooms into a viewport-sized close-up below its ID card
 The cached sky has layered gas clouds, a darker exposure behind the title, and a larger black hole with a directional copper rim.
 
 ## Log (newest on top; older entries were pruned)
+* 2026-11-20: Removed the live globe’s demo entry link and the registry-offline message.
 
 * 2026-11-20: Removed the demo preview sentence from the App globe introduction.
 

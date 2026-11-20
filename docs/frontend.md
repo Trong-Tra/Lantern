@@ -262,9 +262,9 @@ The App page shows the five leading solvers by earned attestations. The local la
 
 Placement research used [W3C's dragging alternatives](https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements) and [MDN's touch-action guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/touch-action). Design assumptions were a 1440px desktop and a 390px phone without project analytics. Touch swipes rotate horizontally while vertical swipes continue scrolling the page. The 44px rotation controls and standings rows provide pointer and keyboard alternatives. Shared navigation keeps its existing position.
 
-The globe turns slowly at idle and coasts after a drag. An amber light wave sweeps the land dots against a layered teal aurora with a faint brass edge. The pause control stops idle rotation, flights, and orbiting labels. Reduced-motion mode presents all three as still. The demo link sits with the page introduction, and `/app?demo=1` shows five labeled fictional solvers without polling the registry.
+The globe turns slowly at idle and coasts after a drag. An amber light wave sweeps the land dots against a layered teal aurora with a faint brass edge. The pause control stops idle rotation, flights, and orbiting labels. Reduced-motion mode presents all three as still.
 
-In development, `/app` opens in demo mode by default. Production opens the live network. The page links switch explicitly between `?demo=0` for live data and `?demo=1` for samples.
+In development, `/app` opens in demo mode by default. Production opens the live network. The demo is available at `/app/demo`. The live globe omits the demo entry link and the offline registry message.
 
 Production `/app` pre-renders the top ten solvers from the Lantern Go GraphQL API. After 60 seconds, the next visit receives the cached page while Next.js regenerates it. If regeneration fails, the previous page remains cached. The official globe sends no standings requests from the browser. 8004scan is an outbound profile link.
 
