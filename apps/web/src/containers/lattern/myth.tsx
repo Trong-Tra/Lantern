@@ -486,17 +486,20 @@ export function MythLanding() {
                         </>
                       )}
                       <Link className="myth-button" href="/exchange">
-                        Enter the market ↗
+                        {"Enter the market"}
+                        <span aria-hidden="true">{"↗"}</span>
                       </Link>
-                      <Link href="/docs">
-                        Docs <small>protocol &amp; build plan</small>
+                      <Link className="finale-link" href="/docs">
+                        {"Docs"}
                       </Link>
                       <a
+                        className="finale-link"
                         href={`${getExplorerUrl()}/address/${LANTERN_MARKET_ADDRESS}`}
                         target="_blank"
                         rel="noreferrer"
                       >
-                        Contracts <small>LanternMarket on Fuji ↗</small>
+                        {"Contracts"}
+                        <span aria-hidden="true">{"↗"}</span>
                       </a>
                     </div>
                   )}
