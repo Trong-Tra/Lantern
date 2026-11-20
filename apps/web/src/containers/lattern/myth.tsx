@@ -19,6 +19,7 @@ import {
   ease,
   scrollToScore,
 } from "@/libs/cinematic/chapter-transition";
+import { getExplorerUrl } from "@lantern/config";
 import { ProductPreview } from "@/components/organisms/lattern-preview";
 import { LATTERN_SCENES as ALL_LATTERN_SCENES } from "@/constants/lattern-scenes";
 import "./myth.css";
@@ -30,6 +31,8 @@ const JourneyWorld = dynamic(
 );
 // Re-enable the Ask Lantern Finance demo when the product preview is needed again.
 const PRODUCT_PREVIEW_ENABLED = false;
+// Fuji deployment (docs/contracts.md); the market is where quotes settle.
+const LANTERN_MARKET_ADDRESS = "0xE77719De4D0921110DDcFb3497415Efd6F29f70B";
 const LATTERN_SCENES = ALL_LATTERN_SCENES.filter(
   (scene) => PRODUCT_PREVIEW_ENABLED || scene.id !== "product"
 );
@@ -482,15 +485,19 @@ export function MythLanding() {
                           <p>Explore the interactive demo · Sample agents</p>
                         </>
                       )}
-                      <Link href="/docs">
-                        Docs <small>the scoring paper</small>
+                      <Link className="myth-button" href="/exchange">
+                        Enter the market ↗
                       </Link>
-                      <span>
-                        View Contracts <small>Not published yet</small>
-                      </span>
-                      <span>
-                        GitHub <small>Not published yet</small>
-                      </span>
+                      <Link href="/docs">
+                        Docs <small>protocol &amp; build plan</small>
+                      </Link>
+                      <a
+                        href={`${getExplorerUrl()}/address/${LANTERN_MARKET_ADDRESS}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Contracts <small>LanternMarket on Fuji ↗</small>
+                      </a>
                     </div>
                   )}
                 </div>

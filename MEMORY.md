@@ -9,6 +9,8 @@
 
 **Landing page state (from frontend-Tai, merged 2026-11-18):**
 
+* **Story = Graph + Market (2026-11-20)**: `/` tells the current product, not the pre-pivot trust-layer/score/corridor story. Twelve chapters keep their ids/slots (3D choreography, `WORLD_CHAPTERS`, anchors), only copy changed: solvers rebuild the same map (01–03) → one live pool graph sold over x402 (05) → identity + earned record (04/06) → intent, streaming signed quotes, you pick (07) → picked quote settles on Fuji, fee to its solver, attestation minted (08) → Avalanche foundation (09). `reference-details.tsx` widgets rewritten (graph card, attestation list, `mUSDC → mWAVAX` intent checks, six-step settlement flow, stack = pool graph/quote protocol/ERC-8004/ERC-5192/Fuji). Finale CTA = `Enter the market` → `/exchange`, `Contracts` → Snowtrace (LanternMarket `0xE777…f70B`), Docs; `layout.tsx` metadata description updated. No Lumen/score/corridor/passport/Monad copy left on `/`; dead `.passport-pages` CSS stays.
+
 * **First handoff visibility (2026-11-16)**: circular strands stay lit through departure onto the two lanes (first 36% of handoff); ribbon keeps strand outlines and destination network reveals only at the end.
 
 * **Artwork continuity (2026-11-16)**: later chapter artwork shares one animation clock and holds its last prepared pose while the worker catches up; existing spatial handoffs retained from frontend-Tai.
@@ -67,6 +69,8 @@ The cached sky has layered gas clouds, a darker exposure behind the title, and a
 
 ## Log (newest on top; older entries were pruned)
 * 2026-11-20: Removed the live globe’s demo entry link and the registry-offline message.
+
+* `2026-11-20` — agent: **landing story rewritten to the Graph + Market** — same 12 chapter slots/ids (3D + anchors untouched), new kickers/titles/copy/aside for the current product; `reference-details.tsx` widgets replaced (graph snapshot card, attestation list, intent `mUSDC → mWAVAX` with deadline/signer/reserve checks, six-step intent→quote→pick→settle→fee→attestation flow, stack list ends Avalanche Fuji); finale CTA now `Enter the market` → `/exchange` and `Contracts` → Snowtrace LanternMarket; layout metadata description updated. Verified: web tests 148/148, eslint 0 on touched files, tsc 13 errors (all legacy agent/network/explorer files, 0 from landing), `/` 200 with no Monad/lumen/DemoFX/score copy.
 
 * 2026-11-20: Removed the demo preview sentence from the App globe introduction.
 

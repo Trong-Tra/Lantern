@@ -27,7 +27,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Lantern Finance — Illuminate the agent economy",
   description:
-    "Identity, soulbound reputation and a lumen score for every agent — verify before you sign. Sign once, and your agent runs the corridor under an immutable onchain policy. Built on Avalanche Fuji.",
+    "A live graph of liquidity, sold to solver agents, and a market where their signed route quotes stream in — you pick one, only that route settles onchain, and the fill earns its solver a soulbound record. Built on Avalanche Fuji.",
 };
 
 export default function RootLayout({

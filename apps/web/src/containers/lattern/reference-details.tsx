@@ -4,7 +4,7 @@ export function ReferenceDetails({ index }: { index: number }) {
     <>
       <p className="chapter-detail">
         {
-          "Built by engineers from centralized exchanges · published research behind the protocol (IEEE) · ERC-8004 research"
+          "Built by engineers from centralized exchanges · published research behind the protocol (IEEE) · ERC-8004 identity"
         }
       </p>
       <span className="ignition-signature" aria-hidden="true">
@@ -16,144 +16,142 @@ export function ReferenceDetails({ index }: { index: number }) {
       <div className="soul-layers" aria-label="Three layers of an agent soul">
         <span>
           <i></i>
-          {"Identity"}
+          {"ERC-8004"}
         </span>
         <span>
           <i></i>
-          {"Reputation"}
+          {"ERC-5192"}
         </span>
         <span>
           <i></i>
-          {"History"}
+          {"Settlements"}
         </span>
       </div>
     </>,
     <>
       <dl className="agent-receipt">
         <div>
-          <dt>{"Sample agent"}</dt>
-          <dd>{"Agent 0x71F · illustrative data"}</dd>
+          <dt>{"Lantern Finance Graph"}</dt>
+          <dd>{"Avalanche Fuji"}</dd>
         </div>
         <div>
-          <dt>{"Identity"}</dt>
-          <dd>{"Verified"}</dd>
+          <dt>{"Nodes / edges"}</dt>
+          <dd>{"5 assets · 9 pools"}</dd>
         </div>
         <div>
-          <dt>{"Reputation"}</dt>
-          <dd>{"92 / 100"}</dd>
+          <dt>{"Reserves"}</dt>
+          <dd>{"Checked against chain"}</dd>
         </div>
         <div>
-          <dt>{"Executions / failures"}</dt>
-          <dd>{"2,481 / 3"}</dd>
+          <dt>{"Access"}</dt>
+          <dd>{"x402 · per read"}</dd>
         </div>
         <div>
-          <dt>{"Soul"}</dt>
-          <dd>{"Active"}</dd>
+          <dt>{"Served as"}</dt>
+          <dd>{"/graph/snapshot"}</dd>
         </div>
       </dl>
     </>,
     <>
-      <div className="chapter-sequence" aria-label="Sample interaction history">
+      <div className="chapter-sequence" aria-label="What mints standing">
         <span>
-          {"Swap "}
+          {"Picked "}
           <b>{"↗"}</b>
         </span>
         <span>
-          {"Payment "}
+          {"Settled "}
           <b>{"↗"}</b>
         </span>
         <span>
-          {"Bridge "}
+          {"Attested "}
           <b>{"↗"}</b>
         </span>
         <span className="history-failed">
-          {"Execution "}
+          {"Retracted "}
           <b>{"×"}</b>
         </span>
         <span>
-          {"Trade "}
+          {"Earned "}
           <b>{"↗"}</b>
         </span>
-        <small>{"ILLUSTRATIVE ONCHAIN HISTORY"}</small>
+        <small>{"SOULBOUND · MINTED BY THE MARKET, NEVER CLAIMED"}</small>
       </div>
     </>,
     <>
       <div className="route-intent">
         <span className="micro-label">{"YOUR INTENT"}</span>
         <p>
-          {"Swap MON "}
+          {"Swap mUSDC "}
           <span>{"→"}</span>
-          {" CNY"}
+          {" mWAVAX"}
         </p>
         <div className="route-checks">
-          <span>{"× Unverified agent"}</span>
-          <span>{"× Poor execution history"}</span>
-          <span>{"× Unknown reputation"}</span>
-          <span className="route-selected">
-            {"↗ Trusted route illuminated"}
-          </span>
+          <span>{"× Quote past its deadline"}</span>
+          <span>{"× Signer not in the registry"}</span>
+          <span>{"× Reserves moved since the quote"}</span>
+          <span className="route-selected">{"↗ Pick is replayed to the pool"}</span>
         </div>
       </div>
     </>,
     <>
       <div
         className="chapter-sequence"
-        aria-label="Illustrative execution sequence"
+        aria-label="How a picked quote settles"
       >
         <span>
           <i>{"01"}</i>
-          {"User intent"}
+          {"Intent posted"}
           <b>{"↗"}</b>
         </span>
         <span>
           <i>{"02"}</i>
-          {"Lantern Finance resolves"}
+          {"Solvers quote"}
           <b>{"↗"}</b>
         </span>
         <span>
           <i>{"03"}</i>
-          {"Agent accepts"}
+          {"You pick one"}
           <b>{"↗"}</b>
         </span>
         <span>
           <i>{"04"}</i>
-          {"Wallet authorization"}
+          {"Fuji settlement"}
           <b>{"↗"}</b>
         </span>
         <span>
           <i>{"05"}</i>
-          {"Monad settlement"}
+          {"Fee to the solver"}
           <b>{"↗"}</b>
         </span>
         <span>
           <i>{"06"}</i>
-          {"Confirmed"}
+          {"Attestation minted"}
           <b>{"↗"}</b>
         </span>
-        <small>{"ILLUSTRATIVE FLOW · THE LIVE VERSION RUNS ON /AGENT/1"}</small>
+        <small>{"LIVE FLOW · /EXCHANGE ON AVALANCHE FUJI"}</small>
       </div>
     </>,
     <>
       <div className="foundation-stack">
         <span>
           <i>{"01"}</i>
-          {"Agent network"}
+          {"Pool graph"}
         </span>
         <span>
           <i>{"02"}</i>
-          {"Lantern Finance identity"}
+          {"Quote protocol"}
         </span>
         <span>
           <i>{"03"}</i>
-          {"Reputation layer"}
+          {"ERC-8004 identity"}
         </span>
         <span>
           <i>{"04"}</i>
-          {"Execution layer"}
+          {"ERC-5192 record"}
         </span>
         <span>
           <i>{"05"}</i>
-          {"Monad"}
+          {"Avalanche Fuji"}
         </span>
       </div>
     </>,
