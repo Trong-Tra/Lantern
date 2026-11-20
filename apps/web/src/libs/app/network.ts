@@ -1,7 +1,6 @@
 /**
  * App network showcase — pure helpers (unit-tested, no React/config imports).
  *
- * Map host pins are ILLUSTRATIVE only: we do not know where agents run.
  * Standing is earned attestation count — never a derived Elo/score formula
  * (MEMORY: no derived score/risk anywhere).
  */
@@ -15,51 +14,28 @@ export type AgentRecord = {
   canonicalTokenId: string | null;
 };
 
-export type AgentPin = {
-  agentId: string;
-  /** Illustrative longitude (degrees). */
-  longitude: number;
-  /** Illustrative latitude (degrees). */
-  latitude: number;
-  /** City label for the tooltip — not a host claim. */
-  label: string;
-};
+/** Read the description from Lantern's canonical ERC-8004 registration format. */
+export function readRegistrationAbout(uri: string): string | null {
+  const prefix = "data:application/json;base64,";
+  if (!uri.startsWith(prefix)) return null;
 
-/**
- * Deterministic illustrative host cities, cycled by numeric agent id.
- * Purely decorative placement for the map — never presented as geolocation.
- */
-const ILLUSTRATIVE_PINS: ReadonlyArray<{ longitude: number; latitude: number; label: string }> = [
-  { longitude: -74.006, latitude: 40.7128, label: "New York" },
-  { longitude: -0.1276, latitude: 51.5072, label: "London" },
-  { longitude: 13.405, latitude: 52.52, label: "Berlin" },
-  { longitude: 55.2708, latitude: 25.2048, label: "Dubai" },
-  { longitude: 72.8777, latitude: 19.076, label: "Mumbai" },
-  { longitude: 139.6917, latitude: 35.6895, label: "Tokyo" },
-  { longitude: 151.2093, latitude: -33.8688, label: "Sydney" },
-  { longitude: -46.6333, latitude: -23.5505, label: "São Paulo" },
-  { longitude: 103.8198, latitude: 1.3521, label: "Singapore" },
-  { longitude: 37.6173, latitude: 55.7558, label: "Moscow" },
-  { longitude: -122.4194, latitude: 37.7749, label: "San Francisco" },
-  { longitude: 4.9041, latitude: 52.3676, label: "Amsterdam" },
-];
+  try {
+    const json = Buffer.from(uri.slice(prefix.length), "base64").toString("utf8");
+    const { description } = JSON.parse(json) as { description?: unknown };
+    if (typeof description !== "string") return null;
+    const about = description.trim();
+    return about && !/^(?:data:|0x[\da-f]+$|[a-z\d+/_-]{40,}={0,2}$)/i.test(about)
+      ? about
+      : null;
+  } catch {
+    return null;
+  }
+}
 
-/** Parse a numeric ERC-8004 id; NaN-safe (non-numeric ids pin at index 0). */
+/** Parse a numeric ERC-8004 id; defaulting to 0 for non-numeric ids. */
 export function numericAgentId(id: string): number {
   const value = Number.parseInt(id, 10);
   return Number.isFinite(value) && value >= 0 ? value : 0;
-}
-
-/** Illustrative pin for an agent id — cycles the city table by id. */
-export function agentPin(agentId: string): AgentPin {
-  const index = numericAgentId(agentId) % ILLUSTRATIVE_PINS.length;
-  const pin = ILLUSTRATIVE_PINS[index];
-  return { agentId, ...pin };
-}
-
-/** All illustrative pins for a set of agent ids (stable order by id). */
-export function agentPins(agentIds: ReadonlyArray<string>): AgentPin[] {
-  return [...agentIds].map(agentPin);
 }
 
 /**
@@ -71,7 +47,7 @@ export function agentPins(agentIds: ReadonlyArray<string>): AgentPin[] {
 export const FUJI_8004SCAN_SLUG = "avalanche-fuji";
 
 export function build8004scanAgentUrl(canonicalTokenId: string): string {
-  return `https://8004scan.io/agents/${FUJI_8004SCAN_SLUG}/${canonicalTokenId}`;
+  return `https://testnet.8004scan.io/agents/${FUJI_8004SCAN_SLUG}/${canonicalTokenId}`;
 }
 
 /**

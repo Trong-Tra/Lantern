@@ -9,8 +9,19 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        { source: "/app", has: [{ type: "query", key: "demo", value: "1" }], destination: "/app/demo" },
+        ...(process.env.NODE_ENV === "development"
+          ? [{ source: "/app", has: [{ type: "query" as const, key: "demo", value: "0" }], destination: "/app/live" }]
+          : []),
+      ],
+    };
+  },
   async redirects() {
     return [
+      { source: "/app2", destination: "/app", permanent: true },
       // route renamed to match the Network tab (/explore → /network)
       { source: "/explore", destination: "/network", permanent: true },
       { source: "/explore/:path*", destination: "/network", permanent: true },
