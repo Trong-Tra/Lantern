@@ -12,6 +12,80 @@ export function diskGeometry(width: number, height: number) {
   };
 }
 
+export function paintBlackHoleBurst(ctx: CanvasRenderingContext2D, width: number, height: number, age: number) {
+  const gatherDuration = 1250;
+  const releaseAt = gatherDuration + 110;
+  const releaseDuration = 850;
+  if (age < 0 || age >= releaseAt + releaseDuration) return;
+
+  const { x, y, radius, tilt } = diskGeometry(width, height);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(tilt);
+  ctx.lineCap = "round";
+
+  for (let i = 0; i < 58; i++) {
+    const start = (i % 9) * 55;
+    const arrival = gatherDuration - (i % 7) * 48;
+    const progress = (age - start) / (arrival - start);
+    if (progress <= 0 || progress >= 1) continue;
+
+    const distance = radius * (0.92 + (1 - progress ** 2) * (1.5 + (i % 13) * 0.23));
+    const angle = i * 2.39996 + progress * (1.9 + 1.7 * progress);
+    const flattening = 0.76 - progress * 0.52;
+    const headX = Math.cos(angle) * distance;
+    const headY = Math.sin(angle) * distance * flattening;
+    if (Math.hypot(headX, headY) < radius * 0.9) continue;
+
+    const trail = angle - 0.035 - progress * 0.06;
+    const tail = distance + radius * (0.03 + progress * 0.11);
+    ctx.globalAlpha = Math.min(progress * 7, 1) * Math.min((1 - progress) * 5, 1);
+    ctx.strokeStyle = i % 4 === 0 ? "#ffe7bf" : "#e9a174";
+    ctx.lineWidth = i % 4 === 0 ? 1.65 : 0.85;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(trail) * tail, Math.sin(trail) * tail * (flattening + 0.02));
+    ctx.lineTo(headX, headY);
+    ctx.stroke();
+  }
+
+  const releaseAge = age - releaseAt;
+  const charge = Math.min(age / gatherDuration, 1);
+  const settle = Math.min(Math.max(releaseAt - age, 0) / (releaseAt - gatherDuration), 1);
+  ctx.globalAlpha = 0.65 * charge ** 3 * settle;
+  ctx.strokeStyle = "#ffc38e";
+  ctx.shadowColor = "#ffa466";
+  ctx.shadowBlur = 12;
+  ctx.lineWidth = Math.max(1, radius * 0.029);
+  ctx.beginPath();
+  ctx.ellipse(0, radius * 0.04, radius * 1.08, radius * 0.21, 0, 0, Math.PI);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  if (releaseAge > 0) {
+    const travel = Math.min(releaseAge / 160, 1);
+    const fade = 1 - releaseAge / releaseDuration;
+    const length = radius * 4.5 * travel * travel * (3 - 2 * travel);
+    const spread = radius * (0.4 - fade * 0.14);
+    ctx.globalAlpha = Math.min(releaseAge / 65, 1) * fade ** 2;
+    for (const direction of [-1, 1]) {
+      ctx.save();
+      ctx.translate(0, direction * radius * 0.87);
+      ctx.scale(spread, direction * length);
+      // Paint the whole plume with one continuous falloff across and along the jet.
+      const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+      glow.addColorStop(0, "#ffbd89");
+      glow.addColorStop(0.26, "#f6a56dcc");
+      glow.addColorStop(0.62, "#e9875659");
+      glow.addColorStop(1, "#e9875600");
+      ctx.fillStyle = glow;
+      ctx.fillRect(-1, 0, 2, 1);
+      ctx.restore();
+    }
+  }
+
+  ctx.restore();
+}
+
 export function paintGlobeBackdrop(ctx: CanvasRenderingContext2D, width: number, height: number) {
   paintDeepSky(ctx, width, height);
   const { x, y, radius, tilt } = diskGeometry(width, height);
