@@ -306,7 +306,7 @@ export function AppNetwork({
           </div>
         </section>
       ) : (
-        ranked.length === 0 && (
+        ranked.length === 0 && standings !== null && (
           <aside
             className="app-state app-feed-status"
             aria-live="polite"
@@ -318,16 +318,12 @@ export function AppNetwork({
                 <Skeleton className="loading-line" />
               </>
             )}
-            {standings === null && <p>Registry feed offline</p>}
             {standings === undefined && query.isError && (
-              <>
-                <p>Registry feed offline</p>
-                <button type="button" onClick={() => void query.refetch()}>
-                  Retry registry feed
-                </button>
-              </>
+              <button type="button" onClick={() => void query.refetch()}>
+                Retry registry feed
+              </button>
             )}
-            {(standings === undefined ? query.isSuccess : standings !== null) && <p>No agents registered</p>}
+            {(standings !== undefined || query.isSuccess) && <p>No agents registered</p>}
           </aside>
         )
       )}

@@ -42,9 +42,11 @@ export async function GlobePage({ demo }: Readonly<{ demo: boolean }>) {
             {!demo && (
               <p>Explore the top ten solvers on Avalanche Fuji, ranked by attestations earned from settled swaps.</p>
             )}
-            <Link className="app-demo-link" href={demo ? "/app?demo=0" : "/app?demo=1"}>
-              {demo ? "View live network" : "View demo agents"}
-            </Link>
+            {demo && (
+              <Link className="app-demo-link" href="/app?demo=0">
+                View live network
+              </Link>
+            )}
           </div>
         </header>
         <GlobeNetwork key={demo ? "demo" : "live"} demo={demo} standings={standings} />
